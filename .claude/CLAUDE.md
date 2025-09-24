@@ -1,10 +1,18 @@
 # Development Guidelines for Claude
 
+## Follow These Steps For Every Feature
+
+- New feature branch (conventional commits naming strategy)
+- Write a failing test for the desired behavior - we only test end results, not internals/ implementations
+- Iterate on a solution
+- Periodically test agaisnt the solution, iterate until done.
+- Passing test.
+- Refactor for: Readability, simplicity, reusability.
+- Reaffirm passing test
+
 ## Core Philosophy
 
 **TEST-DRIVEN DEVELOPMENT IS NON-NEGOTIABLE.** Every single line of production code must be written in response to a failing test. No exceptions. This is not a suggestion or a preference - it is the fundamental practice that enables all other principles in this document.
-
-I follow Test-Driven Development (TDD) with a strong emphasis on behavior-driven testing and functional programming principles. All work should be done in small, incremental changes that maintain a working state throughout development.
 
 ## Quick Reference
 
@@ -17,11 +25,13 @@ I follow Test-Driven Development (TDD) with a strong emphasis on behavior-driven
 - Small, pure functions
 - TypeScript strict mode always
 - Use real schemas/types in tests, never redefine them
+- Use conventional commits: 'feat: ...', 'fix: ...', 'chore: ...' etc.
 
 **Preferred Tools:**
 
 - **Language**: TypeScript (strict mode)
 - **Frameworks**: React, Vite, React-Router, SSR, AWS CDK
+- **UI**: Tailwind, classnames, shadcn
 - **Testing**: Jest/Vitest + React Testing Library
 - **State Management**: Prefer immutable patterns
 
@@ -40,17 +50,6 @@ I follow Test-Driven Development (TDD) with a strong emphasis on behavior-driven
 - **React Testing Library** for React components
 - **MSW (Mock Service Worker)** for API mocking when needed
 - All test code must follow the same TypeScript strict mode rules as production code
-
-### Test Organization
-
-```
-src/
-  features/
-    payment/
-      payment-processor.ts
-      payment-validator.ts
-      payment-processor.test.ts // The validator is an implementation detail. Validation is fully covered, but by testing the expected business behaviour, treating the validation code itself as an implementation detail
-```
 
 ### Test Data Pattern
 
@@ -335,66 +334,6 @@ const calculateDiscount = (price: number, customer: Customer): number => {
 
 Use options objects for function parameters as the default pattern. Only use positional parameters when there's a clear, compelling reason (e.g., single-parameter pure functions, well-established conventions like `map(item => item.value)`).
 
-```typescript
-// Avoid: Multiple positional parameters
-const createPayment = (
-  amount: number,
-  currency: string,
-  cardId: string,
-  customerId: string,
-  description?: string,
-  metadata?: Record<string, unknown>,
-  idempotencyKey?: string
-): Payment => {
-  // implementation
-};
-
-// Calling it is unclear
-const payment = createPayment(
-  100,
-  "GBP",
-  "card_123",
-  "cust_456",
-  undefined,
-  { orderId: "order_789" },
-  "key_123"
-);
-
-// Good: Options object with clear property names
-type CreatePaymentOptions = {
-  amount: number;
-  currency: string;
-  cardId: string;
-  customerId: string;
-  description?: string;
-  metadata?: Record<string, unknown>;
-  idempotencyKey?: string;
-};
-
-const createPayment = (options: CreatePaymentOptions): Payment => {
-  const {
-    amount,
-    currency,
-    cardId,
-    customerId,
-    description,
-    metadata,
-    idempotencyKey,
-  } = options;
-
-  // implementation
-};
-
-// Clear and readable at call site
-const payment = createPayment({
-  amount: 100,
-  currency: "GBP",
-  cardId: "card_123",
-  customerId: "cust_456",
-  metadata: { orderId: "order_789" },
-  idempotencyKey: "key_123",
-});
-
 ### TDD Process - THE FUNDAMENTAL PRACTICE
 
 Follow Red-Green-Refactor strictly:
@@ -413,123 +352,6 @@ Follow Red-Green-Refactor strictly:
 
 **Remember**: If you're typing production code and there isn't a failing test demanding that code, you're not doing TDD.
 
-#### TDD Example Workflow
-
-```typescript
-// Step 1: Red - Start with the simplest behavior
-describe("Order processing", () => {
-  it("should calculate total with shipping cost", () => {
-    const order = createOrder({
-      items: [{ price: 30, quantity: 1 }],
-      shippingCost: 5.99,
-    });
-
-    const processed = processOrder(order);
-
-    expect(processed.total).toBe(35.99);
-    expect(processed.shippingCost).toBe(5.99);
-  });
-});
-
-// Step 2: Green - Minimal implementation
-const processOrder = (order: Order): ProcessedOrder => {
-  const itemsTotal = order.items.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
-
-  return {
-    ...order,
-    shippingCost: order.shippingCost,
-    total: itemsTotal + order.shippingCost,
-  };
-};
-
-// Step 3: Red - Add test for free shipping behavior
-describe("Order processing", () => {
-  it("should calculate total with shipping cost", () => {
-    // ... existing test
-  });
-
-  it("should apply free shipping for orders over £50", () => {
-    const order = createOrder({
-      items: [{ price: 60, quantity: 1 }],
-      shippingCost: 5.99,
-    });
-
-    const processed = processOrder(order);
-
-    expect(processed.shippingCost).toBe(0);
-    expect(processed.total).toBe(60);
-  });
-});
-
-// Step 4: Green - NOW we can add the conditional because both paths are tested
-const processOrder = (order: Order): ProcessedOrder => {
-  const itemsTotal = order.items.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
-
-  const shippingCost = itemsTotal > 50 ? 0 : order.shippingCost;
-
-  return {
-    ...order,
-    shippingCost,
-    total: itemsTotal + shippingCost,
-  };
-};
-
-// Step 5: Add edge case tests to ensure 100% behavior coverage
-describe("Order processing", () => {
-  // ... existing tests
-
-  it("should charge shipping for orders exactly at £50", () => {
-    const order = createOrder({
-      items: [{ price: 50, quantity: 1 }],
-      shippingCost: 5.99,
-    });
-
-    const processed = processOrder(order);
-
-    expect(processed.shippingCost).toBe(5.99);
-    expect(processed.total).toBe(55.99);
-  });
-});
-
-// Step 6: Refactor - Extract constants and improve readability
-const FREE_SHIPPING_THRESHOLD = 50;
-
-const calculateItemsTotal = (items: OrderItem[]): number => {
-  return items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-};
-
-const qualifiesForFreeShipping = (itemsTotal: number): boolean => {
-  return itemsTotal > FREE_SHIPPING_THRESHOLD;
-};
-
-const processOrder = (order: Order): ProcessedOrder => {
-  const itemsTotal = calculateItemsTotal(order.items);
-  const shippingCost = qualifiesForFreeShipping(itemsTotal)
-    ? 0
-    : order.shippingCost;
-
-  return {
-    ...order,
-    shippingCost,
-    total: itemsTotal + shippingCost,
-  };
-};
-```
-
-### Refactoring - The Critical Third Step
-
-Evaluating refactoring opportunities is not optional - it's the third step in the TDD cycle. After achieving a green state and committing your work, you MUST assess whether the code can be improved. However, only refactor if there's clear value - if the code is already clean and expresses intent well, move on to the next test.
-
-#### What is Refactoring?
-
-Refactoring means changing the internal structure of code without changing its external behavior. The public API remains unchanged, all tests continue to pass, but the code becomes cleaner, more maintainable, or more efficient. Remember: only refactor when it genuinely improves the code - not all code needs refactoring.
-
 #### When to Refactor
 
 - **Always assess after green**: Once tests pass, before moving to the next test, evaluate if refactoring would add value
@@ -540,78 +362,12 @@ Refactoring means changing the internal structure of code without changing its e
 
 **Remember**: Not all code needs refactoring. If the code is already clean, expressive, and well-structured, commit and move on. Refactoring should improve the code - don't change things just for the sake of change.
 
-#### Refactoring Guidelines
-
-##### 1. Commit Before Refactoring
-
 Always commit your working code before starting any refactoring. This gives you a safe point to return to:
 
 ```bash
 git add .
 git commit -m "feat: add payment validation"
 # Now safe to refactor
-```
-
-##### 2. Look for Useful Abstractions Based on Semantic Meaning
-
-Create abstractions only when code shares the same semantic meaning and purpose. Don't abstract based on structural similarity alone - **duplicate code is far cheaper than the wrong abstraction**.
-
-```typescript
-// Similar structure, DIFFERENT semantic meaning - DO NOT ABSTRACT
-const validatePaymentAmount = (amount: number): boolean => {
-  return amount > 0 && amount <= 10000;
-};
-
-const validateTransferAmount = (amount: number): boolean => {
-  return amount > 0 && amount <= 10000;
-};
-
-// These might have the same structure today, but they represent different
-// business concepts that will likely evolve independently.
-// Payment limits might change based on fraud rules.
-// Transfer limits might change based on account type.
-// Abstracting them couples unrelated business rules.
-
-// Similar structure, SAME semantic meaning - SAFE TO ABSTRACT
-const formatUserDisplayName = (firstName: string, lastName: string): string => {
-  return `${firstName} ${lastName}`.trim();
-};
-
-const formatCustomerDisplayName = (
-  firstName: string,
-  lastName: string
-): string => {
-  return `${firstName} ${lastName}`.trim();
-};
-
-const formatEmployeeDisplayName = (
-  firstName: string,
-  lastName: string
-): string => {
-  return `${firstName} ${lastName}`.trim();
-};
-
-// These all represent the same concept: "how we format a person's name for display"
-// They share semantic meaning, not just structure
-const formatPersonDisplayName = (
-  firstName: string,
-  lastName: string
-): string => {
-  return `${firstName} ${lastName}`.trim();
-};
-
-// Replace all call sites throughout the codebase:
-// Before:
-// const userLabel = formatUserDisplayName(user.firstName, user.lastName);
-// const customerName = formatCustomerDisplayName(customer.firstName, customer.lastName);
-// const employeeTag = formatEmployeeDisplayName(employee.firstName, employee.lastName);
-
-// After:
-// const userLabel = formatPersonDisplayName(user.firstName, user.lastName);
-// const customerName = formatPersonDisplayName(customer.firstName, customer.lastName);
-// const employeeTag = formatPersonDisplayName(employee.firstName, employee.lastName);
-
-// Then remove the original functions as they're no longer needed
 ```
 
 ##### 4. Maintain External APIs During Refactoring
@@ -705,6 +461,7 @@ When working with my code:
 5. **Think from first principles** - don't make assumptions
 6. **Assess refactoring after every green** - Look for opportunities to improve code structure, but only refactor if it adds value
 7. **Keep project docs current** - update them whenever you introduce meaningful changes
+8. **Never enfeeble the code to pass a blocker** - I have noticed you hav a tendency to delete lines of config, remove directories from coverage collection or critically change the nature of the project just to get yourself out of tricky spot. This is unnacceptable - preserving the functionality we have is always more important than adding new. Reach out if you have issues.  
    **At the end of every change, update CLAUDE.md with anything useful you wished you'd known at the start**.
    This is CRITICAL - Claude should capture learnings, gotchas, patterns discovered, or any context that would have made the task easier if known upfront. This continuous documentation ensures future work benefits from accumulated knowledge
 
@@ -731,40 +488,6 @@ When suggesting or making changes:
 - Suggest improvements that align with these principles
 - When unsure, ask for clarification rather than assuming
 
-### Testing Behavior
-
-```typescript
-// Good - tests behavior through public API
-describe("PaymentProcessor", () => {
-  it("should decline payment when insufficient funds", () => {
-    const payment = getMockPaymentPostPaymentRequest({ Amount: 1000 });
-    const account = getMockAccount({ Balance: 500 });
-
-    const result = processPayment(payment, account);
-
-    expect(result.success).toBe(false);
-    expect(result.error.message).toBe("Insufficient funds");
-  });
-
-  it("should process valid payment successfully", () => {
-    const payment = getMockPaymentPostPaymentRequest({ Amount: 100 });
-    const account = getMockAccount({ Balance: 500 });
-
-    const result = processPayment(payment, account);
-
-    expect(result.success).toBe(true);
-    expect(result.data.remainingBalance).toBe(400);
-  });
-});
-
-// Avoid - testing implementation details
-describe("PaymentProcessor", () => {
-  it("should call checkBalance method", () => {
-    // This tests implementation, not behavior
-  });
-});
-```
-
 ### React Component Testing
 
 ```typescript
@@ -782,51 +505,6 @@ describe("PaymentForm", () => {
     expect(screen.getByText("Amount must be positive")).toBeInTheDocument();
   });
 });
-```
-
-## Common Patterns to Avoid
-
-### Anti-patterns
-
-```typescript
-// Avoid: Mutation
-const addItem = (items: Item[], newItem: Item) => {
-  items.push(newItem); // Mutates array
-  return items;
-};
-
-// Prefer: Immutable update
-const addItem = (items: Item[], newItem: Item): Item[] => {
-  return [...items, newItem];
-};
-
-// Avoid: Nested conditionals
-if (user) {
-  if (user.isActive) {
-    if (user.hasPermission) {
-      // do something
-    }
-  }
-}
-
-// Prefer: Early returns
-if (!user || !user.isActive || !user.hasPermission) {
-  return;
-}
-// do something
-
-// Avoid: Large functions
-const processOrder = (order: Order) => {
-  // 100+ lines of code
-};
-
-// Prefer: Composed small functions
-const processOrder = (order: Order) => {
-  const validatedOrder = validateOrder(order);
-  const pricedOrder = calculatePricing(validatedOrder);
-  const finalOrder = applyDiscounts(pricedOrder);
-  return submitOrder(finalOrder);
-};
 ```
 
 ## Resources and References
