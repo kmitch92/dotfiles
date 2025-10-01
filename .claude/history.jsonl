@@ -1,0 +1,8 @@
+{"display":"/mcp ","pastedContents":{},"timestamp":1759331568186,"project":"/Users/kiel.mitchell"}
+{"display":"/mcp ","pastedContents":{},"timestamp":1759331568199,"project":"/Users/kiel.mitchell"}
+{"display":"/mcp ","pastedContents":{},"timestamp":1759331568201,"project":"/Users/kiel.mitchell"}
+{"display":"claude mcp add puppeteer -s user","pastedContents":{},"timestamp":1759331628589,"project":"/Users/kiel.mitchell"}
+{"display":"/mcp ","pastedContents":{},"timestamp":1759331817256,"project":"/Users/kiel.mitchell"}
+{"display":"/mcp ","pastedContents":{},"timestamp":1759331817260,"project":"/Users/kiel.mitchell"}
+{"display":"/mcp ","pastedContents":{},"timestamp":1759331817267,"project":"/Users/kiel.mitchell"}
+{"display":"visit the page https://debenhams.web.stage.dbztech.net/ - this is a staging environment ahead of a major eccomerce platform release and we need to hunt down any bugs ahead of time. Try everything and anything you can think of to uncover errors, bugs, performance issues etc with this staged release. Be exhaustive, think sequentially to generate plans but also brute force every aspect of the site you can think of. when you discover errors, take screenshots and give instructions on how to reach that state. It is expected that there will be a report returned at the end with a listing per bug found","pastedContents":{},"timestamp":1759332096423,"project":"/Users/kiel.mitchell"}

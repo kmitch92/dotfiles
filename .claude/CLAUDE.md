@@ -464,6 +464,7 @@ When working with my code:
 8. **Never enfeeble the code to pass a blocker** - I have noticed you hav a tendency to delete lines of config, remove directories from coverage collection or critically change the nature of the project just to get yourself out of tricky spot. This is unnacceptable - preserving the functionality we have is always more important than adding new. Reach out if you have issues.  
    **At the end of every change, update CLAUDE.md with anything useful you wished you'd known at the start**.
    This is CRITICAL - Claude should capture learnings, gotchas, patterns discovered, or any context that would have made the task easier if known upfront. This continuous documentation ensures future work benefits from accumulated knowledge
+   **DON'T RUN BUILD / COMPILE .TS FILES** I don't want my projects clogged up with build artefacts.
 
 ### Code Changes
 

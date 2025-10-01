@@ -1,0 +1,77 @@
+[
+  {
+    "content": "Initial site load and visual inspection",
+    "status": "completed",
+    "activeForm": "Loading site and inspecting initial state"
+  },
+  {
+    "content": "Test navigation and header functionality",
+    "status": "completed",
+    "activeForm": "Testing navigation and header"
+  },
+  {
+    "content": "Test search functionality",
+    "status": "completed",
+    "activeForm": "Testing search functionality"
+  },
+  {
+    "content": "Test product listing pages",
+    "status": "completed",
+    "activeForm": "Testing product listing pages"
+  },
+  {
+    "content": "Test product detail pages",
+    "status": "completed",
+    "activeForm": "Testing product detail pages"
+  },
+  {
+    "content": "Test cart functionality",
+    "status": "completed",
+    "activeForm": "Testing cart functionality"
+  },
+  {
+    "content": "Test checkout flow",
+    "status": "pending",
+    "activeForm": "Testing checkout flow"
+  },
+  {
+    "content": "Test user account features",
+    "status": "pending",
+    "activeForm": "Testing user account features"
+  },
+  {
+    "content": "Test footer links and content",
+    "status": "pending",
+    "activeForm": "Testing footer links"
+  },
+  {
+    "content": "Test responsive design and mobile view",
+    "status": "pending",
+    "activeForm": "Testing responsive design"
+  },
+  {
+    "content": "Test form validation",
+    "status": "pending",
+    "activeForm": "Testing form validation"
+  },
+  {
+    "content": "Run accessibility audit",
+    "status": "in_progress",
+    "activeForm": "Running accessibility audit"
+  },
+  {
+    "content": "Run performance audit",
+    "status": "pending",
+    "activeForm": "Running performance audit"
+  },
+  {
+    "content": "Check console errors and network issues",
+    "status": "pending",
+    "activeForm": "Checking console and network"
+  },
+  {
+    "content": "Compile final bug report",
+    "status": "pending",
+    "activeForm": "Compiling bug report"
+  }
+]
