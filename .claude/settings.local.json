@@ -8,7 +8,8 @@
       "mcp__browser-tools__getNetworkErrors",
       "mcp__puppeteer__puppeteer_evaluate",
       "mcp__puppeteer__puppeteer_click",
-      "mcp__puppeteer__puppeteer_fill"
+      "mcp__puppeteer__puppeteer_fill",
+      "mcp__browser-tools__runAccessibilityAudit"
     ],
     "deny": [],
     "ask": []
