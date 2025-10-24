@@ -6,11 +6,11 @@ Personal dotfiles for development environment configuration, managed with [GNU S
 
 This repository contains configuration files for:
 
-- **Neovim** (`.config/nvim/`) - Complete Neovim configuration with Lua
-- **Ghostty** (`.config/ghostty/`) - Terminal emulator configuration
-- **iTerm2** (`.config/iterm2/`) - iTerm2 terminal preferences
-- **Zsh** (`.zshrc`) - Shell configuration and aliases
-- **Claude Code** (`.claude/`) - Claude Code development environment settings
+- **Neovim** (`config/.config/nvim/`) - Complete Neovim configuration with Lua
+- **Ghostty** (`config/.config/ghostty/`) - Terminal emulator configuration
+- **iTerm2** (`config/.config/iterm2/`) - iTerm2 terminal preferences
+- **Zsh** (`zsh/.zshrc`) - Shell configuration and aliases
+- **Claude Code** (`claude/.claude/`) - Claude Code development environment settings
 
 ## Prerequisites
 
@@ -44,27 +44,29 @@ Before installing these dotfiles, ensure you have the following installed:
    ./install.sh
    ```
 
-   Or install configurations individually:
+   This will create symlinks from your home directory to the dotfiles repo.
+
+   Or install packages individually:
    ```bash
-   # Install specific configurations
-   stow config    # For .config directory contents
-   stow .         # For root-level dotfiles like .zshrc
+   # Install specific packages
+   stow zsh       # Symlink .zshrc
+   stow config    # Symlink .config directory
+   stow claude    # Symlink .claude directory
    ```
 
-## Manual Installation Steps
+## How It Works
 
-If you prefer to install manually or need to troubleshoot:
+GNU Stow creates symlinks from your home directory to files in this repository.
 
-```bash
-# Navigate to the dotfiles directory
-cd ~/dotfiles
+For example:
+- `~/.zshrc` → `~/dotfiles/zsh/.zshrc`
+- `~/.config/nvim/` → `~/dotfiles/config/.config/nvim/`
+- `~/.claude/` → `~/dotfiles/claude/.claude/`
 
-# Create symlinks for .config directory contents
-stow --target=$HOME config
-
-# Create symlinks for root-level dotfiles
-stow --target=$HOME --ignore="config|install.sh|README.md|\.git.*" .
-```
+**This means changes work automatically in both directions:**
+- Edit files in `~/dotfiles/` → changes appear in your home directory immediately
+- Edit files in your home directory → changes are tracked in the git repo
+- Commit and push from `~/dotfiles/` to sync across machines
 
 ## Uninstalling
 
@@ -73,50 +75,61 @@ To remove the symlinks created by stow:
 ```bash
 cd ~/dotfiles
 
-# Remove .config symlinks
-stow -D --target=$HOME config
+# Remove all symlinks
+stow -D zsh config claude
 
-# Remove root-level symlinks
-stow -D --target=$HOME --ignore="config|install.sh|README.md|\.git.*" .
+# Or remove specific packages
+stow -D zsh    # Remove .zshrc symlink
+stow -D config # Remove .config symlinks
+stow -D claude # Remove .claude symlinks
 ```
 
 ## File Structure
 
 ```
 ~/dotfiles/
-├── .config/
-│   ├── nvim/           # Neovim configuration
-│   ├── ghostty/        # Ghostty terminal config
-│   └── iterm2/         # iTerm2 preferences
-├── .claude/            # Claude Code settings
-├── .zshrc              # Zsh shell configuration
-├── zsh/                # Additional zsh files
+├── zsh/
+│   └── .zshrc          # Zsh shell configuration
+├── config/
+│   └── .config/
+│       ├── nvim/       # Neovim configuration
+│       ├── ghostty/    # Ghostty terminal config
+│       └── iterm2/     # iTerm2 preferences
+├── claude/
+│   └── .claude/        # Claude Code settings
 ├── install.sh          # Installation script
 └── README.md           # This file
 ```
+
+Each top-level directory (`zsh`, `config`, `claude`) is a "package" for stow.
+The contents of each package are symlinked to your home directory.
 
 ## Customization
 
 After installation, you may want to:
 
-1. **Update Git configuration** in `.zshrc` with your personal details
-2. **Review Neovim plugins** in `.config/nvim/lua/core/plugins.lua`
-3. **Adjust terminal colors** in `.config/ghostty/config`
-4. **Modify shell aliases** in `.zshrc`
+1. **Update Git configuration** in `zsh/.zshrc` with your personal details
+2. **Review Neovim plugins** in `config/.config/nvim/lua/core/plugins.lua`
+3. **Adjust terminal colors** in `config/.config/ghostty/config`
+4. **Modify shell aliases** in `zsh/.zshrc`
+
+You can edit files either in `~/dotfiles/` or directly in your home directory - changes sync automatically!
 
 ## Troubleshooting
 
 ### Conflicts with existing files
 
-If you have existing dotfiles, stow will not overwrite them. You'll need to:
+If you have existing dotfiles, stow will not overwrite them. You can use stow's `--adopt` flag to move your existing files into the repo and create symlinks:
 
-1. Backup your existing files:
-   ```bash
-   mv ~/.zshrc ~/.zshrc.backup
-   mv ~/.config/nvim ~/.config/nvim.backup
-   ```
+```bash
+cd ~/dotfiles
+stow --adopt zsh config claude
+```
 
-2. Then run the installation again
+This will:
+1. Move your existing files from `~` into the dotfiles repo
+2. Create symlinks from `~` back to the repo
+3. You can then review and commit the changes with git
 
 ### Stow conflicts
 
