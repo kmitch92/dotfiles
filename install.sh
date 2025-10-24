@@ -154,6 +154,14 @@ else
     echo "✓ starship found: $(which starship)"
 fi
 
+# Check for Neovim
+if ! command -v nvim &> /dev/null; then
+    MISSING_TOOLS+=("neovim")
+    echo "⚠️  Neovim not installed (required for LazyVim config)"
+else
+    echo "✓ Neovim found: $(which nvim)"
+fi
+
 # Check for Oh My Zsh
 if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
     echo "⚠️  Oh My Zsh not installed (provides zsh plugins and features)"
@@ -176,16 +184,20 @@ if [ ${#MISSING_TOOLS[@]} -gt 0 ]; then
         read -p "Would you like to install these now via Homebrew? (y/n) " -n 1 -r
         echo
         if [[ $REPLY =~ ^[Yy]$ ]]; then
-            for tool in "${MISSING_TOOLS[@]}"; do
-                if [[ $tool == font-* ]]; then
+        for tool in "${MISSING_TOOLS[@]}"; do
+        if [[ $tool == font-* ]]; then
+        echo "Installing $tool..."
+        brew install --cask "$tool"
+        elif [[ $tool == "neovim" ]]; then
+        echo "Installing Neovim..."
+        brew install neovim
+            echo "✓ Installed Neovim"
+            else
                     echo "Installing $tool..."
-                    brew install --cask "$tool"
-                else
-                    echo "Installing $tool..."
-                    brew install "$tool"
-                fi
-            done
-        fi
+                brew install "$tool"
+            fi
+        done
+    fi
     elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
         read -p "Would you like to install these now? (requires sudo) (y/n) " -n 1 -r
         echo
@@ -231,6 +243,21 @@ if [ ${#MISSING_TOOLS[@]} -gt 0 ]; then
                         echo "Installing starship..."
                         curl -sS https://starship.rs/install.sh | sh -s -- -y
                         echo "✓ Installed starship"
+                        ;;
+                    neovim)
+                        echo "Installing Neovim..."
+                        case $DISTRO in
+                            ubuntu|debian|pop)
+                                sudo apt install -y neovim
+                                ;;
+                            fedora|rhel|centos)
+                                sudo dnf install -y neovim
+                                ;;
+                            arch|manjaro)
+                                sudo pacman -S --noconfirm neovim
+                                ;;
+                        esac
+                        echo "✓ Installed Neovim"
                         ;;
                 esac
             done
