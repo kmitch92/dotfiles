@@ -1,5 +1,7 @@
-# In your root .gitignore
-.claude/*
-!.claude/CLAUDE.md
-!.claude/agents/
-!.claude/agents/**
+# Runtime directories that shouldn't be tracked
+.claude/
+.config/
+
+# But we do want to track the packaged dotfiles
+!claude/
+!config/

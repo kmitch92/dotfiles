@@ -9,3 +9,4 @@
 {"display":"/agents","pastedContents":{},"timestamp":1761223498946,"project":"/Users/kiel.mitchell/Development"}
 {"display":"/agents","pastedContents":{},"timestamp":1761223498952,"project":"/Users/kiel.mitchell/Development"}
 {"display":"/agents","pastedContents":{},"timestamp":1761223498957,"project":"/Users/kiel.mitchell/Development"}
+{"display":"I'm trying to have it so that updating this repo updates the symlinked locations in the directory above dotfiles (my home directory, where many config files are stored by convention). Is it possible for this to happen automatically when the dotfiles repo updates? ive been trying to use stow but it doesnt seem to be working","pastedContents":{},"timestamp":1761255141770,"project":"/home/kiel/dotfiles"}
