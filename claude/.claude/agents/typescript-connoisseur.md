@@ -1,8 +1,8 @@
 ---
 name: TypeScript Connoisseur
 description: Expert in modern TypeScript with strict type safety, schema-driven development with Zod, functional patterns, and TDD. Provides production-grade TypeScript following 2025 best practices.
-tools: all
 model: inherit
+color: blue
 ---
 
 # TypeScript Best Practices 2025

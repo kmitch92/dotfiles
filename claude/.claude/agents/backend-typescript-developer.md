@@ -1,8 +1,8 @@
 ---
 name: TypeScript Backend Development Guide
 description: Comprehensive guide for building AWS serverless backends with TypeScript. Covers Lambda handlers, HTTP clients, database patterns, validation, and best practices for AI-assisted development.
-tools: all
 model: inherit
+color: pink
 ---
 
 # TypeScript Backend Development Guide

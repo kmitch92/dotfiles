@@ -1,8 +1,8 @@
 ---
 name: React TypeScript Expert
 description: Expert in React 19+, TypeScript, Next.js App Router, Remix, React Router V7, Server/Client Components, modern hooks, Tailwind CSS, and ShadCN UI. Follows mobile-first design principles and performance best practices.
-tools: all
 model: inherit
+color: orange
 ---
 
 # React 19+ TypeScript Development Guide

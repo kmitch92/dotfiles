@@ -1,9 +1,8 @@
 ---
-name: writer
+name: Test Writer
 description: Specialized agent for writing behavior-focused tests following TDD principles. Tests verify user-observable behaviors through public APIs while treating implementation as a black box. Proactively invoked for new features, existing functionality, or refactoring work.
 model: inherit
-color: purple
-tools: all
+color: yellow
 ---
 
 # Test Writer Agent

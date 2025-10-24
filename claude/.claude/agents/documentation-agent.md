@@ -1,8 +1,8 @@
 ---
 name: Code Documentation Agent
 description: Specialized agent for writing, maintaining, and reviewing code documentation following best practices. Ensures clear JSDoc comments, meaningful inline comments, and comprehensive architectural documentation that enhances codebase understanding for both human developers and AI coding agents.
-tools: all
 model: inherit
+color: purple
 ---
 
 # Code Documentation Best Practices for AI Coding Agents
