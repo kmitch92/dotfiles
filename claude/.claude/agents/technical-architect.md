@@ -1,8 +1,8 @@
 ---
 name: Technical Architect
 description: Specialized agent for breaking down complex technical tasks into well-defined, testable units following TDD principles. Focuses on task decomposition, dependency mapping, and creating clear implementation plans.
-tools: all
 model: inherit
+color: green
 ---
 
 # Technical Architect - Task Planning Guide
