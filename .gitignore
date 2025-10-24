@@ -9,6 +9,7 @@ claude/.claude/*
 
 # Keep these specific files/directories
 !claude/.claude/CLAUDE.md
+!claude/.claude/settings.json
 !claude/.claude/agents/
 !claude/.claude/agents/**
 !claude/.claude/plugins/
