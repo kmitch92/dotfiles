@@ -1,7 +1,41 @@
-# Runtime directories that shouldn't be tracked
-.claude/
-.config/
+# =============================================================================
+# Dotfiles .gitignore - Selective tracking strategy
+# =============================================================================
 
-# But we do want to track the packaged dotfiles
-!claude/
-!config/
+# -----------------------------------------------------------------------------
+# Claude working files (ignore everything, then selectively include)
+# -----------------------------------------------------------------------------
+claude/.claude/*
+
+# Keep these specific files/directories
+!claude/.claude/CLAUDE.md
+!claude/.claude/agents/
+!claude/.claude/agents/**
+!claude/.claude/plugins/
+!claude/.claude/plugins/**
+
+# Explicitly ignore working files even if parent is included
+claude/.claude/debug/
+claude/.claude/history.jsonl
+claude/.claude/shell-snapshots/
+claude/.claude/statsig/
+claude/.claude/todos/
+
+# -----------------------------------------------------------------------------
+# Config working files (if any specific ignores needed)
+# -----------------------------------------------------------------------------
+# Add specific ignores here if config/ generates working files
+# config/.config/nvim/lazy-lock.json  # Example: lock file you don't want
+
+# -----------------------------------------------------------------------------
+# Backup directories
+# -----------------------------------------------------------------------------
+backups/
+
+# -----------------------------------------------------------------------------
+# System files
+# -----------------------------------------------------------------------------
+.DS_Store
+*.swp
+*.swo
+*~
