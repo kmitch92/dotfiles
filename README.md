@@ -1,322 +1,656 @@
-# Dotfiles
+# Dotfiles Installation
 
-Personal dotfiles for development environment configuration, managed with [GNU Stow](https://www.gnu.org/software/stow/).
+Modern, modular dotfiles installation system for bootstrapping development environments on macOS and Linux (Ubuntu/Debian/Fedora/Arch).
 
-## 📦 What's Included
-
-This repository contains comprehensive configuration files for:
-
-### 🐚 Shell & Prompt
-- **Zsh** (`zsh/.zshrc`) - Shell configuration with Homebrew setup and OS-specific logic
-- **Oh My Zsh** - Plugin framework (installed by script, not tracked in repo)
-  - Plugins: git, web-search, zsh-autosuggestions, zsh-syntax-highlighting, you-should-use, zsh-bat, zsh-interactive-cd
-- **Starship** (`starship/.config/starship.toml`) - Beautiful, fast prompt with git integration, language detection, and status info
-
-### 🖥️ Terminal Emulators
-- **Ghostty** (`config/.config/ghostty/config`) - Modern, GPU-accelerated terminal
-- **Alacritty** (`config/.config/alacritty/alacritty.toml`) - Cross-platform, blazing fast
-- **Kitty** (`config/.config/kitty/kitty.conf`) - Feature-rich with image support
-- **WezTerm** (`config/.config/wezterm/wezterm.lua`) - Lua-configured with built-in status bar
-- **iTerm2** (`config/.config/iterm2/`) - macOS classic with dynamic profiles
-
-All terminals configured with:
-- Catppuccin Mocha theme (beautiful dark theme)
-- JetBrains Mono font
-- 95% opacity with background blur
-- Consistent keybindings
-
-### 🔧 Tools & Utilities
-- **Tmux** (`tmux/.tmux.conf`) - Terminal multiplexer with status bar and window management
-- **Neovim** (`config/.config/nvim/`) - Complete Neovim configuration
-- **Claude Code** (`claude/.claude/`) - Claude Code agent configurations
-
-## 🚀 Quick Start
-
-### One-Command Installation
-
+## Quick Start
 ```bash
-git clone https://github.com/yourusername/dotfiles.git ~/dotfiles
+git clone <your-repo> ~/dotfiles
 cd ~/dotfiles
-chmod +x install.sh
 ./install.sh
 ```
 
-The install script will:
-1. ✅ Check for and install Homebrew (if needed)
-2. ✅ Check for and install GNU Stow (required)
-3. ✅ Check for and install Oh My Zsh with custom plugins
-4. ✅ Offer to install optional tools (JetBrains Mono font, tmux, starship)
-5. ✅ Backup any existing dotfiles
-6. ✅ Create symlinks for all packages
-7. ✅ Clean up old backups
+The installer guides you through each component with confirmation prompts.
 
-### After Installation
-
+### Installation Modes
 ```bash
-# Restart your shell
+# Interactive (recommended) - asks before installing each component
+./install.sh
+
+# Non-interactive - automatically say yes to all prompts
+./install.sh --yes
+# or
+./install.sh -y
+
+# Minimal - only installs required components, skips optional
+./install.sh --skip-optional
+
+# Combine options - non-interactive minimal installation
+./install.sh --yes --skip-optional
+
+# Individual scripts - install specific components only
+source scripts/utils.sh
+source scripts/install-docker.sh
+```
+
+## Features
+
+### 🎯 Best-in-Class User Experience
+
+- **Individual Component Control** - Approve each installation separately
+- **Progress Tracking** - Visual indicators and comprehensive logging
+- **Smart Defaults** - Sensible choices, easy to customize
+- **Error Recovery** - Optional components can fail without breaking install
+- **Installation Summary** - See exactly what was installed, skipped, or failed
+- **Detailed Next Steps** - Context-aware guidance based on what was installed
+
+### 🔧 Robust Foundation
+
+- **Modular Architecture** - Easy to extend and maintain
+- **Idempotent** - Safe to run multiple times
+- **Comprehensive Logging** - Track everything in `.install.log`
+- **Timestamped Backups** - Automatic backup of existing files
+- **OS-Aware** - Detects macOS vs Linux and uses appropriate package managers
+- **Error Handling** - Required vs optional steps, clear failure messages
+
+### 📦 Complete Bootstrap
+
+Everything needed for modern development work:
+- System tools and package managers
+- Development runtimes (Python, Node, etc.)
+- Essential CLI tools (neovim, tmux, etc.)
+- Docker and containerization
+- AI coding tools (Claude Code)
+- Shell configuration and themes
+
+## What Gets Installed
+
+### Core System Tools
+- **Homebrew** (macOS only) - Package manager
+- **GNU Stow** - Dotfiles symlink manager
+- **Git, curl, wget** - Essential utilities
+- **Build tools** - Xcode CLI tools (macOS) or build-essential (Linux)
+
+### Development Runtimes
+- **Python 3** - With pip3
+- **Node.js & npm** - JavaScript runtime
+- **pyenv** (optional) - Python version manager
+- **nvm** (optional) - Node version manager
+- **Ruby, Go, Rust** (optional) - Additional languages
+
+### Development Tools
+- **Neovim** - Modern text editor
+- **tmux** - Terminal multiplexer
+- **starship** - Modern shell prompt
+- **bat** - Syntax-highlighted cat
+- **fzf** - Fuzzy finder
+- **ripgrep** - Fast grep alternative
+- **fd** - Fast find alternative
+- **eza/exa** - Modern ls replacement
+- **jq, yq** (optional) - JSON/YAML processors
+- **git-delta** (optional) - Better git diffs
+- **lazygit** (optional) - Terminal UI for git
+
+### Fonts
+- **JetBrains Mono** - Primary coding font
+- **Fira Code, Hack, Source Code Pro** (optional)
+
+### Docker
+- **Docker Engine** (Linux) - Container runtime
+- **Docker Desktop** (macOS/Linux) - GUI and better integration
+- **Docker Compose** - Multi-container orchestration
+
+### Claude Code
+- **Claude Code CLI** - Agentic coding assistant
+- **MCP servers** (optional) - Filesystem and Git extensions
+
+### Shell Configuration
+- **Zsh** - Modern shell
+- **Oh My Zsh** - Zsh framework
+- **zsh-autosuggestions** - Fish-like suggestions
+- **zsh-syntax-highlighting** - Real-time syntax highlighting
+- **you-should-use** - Alias reminder
+- **zsh-bat** (if bat installed) - bat integration
+- **Powerlevel10k** (optional) - Alternative theme
+
+## Directory Structure
+```
+dotfiles/
+├── install.sh              # Main orchestrator
+├── scripts/                # Modular installation scripts
+│   ├── utils.sh           # Common utilities
+│   ├── install-homebrew.sh
+│   ├── install-packages.sh
+│   ├── install-fonts.sh
+│   ├── install-terminals.sh
+│   ├── install-runtimes.sh
+│   ├── install-dev-tools.sh
+│   ├── install-docker.sh
+│   ├── install-claude-code.sh
+│   ├── install-shell-tools.sh
+│   ├── setup-shell.sh
+│   └── setup-stow.sh
+├── zsh/                    # Zsh configuration package
+│   └── .zshrc
+├── tmux/                   # tmux configuration package
+│   └── .tmux.conf
+├── config/                 # Unified .config package (all XDG configs)
+│   └── .config/
+│       ├── nvim/          # Neovim (LazyVim)
+│       ├── starship.toml  # Starship prompt
+│       ├── alacritty/     # Terminal emulators
+│       ├── kitty/
+│       ├── wezterm/
+│       └── ghostty/
+├── claude/                 # Claude Code configuration
+│   └── .claude/
+└── mcp/                    # MCP server configs
+    └── .config/mcp/
+```
+
+**Note:** All `.config` subdirectories are consolidated in the `config/` package to avoid
+stow conflicts. This is because GNU Stow cannot handle multiple packages trying to symlink
+into the same parent directory.
+
+## Running Individual Scripts
+
+You can run scripts individually if you only need specific components:
+```bash
+# Install only development runtimes
+source scripts/utils.sh
+source scripts/install-runtimes.sh
+
+# Install only Docker
+source scripts/utils.sh
+source scripts/install-docker.sh
+
+# Setup shell configuration
+source scripts/utils.sh
+source scripts/setup-shell.sh
+```
+
+## Stow Package Structure
+
+Each subdirectory (except `scripts/`) represents a stow package:
+```
+package_name/
+└── .config/
+    └── tool/
+        └── config.yml
+```
+
+When stowed, this creates: `~/.config/tool/config.yml`
+
+## Post-Installation
+
+After installation completes:
+
+1. **Restart your shell:**
+```bash
+exec zsh
+```
+
+The shell will automatically start tmux by default. To disable this:
+```bash
+# Temporarily disable for one session
+export DISABLE_AUTO_TMUX=true
 exec zsh
 
-# Try tmux (if installed)
-tmux
-
-# Or just enjoy your new terminal configs!
+# Permanently disable - add to your ~/.zshrc or environment
+echo 'export DISABLE_AUTO_TMUX=true' >> ~/.zshrc
 ```
 
-## 📋 Prerequisites
-
-The install script will handle most dependencies automatically, but you need:
-
-**Required:**
-- Git (for cloning the repo)
-- Zsh shell
-  - macOS: Pre-installed
-  - Ubuntu/Debian: `sudo apt install zsh`
-  - Fedora: `sudo dnf install zsh`
-  - Arch: `sudo pacman -S zsh`
-- curl or wget (usually pre-installed)
-
-**Installed automatically by script:**
-- **macOS**: Homebrew, GNU Stow
-- **Linux**: GNU Stow (via apt/dnf/pacman)
-
-**Optional (offered during installation):**
-- JetBrains Mono font
-- Tmux (terminal multiplexer)
-- Starship (enhanced prompt)
-- Oh My Zsh + plugins
-
-## 🎯 What You Get
-
-### Terminal Experience
-Choose any terminal emulator (Ghostty, Alacritty, Kitty, WezTerm, iTerm2) and get:
-- Unified Catppuccin Mocha theme across all terminals
-- Consistent keybindings (Cmd+C/V, Cmd+T, etc.)
-- Beautiful transparency and blur effects
-- 10,000 lines of scrollback
-
-### Status Bar Options
-- **WezTerm**: Built-in status bar (shows directory, battery, date, time)
-- **iTerm2**: Native status bar (manual setup, shows everything)
-- **Other terminals**: Use Tmux or Starship for status information
-
-### Enhanced Prompt (Starship)
-When installed, you get an intelligent prompt showing:
-- Current directory
-- Git branch and status
-- Programming language versions (Node, Python, Rust, Go, etc.)
-- Command duration
-- Battery level and time (on the right)
-- Error indicators
-
-## 📖 Documentation
-
-Detailed guides are included:
-- **TERMINAL_README.md** - Terminal emulator comparison and setup
-- **STATUS_BAR_README.md** - Status bar options for each terminal
-- **iTerm2/README.md** - iTerm2-specific setup instructions
-
-## 🗂️ File Structure
-
-```
-~/dotfiles/
-├── install.sh                    # Smart installation script
-├── README.md                     # This file
-│
-├── zsh/
-│   └── .zshrc                    # Shell config (Homebrew, Starship, etc.)
-│
-├── config/
-│   └── .config/
-│       ├── alacritty/            # Alacritty terminal config
-│       ├── ghostty/              # Ghostty terminal config
-│       ├── kitty/                # Kitty terminal config
-│       ├── wezterm/              # WezTerm terminal config
-│       ├── iterm2/               # iTerm2 dynamic profiles
-│       └── nvim/                 # Neovim configuration
-│
-├── starship/
-│   └── .config/
-│       └── starship.toml         # Starship prompt config
-│
-├── tmux/
-│   └── .tmux.conf                # Tmux configuration
-│
-└── claude/
-    └── .claude/                  # Claude Code agent configs
-```
-
-## 📝 What Goes in the Repo?
-
-**✅ Track these (configuration files):**
-- `.zshrc` - Your shell configuration
-- `.config/` - Application configs (terminal, nvim, etc.)
-- `.tmux.conf` - Tmux configuration
-- Any other dotfiles you create
-
-**❌ Don't track these (installed software):**
-- `~/.oh-my-zsh/` - Oh My Zsh installation (installed by script)
-- `~/.oh-my-zsh/custom/plugins/*` - Plugin installations (installed by script)
-- `/opt/homebrew/` - Homebrew itself
-- Any binary applications or compiled software
-
-**Why this separation?**
-- Configs are small text files that change frequently
-- Software installations are large and managed by package managers
-- This keeps your repo lightweight and portable
-- Installation script handles all the software dependencies
-
-## 🔄 How Stow Works
-
-GNU Stow creates symlinks from your home directory to files in this repository.
-
-**For example:**
-```
-~/.zshrc           → ~/dotfiles/zsh/.zshrc
-~/.config/ghostty/ → ~/dotfiles/config/.config/ghostty/
-~/.tmux.conf       → ~/dotfiles/tmux/.tmux.conf
-```
-
-**This means:**
-- ✅ Edit files in `~/dotfiles/` → changes appear in your home directory
-- ✅ Edit files in your home directory → changes are in the git repo
-- ✅ Commit and push from `~/dotfiles/` → sync across machines
-- ✅ Pull on another machine → configs update automatically
-
-## 🎨 Customization
-
-### Change Terminal Theme
-All configs use Catppuccin Mocha. To use a different theme:
-- **Catppuccin Latte** (light): https://github.com/catppuccin/catppuccin
-- **Nord**: https://www.nordtheme.com
-- **Dracula**: https://draculatheme.com
-- **Tokyo Night**: https://github.com/tokyo-night
-
-### Change Font
-Edit the font family in terminal configs. Popular alternatives:
+2. **Configure Powerlevel10k** (if installed):
 ```bash
-brew install --cask font-fira-code
-brew install --cask font-cascadia-code
-brew install --cask font-hack
+p10k configure
 ```
 
-### Enable Ligatures
-If you want programming ligatures (→, ≥, etc.):
-- Remove `disable_ligatures` or `font-feature` lines from configs
-- Requires a font with ligature support
-
-### Customize Prompt
-Edit `~/.config/starship.toml` to add/remove modules or change colors.
-See: https://starship.rs/config/
-
-## 🆘 Troubleshooting
-
-### Stow Conflicts
-If stow reports conflicts with existing files:
+3. **Authenticate Claude Code** (if installed):
 ```bash
+claude auth
+```
+
+4. **Start Docker Desktop** (if installed on macOS)
+
+5. **Test installations:**
+```bash
+nvim --version
+tmux -V
+docker --version
+node --version
+python3 --version
+```
+
+## Extending the System
+
+The modular design makes it easy to add new components. Here's the best-practice pattern:
+
+### Adding a New Tool
+
+1. **Create a new script** in `scripts/`:
+```bash
+#!/bin/bash
+# scripts/install-mytool.sh
+
+print_header "Installing MyTool"
+
+if command_exists mytool; then
+    print_success "MyTool already installed: $(mytool --version)"
+    return 0
+fi
+
+print_warning "MyTool not installed"
+print_info "MyTool does XYZ and is useful for ABC"
+echo ""
+
+if ! confirm "Install MyTool?"; then
+    print_warning "Skipping MyTool"
+    return 0
+fi
+
+print_info "Installing MyTool..."
+
+if is_macos; then
+    brew install mytool
+elif is_linux; then
+    install_linux_package mytool
+fi
+
+if [ $? -eq 0 ]; then
+    print_success "MyTool installed"
+else
+    print_error "MyTool installation failed"
+    return 1
+fi
+
+# Optional: Post-install configuration
+if confirm "Configure MyTool now?"; then
+    mytool init
+    print_success "MyTool configured"
+fi
+```
+
+2. **Add to main installer** in `install.sh`:
+```bash
+# Step N: Install MyTool
+if ! $SKIP_OPTIONAL; then
+    run_step "MyTool" "install-mytool.sh" "optional"
+fi
+```
+
+3. **Test your script**:
+```bash
+source scripts/utils.sh
+source scripts/install-mytool.sh
+```
+
+### Best Practices for Scripts
+
+1. **Always check if tool exists first** - makes script idempotent
+2. **Provide informative messages** - explain what the tool does
+3. **Use confirmation prompts** - give users control
+4. **Handle both macOS and Linux** - or clearly state OS requirement
+5. **Return proper exit codes** - 0 for success, 1 for failure
+6. **Log important actions** - helps with debugging
+7. **Offer post-install configuration** - but make it optional
+
+### Adding New Stow Packages
+
+1. **Create package directory**:
+```bash
+mkdir -p myapp/.config/myapp
+```
+
+2. **Add configuration files**:
+```bash
+myapp/.config/myapp/config.yml
+```
+
+3. **Stow will automatically discover it** - no code changes needed!
+
+### Modifying Installation Order
+
+Simply reorder the `run_step` calls in `install.sh`:
+```bash
+# Want Docker before Dev Tools?
+run_step "Docker" "install-docker.sh" "optional"
+run_step "Development Tools" "install-dev-tools.sh" "optional"
+```
+
+## Troubleshooting
+
+### Installation Issues
+
+**Problem: Script fails with "command not found"**
+```bash
+# Ensure scripts are executable
+chmod +x install.sh scripts/*.sh
+
+# Verify you're in the dotfiles directory
 cd ~/dotfiles
-# Remove existing files manually or back them up
-rm ~/.zshrc  # or mv ~/.zshrc ~/.zshrc.backup
-
-# Then run install again
 ./install.sh
 ```
 
-### Shell Not Loading Configs
-Make sure `.zshrc` is symlinked:
-```bash
-ls -la ~/.zshrc
-# Should show: .zshrc -> /Users/you/dotfiles/zsh/.zshrc
+**Problem: "Permission denied" errors**
+- Some installations require sudo (Linux)
+- You'll be prompted when needed
+- Ensure your user has sudo privileges
 
-# If not, re-run install
-cd ~/dotfiles && ./install.sh
+**Problem: Homebrew not found after installation**
+```bash
+# Manually add to current session (macOS)
+eval "$(/opt/homebrew/bin/brew shellenv)"  # Apple Silicon
+eval "$(/usr/local/bin/brew shellenv)"     # Intel
+
+# Then continue installation
+./install.sh
 ```
 
-### Stow Not Found After Install
-Restart your shell to load Homebrew's PATH:
+**Problem: Stow reports conflicts**
+- Backup conflicting files manually
+- Or let the installer back them up
+- Check `~/.dotfiles_backup_*` directories
 ```bash
-exec zsh
+# Manual conflict resolution
+mv ~/.zshrc ~/.zshrc.backup
+./install.sh
 ```
 
-### Font Not Working
-Make sure JetBrains Mono is installed:
+### Viewing Installation Log
+
+All actions are logged to `.install.log`:
 ```bash
-brew install --cask font-jetbrains-mono
-# Then restart your terminal app
+# View full log
+cat ~/dotfiles/.install.log
+
+# Watch log in real-time (different terminal)
+tail -f ~/dotfiles/.install.log
+
+# Search for errors
+grep -i error ~/dotfiles/.install.log
 ```
 
-## 🔧 Manual Installation (Without Script)
+### Common Issues by Component
 
-If you prefer to install manually:
-
+#### Docker (Linux)
+**Issue:** Permission denied when running docker commands
 ```bash
-# 1. Clone the repo
-git clone https://github.com/yourusername/dotfiles.git ~/dotfiles
+# Verify docker group membership
+groups | grep docker
+
+# If not in docker group, add yourself
+sudo usermod -aG docker $USER
+
+# Log out and back in, or run
+newgrp docker
+```
+
+#### Zsh
+**Issue:** Zsh not default after installation
+```bash
+# Manually set default shell
+chsh -s $(which zsh)
+
+# Verify
+echo $SHELL
+```
+
+**Issue:** Oh My Zsh plugins not working
+```bash
+# Check plugin installation
+ls ~/.oh-my-zsh/custom/plugins/
+
+# Re-run shell tools installer
+source scripts/utils.sh
+source scripts/install-shell-tools.sh
+```
+
+#### Neovim
+**Issue:** LazyVim plugins not loading
+```bash
+# LazyVim installs plugins on first launch
+nvim
+
+# Force plugin update
+nvim +Lazy sync
+```
+
+#### Claude Code
+**Issue:** "claude: command not found"
+```bash
+# Verify installation
+which claude
+
+# Re-install if needed
+source scripts/utils.sh  
+source scripts/install-claude-code.sh
+
+# Ensure PATH includes Claude
+echo $PATH | grep claude
+```
+
+### Re-running Installation
+
+The installer is idempotent - safe to run multiple times:
+```bash
+# Re-run full installation (skips already installed)
+./install.sh
+
+# Run specific component only
+source scripts/utils.sh
+source scripts/install-docker.sh
+
+# Force minimal installation
+./install.sh --skip-optional
+```
+
+### Uninstalling
+
+To remove symlinked dotfiles:
+```bash
 cd ~/dotfiles
 
-# 2. Install dependencies
-brew install stow tmux starship
-brew install --cask font-jetbrains-mono
+# Unstow all packages
+stow -D */
 
-# 3. Stow packages
-stow zsh
-stow config
-stow tmux
-stow starship
-stow claude
-
-# 4. Restart shell
-exec zsh
+# Restore from backup
+LATEST_BACKUP=$(ls -dt ~/.dotfiles_backup_* | head -1)
+cp -r $LATEST_BACKUP/* ~/
 ```
 
-## 🗑️ Uninstalling
+To remove installed tools, use your package manager:
+```bash
+# macOS
+brew uninstall <tool>
 
-To remove symlinks:
+# Linux
+sudo apt remove <tool>  # Ubuntu/Debian
+```
+
+## Maintenance
+
+### Keeping Everything Updated
+
+#### Update Dotfiles Repository
 ```bash
 cd ~/dotfiles
+git pull origin main
 
-# Remove all packages
-stow -D zsh config tmux starship claude
-
-# Or remove specific packages
-stow -D zsh    # Remove .zshrc symlink
-stow -D config # Remove .config symlinks
+# Re-stow to apply changes
+stow --restow */
 ```
 
-## 💻 Cross-Platform Support
+#### Update Installed Tools
 
-The install script fully supports:
-- ✅ **macOS** (Apple Silicon & Intel)
-  - Auto-installs Homebrew
-  - Auto-installs all tools via Homebrew
-  
-- ✅ **Linux**
-  - **Ubuntu/Debian**: Uses apt
-  - **Fedora/RHEL/CentOS**: Uses dnf
-  - **Arch/Manjaro**: Uses pacman
-  - Auto-installs fonts, tmux, starship
-  
-- ✅ **Windows (WSL2)**: Works via Ubuntu/Debian on WSL
+**macOS:**
+```bash
+# Update Homebrew
+brew update
 
-**Platform-specific features:**
-- Homebrew PATH setup (macOS)
-- Snap package support (Ubuntu)
-- Automatic distribution detection (Linux)
-- Font installation via fontconfig (Linux)
+# Upgrade all packages
+brew upgrade
 
-The `.zshrc` includes OS-specific logic that automatically adapts to your platform.
+# Check for outdated packages
+brew outdated
+```
 
-## 🤝 Contributing
+**Linux (Ubuntu/Debian):**
+```bash
+# Update package lists
+sudo apt update
 
-Feel free to fork and adapt this to your needs! If you find improvements:
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
+# Upgrade all packages
+sudo apt upgrade
 
-## 📄 License
+# Check for upgradable packages
+apt list --upgradable
+```
 
-MIT License - See LICENSE file for details.
+#### Update Language Runtimes
 
----
+**Python:**
+```bash
+# Update pip
+python3 -m pip install --upgrade pip
 
-**Happy dotfiles-ing!** 🎉
+# Update global packages
+pip3 list --outdated
+pip3 install --upgrade <package>
+
+# Update pyenv (if installed)
+cd ~/.pyenv && git pull
+```
+
+**Node.js:**
+```bash
+# Update npm
+npm install -g npm@latest
+
+# Update global packages
+npm outdated -g
+npm update -g
+
+# Update nvm (if installed)
+cd ~/.nvm && git pull
+```
+
+#### Update Shell Components
+
+**Oh My Zsh:**
+```bash
+# Update framework
+omz update
+
+# Update custom plugins
+cd ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions && git pull
+cd ~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting && git pull
+cd ~/.oh-my-zsh/custom/plugins/you-should-use && git pull
+```
+
+**Starship:**
+```bash
+# macOS
+brew upgrade starship
+
+# Linux
+curl -sS https://starship.rs/install.sh | sh
+```
+
+#### Update Development Tools
+```bash
+# Neovim (macOS)
+brew upgrade neovim
+
+# Neovim (Linux)
+sudo apt update && sudo apt upgrade neovim
+
+# LazyVim plugins
+nvim +Lazy sync
+
+# tmux plugins (if using TPM)
+~/.tmux/plugins/tpm/bin/update_plugins all
+```
+
+### Automated Update Script
+
+Create a convenience script for updates:
+```bash
+# scripts/update-all.sh
+#!/bin/bash
+
+source "$(dirname "$0")/utils.sh"
+
+print_header "Updating All Components"
+
+if is_macos; then
+    print_info "Updating Homebrew packages..."
+    brew update && brew upgrade
+fi
+
+if is_linux; then
+    print_info "Updating APT packages..."
+    sudo apt update && sudo apt upgrade -y
+fi
+
+if [[ -d "$HOME/.oh-my-zsh" ]]; then
+    print_info "Updating Oh My Zsh..."
+    omz update
+fi
+
+if command_exists nvim; then
+    print_info "Updating Neovim plugins..."
+    nvim --headless "+Lazy! sync" +qa
+fi
+
+print_success "All updates complete!"
+```
+
+### Version Checking
+
+Check versions of installed tools:
+```bash
+# Check all key tools
+echo "System: $(uname -s)"
+echo "Shell: $SHELL"
+zsh --version
+nvim --version | head -n1
+tmux -V
+python3 --version
+node --version
+npm --version
+docker --version
+git --version
+```
+
+### Cleaning Up
+```bash
+# Remove old Homebrew versions (macOS)
+brew cleanup
+
+# Remove old APT packages (Linux)
+sudo apt autoremove
+sudo apt autoclean
+
+# Remove old docker images
+docker system prune
+
+# Remove old npm cache
+npm cache clean --force
+
+# Remove old pip cache
+pip3 cache purge
+```
+
+## Contributing
+
+To add new functionality:
+
+1. Create a new script in `scripts/`
+2. Follow the existing patterns
+3. Use utility functions from `utils.sh`
+4. Add user confirmation prompts
+5. Test on both macOS and Linux if possible
+6. Update this README
+
+## License
+
+[Your License]

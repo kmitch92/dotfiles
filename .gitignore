@@ -29,6 +29,18 @@ claude/.claude/todos/
 # config/.config/nvim/lazy-lock.json  # Example: lock file you don't want
 
 # -----------------------------------------------------------------------------
+# System-specific configs (shouldn't be in dotfiles)
+# -----------------------------------------------------------------------------
+# GNOME/Linux desktop configs
+*/.config/dconf/
+*/.config/pulse/
+*/.config/org.gnome.Ptyxis/
+*/.config/tiling-assistant/
+
+# Backup configs (shouldn't be tracked)
+*/.config/nvim.backup.*/
+
+# -----------------------------------------------------------------------------
 # Backup directories
 # -----------------------------------------------------------------------------
 backups/
