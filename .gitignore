@@ -30,6 +30,7 @@ config/.config/nvim/lazy-lock.json  # Example: lock file you don't want
 config/.config/Kiro/
 config/.config/google-chrome/
 config/.config/google-chrome-for-testing/
+config/.config/Code/
 # -----------------------------------------------------------------------------
 # System-specific configs (shouldn't be in dotfiles)
 # -----------------------------------------------------------------------------
