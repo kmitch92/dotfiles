@@ -5,6 +5,7 @@
 # -----------------------------------------------------------------------------
 # Claude working files (ignore everything, then selectively include)
 # -----------------------------------------------------------------------------
+.install.log*
 claude/.claude/*
 
 # Keep these specific files/directories
@@ -26,8 +27,11 @@ claude/.claude/todos/
 # Config working files (if any specific ignores needed)
 # -----------------------------------------------------------------------------
 # Add specific ignores here if config/ generates working files
-# config/.config/nvim/lazy-lock.json  # Example: lock file you don't want
-
+config/.config/nvim/lazy-lock.json  # Example: lock file you don't want
+config/.config/Kiro/
+config/.config/google-chrome/
+config/.config/google-chrome-for-testing/
+config/.config/Code/
 # -----------------------------------------------------------------------------
 # System-specific configs (shouldn't be in dotfiles)
 # -----------------------------------------------------------------------------
