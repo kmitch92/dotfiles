@@ -101,25 +101,25 @@ run_step() {
     local step_name="$1"
     local script_name="$2"
     local required="${3:-optional}"
-    
+
     echo "" | tee -a "$INSTALL_LOG"
     print_step "$step_name" | tee -a "$INSTALL_LOG"
-    
+
     if [[ "$required" == "optional" ]] && ! $SKIP_OPTIONAL; then
         if ! confirm "Install $step_name?"; then
             print_warning "Skipping $step_name" | tee -a "$INSTALL_LOG"
-            INSTALL_STATUS["$step_name"]="skipped"
+            echo "skipped|$step_name" >> "$INSTALL_STATUS_FILE"
             return 0
         fi
     fi
-    
+
     if source "$SCRIPTS_DIR/$script_name" 2>&1 | tee -a "$INSTALL_LOG"; then
-        INSTALL_STATUS["$step_name"]="completed"
+        echo "completed|$step_name" >> "$INSTALL_STATUS_FILE"
         print_success "$step_name completed" | tee -a "$INSTALL_LOG"
     else
-        INSTALL_STATUS["$step_name"]="failed"
+        echo "failed|$step_name" >> "$INSTALL_STATUS_FILE"
         print_error "$step_name failed" | tee -a "$INSTALL_LOG"
-        
+
         if [[ "$required" == "required" ]]; then
             print_error "Required step failed. Exiting." | tee -a "$INSTALL_LOG"
             exit 1
