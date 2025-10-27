@@ -54,7 +54,6 @@
       "//"
     ]
   },
-  "model": "claude-sonnet-4-5-20250929",
   "enableAllProjectMcpServers": false,
   "enabledMcpjsonServers": [
     "playwright"
