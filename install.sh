@@ -1,4 +1,4 @@
-X#!/bin/bash
+#!/bin/bash
 
 # =============================================================================
 # Dotfiles Installation - Main Orchestrator
@@ -16,6 +16,16 @@ set -e  # Exit on error
 # Get the directory where this script is located
 DOTFILES_DIR="$(cd "$(dirname "$0")" && pwd)"
 SCRIPTS_DIR="$DOTFILES_DIR/scripts"
+
+# Determine OS-specific script directory
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    OS_SCRIPTS_DIR="$SCRIPTS_DIR/macos"
+elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    OS_SCRIPTS_DIR="$SCRIPTS_DIR/linux"
+else
+    echo "Unsupported OS: $OSTYPE"
+    exit 1
+fi
 
 # Parse arguments
 SKIP_OPTIONAL=false
@@ -49,10 +59,11 @@ done
 # Source utilities
 source "$SCRIPTS_DIR/utils.sh"
 
-# Initialize installation tracking
-declare -A INSTALL_STATUS
+# Initialize installation tracking (bash 3.2 compatible)
 INSTALL_LOG="$DOTFILES_DIR/.install.log"
+INSTALL_STATUS_FILE="$DOTFILES_DIR/.install_status"
 echo "=== Installation started at $(date) ===" > "$INSTALL_LOG"
+echo "" > "$INSTALL_STATUS_FILE"
 
 # =============================================================================
 # Main Installation Flow
@@ -75,9 +86,13 @@ fi
 # Step 2: Install system packages (stow, git, curl, wget, etc.)
 run_step "System Packages" "install-packages.sh" "required"
 
-# Step 3: Install fonts
+# Step 3: Install fonts (OS-specific)
 if ! $SKIP_OPTIONAL; then
-    run_step "Fonts" "install-fonts.sh" "optional"
+    if is_macos; then
+        run_step "Fonts" "macos/install-fonts.sh" "optional"
+    elif is_linux; then
+        run_step "Fonts" "linux/install-fonts.sh" "optional"
+    fi
 fi
 
 # Step 3.5: Install Terminal Emulators
@@ -88,12 +103,20 @@ fi
 # Step 4: Install development runtimes (Python, Node, npm)
 run_step "Development Runtimes" "install-runtimes.sh" "optional"
 
-# Step 5: Install development tools (neovim, tmux, starship, etc.)
-run_step "Development Tools" "install-dev-tools.sh" "optional"
+# Step 5: Install development tools (neovim, tmux, starship, etc.) - OS-specific
+if is_macos; then
+    run_step "Development Tools" "macos/install-dev-tools.sh" "optional"
+elif is_linux; then
+    run_step "Development Tools" "linux/install-dev-tools.sh" "optional"
+fi
 
-# Step 6: Install Docker and Docker Desktop
+# Step 6: Install Docker and Docker Desktop - OS-specific
 if ! $SKIP_OPTIONAL; then
-    run_step "Docker" "install-docker.sh" "optional"
+    if is_macos; then
+        run_step "Docker" "macos/install-docker.sh" "optional"
+    elif is_linux; then
+        run_step "Docker" "linux/install-docker.sh" "optional"
+    fi
 fi
 
 # Step 7: Install Claude Code
@@ -119,40 +142,37 @@ echo ""
 
 # Show what was installed
 print_success "Completed Steps:"
-for step in "${!INSTALL_STATUS[@]}"; do
-    status="${INSTALL_STATUS[$step]}"
+while IFS='|' read -r status step_name; do
     if [[ "$status" == "completed" ]]; then
-        echo "  ✓ $step"
+        echo "  ✓ $step_name"
     fi
-done
+done < "$INSTALL_STATUS_FILE"
 
 # Show what was skipped
 SKIPPED=false
-for step in "${!INSTALL_STATUS[@]}"; do
-    status="${INSTALL_STATUS[$step]}"
+while IFS='|' read -r status step_name; do
     if [[ "$status" == "skipped" ]]; then
         if ! $SKIPPED; then
             echo ""
             print_info "Skipped Steps:"
             SKIPPED=true
         fi
-        echo "  ⊘ $step"
+        echo "  ⊘ $step_name"
     fi
-done
+done < "$INSTALL_STATUS_FILE"
 
 # Show any failures
 FAILED=false
-for step in "${!INSTALL_STATUS[@]}"; do
-    status="${INSTALL_STATUS[$step]}"
+while IFS='|' read -r status step_name; do
     if [[ "$status" == "failed" ]]; then
         if ! $FAILED; then
             echo ""
             print_error "Failed Steps:"
             FAILED=true
         fi
-        echo "  ✗ $step"
+        echo "  ✗ $step_name"
     fi
-done
+done < "$INSTALL_STATUS_FILE"
 
 # =============================================================================
 # Next Steps
@@ -162,7 +182,7 @@ echo ""
 print_header "Next Steps"
 
 # Shell restart
-if [[ -n "${INSTALL_STATUS[Shell Configuration]}" && "${INSTALL_STATUS[Shell Configuration]}" == "completed" ]]; then
+if grep -q "completed|Shell Configuration" "$INSTALL_STATUS_FILE" 2>/dev/null; then
     echo "1. Restart your shell to apply changes:"
     echo "   exec zsh"
     echo ""
