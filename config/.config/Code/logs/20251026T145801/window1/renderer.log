@@ -1,0 +1,23 @@
+2025-10-26 14:58:03.526 [info] ChatSessionStore: Migrating 0 chat sessions from storage service to file system
+2025-10-26 14:58:03.699 [info] Started local extension host with pid 113417.
+2025-10-26 14:58:04.817 [info] MCP Registry configured: https://api.mcp.github.com/2025-09-15
+2025-10-26 14:58:05.167 [info] Settings Sync: Account status changed from uninitialized to unavailable
+2025-10-26 14:58:05.464 [error] [Extension Host] (node:113417) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `exe --trace-warnings ...` to show where the warning was created)
+2025-10-26 14:58:06.876 [info] [perf] Render performance baseline is 27ms
+2025-10-26 14:58:09.331 [error] chatParticipant must be declared in package.json: claude-code
+2025-10-26 14:58:09.564 [error] CodeExpectedError: No default agent registered
+    at Hat.activateDefaultAgent (vscode-file://vscode-app/snap/code/211/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:2193:12633)
+2025-10-26 14:58:09.660 [error] An unknown error occurred. Please consult the log for more details.
+2025-10-26 14:58:22.046 [info] ChatSessionStore: Migrating 0 chat sessions from storage service to file system
+2025-10-26 14:58:22.169 [info] Started local extension host with pid 114038.
+2025-10-26 14:58:23.115 [info] MCP Registry configured: https://api.mcp.github.com/2025-09-15
+2025-10-26 14:58:23.378 [info] Settings Sync: Account status changed from uninitialized to unavailable
+2025-10-26 14:58:24.603 [error] An unknown error occurred. Please consult the log for more details.
+2025-10-26 14:58:24.839 [info] [perf] Render performance baseline is 40ms
+2025-10-26 14:58:28.812 [error] [Extension Host] (node:114038) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `exe --trace-warnings ...` to show where the warning was created)
+2025-10-26 14:58:29.955 [error] chatParticipant must be declared in package.json: claude-code
+2025-10-26 14:58:31.119 [error] An unknown error occurred. Please consult the log for more details.
+2025-10-26 14:59:35.328 [error] An unknown error occurred. Please consult the log for more details.
+2025-10-26 14:59:40.935 [error] An unknown error occurred. Please consult the log for more details.

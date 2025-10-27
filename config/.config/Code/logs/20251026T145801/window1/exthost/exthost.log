@@ -1,0 +1,519 @@
+2025-10-26 14:58:04.425 [info] Extension host with pid 113417 started
+2025-10-26 14:58:04.538 [info] ExtensionService#_doActivateExtension vscode.github-authentication, startup: false, activationEvent: 'onAuthenticationRequest:github'
+2025-10-26 14:58:04.576 [info] ExtensionService#_doActivateExtension vscode.emmet, startup: false, activationEvent: 'onLanguage'
+2025-10-26 14:58:04.599 [info] ExtensionService#_doActivateExtension GitHub.copilot-chat, startup: false, activationEvent: 'onChatParticipant:github.copilot.editsAgent'
+2025-10-26 14:58:05.648 [info] ExtensionService#_doActivateExtension vscode.git-base, startup: true, activationEvent: '*', root cause: vscode.git
+2025-10-26 14:58:05.652 [info] ExtensionService#_doActivateExtension mhutchie.git-graph, startup: true, activationEvent: '*'
+2025-10-26 14:58:05.734 [info] ExtensionService#_doActivateExtension vscode.microsoft-authentication, startup: false, activationEvent: 'onAuthenticationRequest:microsoft'
+2025-10-26 14:58:05.794 [info] ExtensionService#_doActivateExtension vscode.git, startup: true, activationEvent: '*'
+2025-10-26 14:58:05.851 [info] ExtensionService#_doActivateExtension vscode.github, startup: true, activationEvent: '*'
+2025-10-26 14:58:06.025 [info] Eager extensions activated
+2025-10-26 14:58:06.040 [info] ExtensionService#_doActivateExtension vscode.debug-auto-launch, startup: false, activationEvent: 'onStartupFinished'
+2025-10-26 14:58:06.043 [info] ExtensionService#_doActivateExtension vscode.merge-conflict, startup: false, activationEvent: 'onStartupFinished'
+2025-10-26 14:58:06.065 [info] ExtensionService#_doActivateExtension Anthropic.claude-code, startup: false, activationEvent: 'onStartupFinished'
+2025-10-26 14:58:06.183 [info] ExtensionService#_doActivateExtension GitHub.copilot, startup: false, activationEvent: 'onStartupFinished'
+2025-10-26 14:58:08.247 [info] ExtensionService#_doActivateExtension ms-vscode-remote.remote-containers, startup: false, activationEvent: 'onStartupFinished'
+2025-10-26 14:58:08.408 [info] ExtensionService#_doActivateExtension vscodevim.vim, startup: false, activationEvent: 'onStartupFinished'
+2025-10-26 14:58:08.528 [info] ExtensionService#_doActivateExtension waderyan.gitblame, startup: false, activationEvent: 'onStartupFinished'
+2025-10-26 14:58:09.330 [error] Error: chatParticipant must be declared in package.json: claude-code
+    at sqt.$registerAgent (vscode-file://vscode-app/snap/code/211/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:509:5906)
+2025-10-26 14:58:09.590 [error] Error: ENOENT: no such file or directory, open '/home/kiel/.config/Code/User/globalStorage/vscodevim.vim/.registers'
+2025-10-26 14:58:10.398 [error] Error: GitHubLoginFailed
+    at r9._authShowWarnings (/home/kiel/.vscode/extensions/github.copilot-chat-0.32.3/dist/extension.js:935:18344)
+    at r9.getCopilotToken (/home/kiel/.vscode/extensions/github.copilot-chat-0.32.3/dist/extension.js:935:16221)
+    at nH.getCopilotToken (/home/kiel/.vscode/extensions/github.copilot-chat-0.32.3/dist/extension.js:472:26116)
+    at Ty._fetchModels (/home/kiel/.vscode/extensions/github.copilot-chat-0.32.3/dist/extension.js:2948:4781)
+    at Ty.getAllChatModels (/home/kiel/.vscode/extensions/github.copilot-chat-0.32.3/dist/extension.js:2948:2686)
+    at $G.getAllChatEndpoints (/home/kiel/.vscode/extensions/github.copilot-chat-0.32.3/dist/extension.js:2948:16238)
+2025-10-26 14:58:21.545 [info] Extension host terminating: renderer closed the MessagePort
+2025-10-26 14:58:21.603 [error] Error: ENOENT: no such file or directory, open '/home/kiel/.config/Code/User/globalStorage/vscodevim.vim/.registers'
+2025-10-26 14:58:21.603 [info] Extension host with pid 113417 exiting with code 0
+2025-10-26 14:58:22.819 [info] Extension host with pid 114038 started
+2025-10-26 14:58:22.819 [info] Skipping acquiring lock for /home/kiel/.config/Code/User/workspaceStorage/c80bd618b223ca269c4dc1169d9fc3f6.
+2025-10-26 14:58:22.919 [info] ExtensionService#_doActivateExtension vscode.github-authentication, startup: false, activationEvent: 'onAuthenticationRequest:github'
+2025-10-26 14:58:22.959 [info] ExtensionService#_doActivateExtension vscode.emmet, startup: false, activationEvent: 'onLanguage'
+2025-10-26 14:58:23.038 [info] ExtensionService#_doActivateExtension vscode.git-base, startup: true, activationEvent: '*'
+2025-10-26 14:58:23.044 [info] ExtensionService#_doActivateExtension vscode.github, startup: true, activationEvent: '*'
+2025-10-26 14:58:23.133 [info] Eager extensions activated
+2025-10-26 14:58:23.164 [info] ExtensionService#_doActivateExtension vscode.debug-auto-launch, startup: false, activationEvent: 'onStartupFinished'
+2025-10-26 14:58:23.167 [info] ExtensionService#_doActivateExtension vscode.merge-conflict, startup: false, activationEvent: 'onStartupFinished'
+2025-10-26 14:58:23.189 [info] ExtensionService#_doActivateExtension ms-vscode-remote.remote-containers, startup: false, activationEvent: 'onStartupFinished'
+2025-10-26 14:58:23.377 [info] ExtensionService#_doActivateExtension vscodevim.vim, startup: false, activationEvent: 'onStartupFinished'
+2025-10-26 14:58:23.591 [info] ExtensionService#_doActivateExtension vscode.configuration-editing, startup: false, activationEvent: 'onLanguage:jsonc'
+2025-10-26 14:58:23.603 [info] ExtensionService#_doActivateExtension vscode.json-language-features, startup: false, activationEvent: 'onLanguage:jsonc'
+2025-10-26 14:58:23.687 [info] ExtensionService#_doActivateExtension vscode.typescript-language-features, startup: false, activationEvent: 'onLanguage:jsonc'
+2025-10-26 14:58:24.584 [error] Error: ENOENT: no such file or directory, open '/home/kiel/.config/Code/User/globalStorage/vscodevim.vim/.registers'
+2025-10-26 14:58:25.933 [info] ExtensionService#_doActivateExtension vscode.git, startup: false, activationEvent: 'api', root cause: vscode.github
+2025-10-26 14:58:26.041 [info] ExtensionService#_doActivateExtension Anthropic.claude-code, startup: false, activationEvent: 'onStartupFinished'
+2025-10-26 14:58:26.137 [info] ExtensionService#_doActivateExtension GitHub.copilot, startup: false, activationEvent: 'onStartupFinished'
+2025-10-26 14:58:28.123 [info] ExtensionService#_doActivateExtension GitHub.copilot-chat, startup: false, activationEvent: 'onStartupFinished'
+2025-10-26 14:58:28.811 [info] ExtensionService#_doActivateExtension mhutchie.git-graph, startup: false, activationEvent: '*'
+2025-10-26 14:58:29.026 [info] ExtensionService#_doActivateExtension waderyan.gitblame, startup: false, activationEvent: 'onStartupFinished'
+2025-10-26 14:58:29.030 [info] ExtensionService#_doActivateExtension github.vscode-github-actions, startup: false, activationEvent: 'workspaceContains:**/.github/workflows/**'
+2025-10-26 14:58:29.110 [info] ExtensionService#_doActivateExtension vscode.microsoft-authentication, startup: false, activationEvent: 'onAuthenticationRequest:microsoft'
+2025-10-26 14:58:29.952 [error] Error: chatParticipant must be declared in package.json: claude-code
+    at sqt.$registerAgent (vscode-file://vscode-app/snap/code/211/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:509:5906)
+2025-10-26 14:58:31.117 [error] Error: GitHubLoginFailed
+    at r9._authShowWarnings (/home/kiel/.vscode/extensions/github.copilot-chat-0.32.3/dist/extension.js:935:18344)
+    at r9.getCopilotToken (/home/kiel/.vscode/extensions/github.copilot-chat-0.32.3/dist/extension.js:935:16221)
+    at nH.getCopilotToken (/home/kiel/.vscode/extensions/github.copilot-chat-0.32.3/dist/extension.js:472:26116)
+    at Ty._fetchModels (/home/kiel/.vscode/extensions/github.copilot-chat-0.32.3/dist/extension.js:2948:4781)
+    at Ty.getAllChatModels (/home/kiel/.vscode/extensions/github.copilot-chat-0.32.3/dist/extension.js:2948:2686)
+    at $G.getAllChatEndpoints (/home/kiel/.vscode/extensions/github.copilot-chat-0.32.3/dist/extension.js:2948:16238)
+2025-10-26 14:59:34.323 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.323 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.323 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.323 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.323 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.323 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.323 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.323 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.323 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.323 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.323 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.323 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.323 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.323 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.323 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.323 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.323 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.323 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.323 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.323 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.323 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.323 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.323 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.323 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.324 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.324 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.324 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.324 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.324 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.324 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.324 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.324 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.324 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.324 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.324 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.324 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.324 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.324 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.324 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.324 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.324 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.324 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:34.324 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.325 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.327 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.328 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.329 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.330 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.332 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.333 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.334 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.335 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.336 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.336 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.337 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.338 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.339 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.340 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.341 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.341 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.342 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.343 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.344 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.345 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.345 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.347 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.348 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.348 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.349 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.350 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.351 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.352 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.352 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.353 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.354 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.355 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.355 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.356 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.357 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.357 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.357 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.358 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.358 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.359 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.359 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:35.360 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:39.930 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:39.931 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:39.931 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:39.931 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:39.931 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:39.931 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:39.931 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:39.931 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:39.931 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:39.931 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:39.931 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:39.931 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:39.931 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:39.931 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:40.933 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:40.934 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:40.935 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:40.936 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:40.937 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:40.938 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:40.939 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:40.940 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:40.941 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:40.942 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:40.943 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:40.944 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:40.945 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 14:59:40.946 [error] Error: Git error
+    at ChildProcess.<anonymous> (/snap/code/211/usr/share/code/resources/app/extensions/git/dist/main.js:2:594450)
+    at ChildProcess.emit (node:events:531:35)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-10-26 23:58:58.778 [info] ExtensionService#_doActivateExtension christian-kohler.npm-intellisense, startup: false, activationEvent: 'onLanguage:typescript'
