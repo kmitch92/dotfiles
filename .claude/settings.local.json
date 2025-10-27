@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(command -v stow:*)",
+      "Bash(stow:*)",
+      "Bash(bash:*)",
+      "Bash(sh -c 'command -v stow &> /dev/null && echo \"\"Found\"\" || echo \"\"Not found\"\"')",
+      "Read(//usr/bin/**)",
+      "Bash(echo:*)",
+      "Bash(command -v:*)",
+      "Bash(/dev/null)",
+      "Bash(shellcheck:*)",
+      "Bash(sh:*)",
+      "Bash(./install.sh:*)",
+      "Bash(zsh install.sh)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
