@@ -19,53 +19,41 @@ claude/.claude/*
 .local/*
 
 # -----------------------------------------------------------------------------
-# WHITELIST: Terminal Emulators
+# WHITELIST: All User Configs (except system-generated)
 # -----------------------------------------------------------------------------
-!config/.config/alacritty/
-!config/.config/alacritty/**
+# We whitelist everything by default, then re-ignore system dirs below
+!config/.config/*/
+!config/.config/**
 
-!config/.config/kitty/
-!config/.config/kitty/**
+# But immediately re-ignore known system-generated directories
+config/.config/Claude/
+config/.config/Code/
+config/.config/VSCodium/
+config/.config/Cursor/
+config/.config/google-chrome/
+config/.config/google-chrome-for-testing/
+config/.config/chromium/
+config/.config/BraveSoftware/
+config/.config/firefox/
+config/.config/Kiro/
+config/.config/dconf/
+config/.config/pulse/
+config/.config/gtk-3.0/
+config/.config/gtk-4.0/
+config/.config/ibus/
+config/.config/nautilus/
+config/.config/tiling-assistant/
+config/.config/org.gnome.*/
+config/.config/QtProject.conf
+config/.config/mimeapps.list
+config/.config/user-dirs.*
 
-!config/.config/wezterm/
-!config/.config/wezterm/**
-
-!config/.config/ghostty/
-!config/.config/ghostty/**
-
-!config/.config/iterm2/
-!config/.config/iterm2/**
-
-# -----------------------------------------------------------------------------
-# WHITELIST: Neovim Configuration
-# -----------------------------------------------------------------------------
-!config/.config/nvim/
-!config/.config/nvim/**
-
-# But ignore Neovim generated files
+# Re-ignore Neovim generated files
 config/.config/nvim/lazy-lock.json
 config/.config/nvim/.luarc.json
 config/.config/nvim/.stylua.toml
 config/.config/nvim/plugin/
 config/.config/nvim/.git/
-
-# -----------------------------------------------------------------------------
-# WHITELIST: Shell & Prompt Configuration
-# -----------------------------------------------------------------------------
-!config/.config/starship.toml
-
-# -----------------------------------------------------------------------------
-# WHITELIST: Git Configuration
-# -----------------------------------------------------------------------------
-!config/.config/git/
-!config/.config/git/**
-
-# -----------------------------------------------------------------------------
-# WHITELIST: Documentation
-# -----------------------------------------------------------------------------
-!config/.config/STATUS_BAR_README.md
-!config/.config/TERMINAL_README.md
-!config/.config/README.md
 
 # -----------------------------------------------------------------------------
 # WHITELIST: Claude Configuration (selective)
@@ -186,37 +174,15 @@ __pycache__/
 .pytest_cache/
 
 # -----------------------------------------------------------------------------
-# ALWAYS IGNORE: System-Generated Config Directories
+# NOTE: System-Generated Config Directories
 # -----------------------------------------------------------------------------
-# These are created by running apps, not our dotfiles
-
-# Browsers
-config/.config/google-chrome/
-config/.config/google-chrome-for-testing/
-config/.config/chromium/
-config/.config/BraveSoftware/
-config/.config/firefox/
-
-# Editors/IDEs
-config/.config/Code/
-config/.config/VSCodium/
-config/.config/Cursor/
-config/.config/Claude/
-
-# Desktop environments
-config/.config/dconf/
-config/.config/pulse/
-config/.config/gtk-3.0/
-config/.config/gtk-4.0/
-config/.config/ibus/
-config/.config/nautilus/
-config/.config/tiling-assistant/
-config/.config/org.gnome.*/
-
-# Other apps
-config/.config/Kiro/
-config/.config/QtProject.conf
-config/.config/mimeapps.list
+# The following are already ignored via the whitelist section above:
+#   - Browsers: Chrome, Firefox, Brave, Chromium
+#   - IDEs: Code, Claude, Cursor, VSCodium
+#   - Desktop: dconf, pulse, gtk, ibus, nautilus, tiling-assistant
+#   - Other: Kiro, QtProject.conf, mimeapps.list
+#
+# To add a new system-generated app to ignore, add it to the whitelist section
 
 # -----------------------------------------------------------------------------
 # NOTES
