@@ -12,7 +12,8 @@
       "Bash(shellcheck:*)",
       "Bash(sh:*)",
       "Bash(./install.sh:*)",
-      "Bash(zsh install.sh)"
+      "Bash(zsh install.sh)",
+      "Bash(nvim:*)"
     ],
     "deny": [],
     "ask": []

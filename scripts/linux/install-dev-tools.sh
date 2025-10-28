@@ -13,8 +13,8 @@ TOOLS_TO_INSTALL=()
 # Essential Tools
 # =============================================================================
 
-# Neovim - LazyVim requires >= 0.11.2
-NVIM_REQUIRED_VERSION="0.11.2"
+# Neovim - LazyVim requires >= 0.10.0 (we install from stable channel)
+NVIM_REQUIRED_VERSION="0.10.0"
 NVIM_NEEDS_UPGRADE=false
 
 check_nvim_version() {
@@ -160,7 +160,7 @@ install_neovim_appimage() {
 
     case "$arch" in
         x86_64)
-            appimage_name="nvim.appimage"
+            appimage_name="nvim-linux-x86_64.appimage"
             ;;
         aarch64|arm64)
             appimage_name="nvim-linux-arm64.appimage"
@@ -186,16 +186,27 @@ install_neovim_appimage() {
         sudo pacman -R --noconfirm neovim 2>/dev/null || true
     fi
 
-    # Remove any existing broken nvim installation
+    # Remove any existing nvim installations (including dev/broken versions)
     if [ -f /usr/local/bin/nvim ]; then
         print_info "Removing existing nvim at /usr/local/bin/nvim..."
         sudo rm -f /usr/local/bin/nvim
     fi
 
-    # Download latest Neovim AppImage
-    print_info "Downloading latest Neovim AppImage..."
+    if [ -f /usr/bin/nvim ]; then
+        print_info "Removing existing nvim at /usr/bin/nvim..."
+        sudo rm -f /usr/bin/nvim
+    fi
+
+    if [ -f /usr/bin/nvim.dev.backup ]; then
+        print_info "Removing dev backup at /usr/bin/nvim.dev.backup..."
+        sudo rm -f /usr/bin/nvim.dev.backup
+    fi
+
+    # Download latest stable Neovim AppImage (not nightly/dev builds)
+    # Use v0.11.4 as the stable version (GitHub no longer has a 'stable' tag)
+    print_info "Downloading stable Neovim AppImage (v0.11.4)..."
     local tmp_dir=$(mktemp -d)
-    local download_url="https://github.com/neovim/neovim/releases/latest/download/$appimage_name"
+    local download_url="https://github.com/neovim/neovim/releases/download/v0.11.4/$appimage_name"
 
     cd "$tmp_dir"
 
@@ -207,9 +218,9 @@ install_neovim_appimage() {
         if [ -f "$appimage_name" ] && [ "$file_size" -gt 1000000 ]; then
             chmod u+x "$appimage_name"
 
-            # Install to /usr/local/bin
-            print_info "Installing to /usr/local/bin/nvim..."
-            sudo mv "$appimage_name" /usr/local/bin/nvim
+            # Install to /usr/bin (where system nvim typically resides)
+            print_info "Installing to /usr/bin/nvim..."
+            sudo mv "$appimage_name" /usr/bin/nvim
 
             # Verify installation
             if command_exists nvim && nvim --version >/dev/null 2>&1; then
