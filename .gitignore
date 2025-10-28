@@ -1,14 +1,75 @@
 # =============================================================================
-# Dotfiles .gitignore - Selective tracking strategy
+# Dotfiles .gitignore - Whitelist Strategy
+# =============================================================================
+# Strategy: Ignore everything by default, then explicitly whitelist what we want
+# This prevents accidentally committing system-generated files from stowed configs
 # =============================================================================
 
 # -----------------------------------------------------------------------------
-# Claude working files (ignore everything, then selectively include)
+# IGNORE EVERYTHING IN KEY DIRECTORIES
 # -----------------------------------------------------------------------------
-.install.log*
+
+# Ignore everything in config directory
+config/.config/*
+
+# Ignore everything in claude working directory
 claude/.claude/*
 
-# Keep these specific files/directories
+# Ignore everything in .local (if stowed)
+.local/*
+
+# -----------------------------------------------------------------------------
+# WHITELIST: Terminal Emulators
+# -----------------------------------------------------------------------------
+!config/.config/alacritty/
+!config/.config/alacritty/**
+
+!config/.config/kitty/
+!config/.config/kitty/**
+
+!config/.config/wezterm/
+!config/.config/wezterm/**
+
+!config/.config/ghostty/
+!config/.config/ghostty/**
+
+!config/.config/iterm2/
+!config/.config/iterm2/**
+
+# -----------------------------------------------------------------------------
+# WHITELIST: Neovim Configuration
+# -----------------------------------------------------------------------------
+!config/.config/nvim/
+!config/.config/nvim/**
+
+# But ignore Neovim generated files
+config/.config/nvim/lazy-lock.json
+config/.config/nvim/.luarc.json
+config/.config/nvim/.stylua.toml
+config/.config/nvim/plugin/
+config/.config/nvim/.git/
+
+# -----------------------------------------------------------------------------
+# WHITELIST: Shell & Prompt Configuration
+# -----------------------------------------------------------------------------
+!config/.config/starship.toml
+
+# -----------------------------------------------------------------------------
+# WHITELIST: Git Configuration
+# -----------------------------------------------------------------------------
+!config/.config/git/
+!config/.config/git/**
+
+# -----------------------------------------------------------------------------
+# WHITELIST: Documentation
+# -----------------------------------------------------------------------------
+!config/.config/STATUS_BAR_README.md
+!config/.config/TERMINAL_README.md
+!config/.config/README.md
+
+# -----------------------------------------------------------------------------
+# WHITELIST: Claude Configuration (selective)
+# -----------------------------------------------------------------------------
 !claude/.claude/CLAUDE.md
 !claude/.claude/settings.json
 !claude/.claude/agents/
@@ -16,43 +77,150 @@ claude/.claude/*
 !claude/.claude/plugins/
 !claude/.claude/plugins/**
 
-# Explicitly ignore working files even if parent is included
+# But ignore Claude working files
 claude/.claude/debug/
 claude/.claude/history.jsonl
 claude/.claude/shell-snapshots/
 claude/.claude/statsig/
 claude/.claude/todos/
+claude/.claude/settings.local.json
+claude/.claude/*.log
 
 # -----------------------------------------------------------------------------
-# Config working files (if any specific ignores needed)
+# WHITELIST: Root Configuration Files
 # -----------------------------------------------------------------------------
-# Add specific ignores here if config/ generates working files
-config/.config/nvim/lazy-lock.json  # Example: lock file you don't want
-config/.config/Kiro/
-config/.config/google-chrome/
-config/.config/google-chrome-for-testing/
-config/.config/Code/
-# -----------------------------------------------------------------------------
-# System-specific configs (shouldn't be in dotfiles)
-# -----------------------------------------------------------------------------
-# GNOME/Linux desktop configs
-*/.config/dconf/
-*/.config/pulse/
-*/.config/org.gnome.Ptyxis/
-*/.config/tiling-assistant/
+# Scripts directory (whitelist everything)
+!scripts/
+!scripts/**
 
-# Backup configs (shouldn't be tracked)
-*/.config/nvim.backup.*/
+# Zsh configuration
+!zsh/
+!zsh/**
+
+# Tmux configuration
+!tmux/
+!tmux/**
+
+# MCP configuration
+!mcp/
+!mcp/**
+
+# Core dotfiles
+!.zshrc
+!.zshenv
+!.zprofile
+!.tmux.conf
+!.gitconfig
+!.gitignore
+!.gitignore_global
+
+# Installation scripts
+!install.sh
+!bootstrap.sh
+!migrate_to_lazyvim.sh
+!Makefile
+
+# Documentation
+!README.md
+!*.md
+!CONTRIBUTING.md
+!QUICKSTART.md
+!INSTALL_GUIDE.md
+!CHANGELOG.md
+!LICENSE
+
+# Claude project files
+!.claude/
+!.claude/CLAUDE.md
+!.claude/settings.json
 
 # -----------------------------------------------------------------------------
-# Backup directories
+# ALWAYS IGNORE: System & Generated Files
 # -----------------------------------------------------------------------------
+
+# Installation tracking (runtime only)
+.install.log
+.install.log.*
+.install_status
+
+# Backups
 backups/
+*.backup
+*.bak
+*~
 
-# -----------------------------------------------------------------------------
-# System files
-# -----------------------------------------------------------------------------
+# macOS
 .DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Linux
+.directory
+.Trash-*/
+
+# Vim/Neovim swap files
 *.swp
 *.swo
-*~
+*.swn
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+
+# IDE/Editor
+.vscode/
+.idea/
+*.sublime-*
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+*.pid
+
+# Node modules (if any dev tools use them)
+node_modules/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# -----------------------------------------------------------------------------
+# ALWAYS IGNORE: System-Generated Config Directories
+# -----------------------------------------------------------------------------
+# These are created by running apps, not our dotfiles
+
+# Browsers
+config/.config/google-chrome/
+config/.config/google-chrome-for-testing/
+config/.config/chromium/
+config/.config/BraveSoftware/
+config/.config/firefox/
+
+# Editors/IDEs
+config/.config/Code/
+config/.config/VSCodium/
+config/.config/Cursor/
+config/.config/Claude/
+
+# Desktop environments
+config/.config/dconf/
+config/.config/pulse/
+config/.config/gtk-3.0/
+config/.config/gtk-4.0/
+config/.config/ibus/
+config/.config/nautilus/
+config/.config/tiling-assistant/
+config/.config/org.gnome.*/
+
+# Other apps
+config/.config/Kiro/
+config/.config/QtProject.conf
+config/.config/mimeapps.list
+
+# -----------------------------------------------------------------------------
+# NOTES
+# -----------------------------------------------------------------------------
+# To check what's being tracked: git ls-files
+# To check what's being ignored: git status --ignored
+# To stop tracking a file: git rm --cached <file>
