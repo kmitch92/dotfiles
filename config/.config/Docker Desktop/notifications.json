@@ -1,0 +1,58 @@
+{
+	"notifications": [
+		{
+			"guid": "e483814f-4736-4eef-9731-ae6829115d02",
+			"timestamp": 1761775749292,
+			"read": false,
+			"displayState": "background",
+			"notification": {
+				"message": "Sign in to share images and collaborate with your team",
+				"icon": "disconnected",
+				"type": "action-result",
+				"operation": "user-log-in",
+				"actionText": "Sign in",
+				"action": {
+					"action": "open-login",
+					"params": {}
+				},
+				"title": "You are signed out"
+			}
+		},
+		{
+			"guid": "2a788676-156f-4199-9c44-585fccedef1f",
+			"timestamp": 1761775760251,
+			"read": false,
+			"displayState": "background",
+			"notification": {
+				"message": "How was your experience installing Docker Desktop?",
+				"icon": "campaign",
+				"type": "feedback",
+				"actionText": "Give feedback",
+				"action": {
+					"action": "open-external-url",
+					"params": {
+						"url": "https://docker.qualtrics.com/jfe/form/SV_6AaVyp25bygjirY?DD_Version=4.49.0&Mode=local&Tab=Install%2BComplete&OS=Linux"
+					}
+				}
+			}
+		},
+		{
+			"guid": "e934a43e-e99b-45b3-a5f1-92284ffe884a",
+			"timestamp": 1761775770440,
+			"read": false,
+			"displayState": "background",
+			"notification": {
+				"message": "You must initialize pass before logging in to Docker Desktop",
+				"icon": "error",
+				"type": "action-result",
+				"operation": "user-log-in",
+				"title": "Unable to log in",
+				"actionText": "Learn how",
+				"action": {
+					"action": "open-credential-store-instructions",
+					"params": {}
+				}
+			}
+		}
+	]
+}
