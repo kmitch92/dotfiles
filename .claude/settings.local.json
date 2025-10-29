@@ -14,7 +14,9 @@
       "Bash(./install.sh:*)",
       "Bash(zsh install.sh)",
       "Bash(nvim:*)",
-      "Bash(xargs:*)"
+      "Bash(xargs:*)",
+      "Bash(brew list:*)",
+      "Bash(tree:*)"
     ],
     "deny": [],
     "ask": []

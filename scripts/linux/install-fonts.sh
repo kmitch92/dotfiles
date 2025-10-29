@@ -62,6 +62,64 @@ else
 fi
 
 # =============================================================================
+# Powerline Fonts (Terminal styling and status bars)
+# =============================================================================
+
+echo ""
+print_info "Powerline fonts provide special glyphs for terminal prompts and status bars"
+if confirm "Install powerline fonts? (Meslo, DejaVu, Inconsolata)"; then
+    print_info "Installing powerline fonts..."
+
+    # Create fonts directory if it doesn't exist
+    mkdir -p "$FONT_DIR"
+
+    local distro=$(detect_linux_distro)
+
+    case $distro in
+        ubuntu|debian|pop)
+            # Install via package manager
+            sudo apt-get install -y fonts-powerline
+            print_success "Powerline fonts installed via apt"
+            FONT_INSTALLED=true
+            ;;
+        fedora|rhel|centos)
+            # Install via package manager
+            sudo dnf install -y powerline-fonts
+            print_success "Powerline fonts installed via dnf"
+            FONT_INSTALLED=true
+            ;;
+        arch|manjaro)
+            # Install via package manager
+            sudo pacman -S --noconfirm powerline-fonts
+            print_success "Powerline fonts installed via pacman"
+            FONT_INSTALLED=true
+            ;;
+        *)
+            # Manual installation for other distros
+            print_info "Downloading powerline fonts from GitHub..."
+            cd /tmp
+            if git clone --depth=1 https://github.com/powerline/fonts.git powerline-fonts 2>/dev/null; then
+                cd powerline-fonts
+                ./install.sh
+                cd ..
+                rm -rf powerline-fonts
+                print_success "Powerline fonts installed manually"
+                FONT_INSTALLED=true
+            else
+                print_warning "Failed to download powerline fonts"
+                print_info "Install manually from: https://github.com/powerline/fonts"
+            fi
+            cd - > /dev/null
+            ;;
+    esac
+
+    print_info "Updating font cache..."
+    fc-cache -f
+else
+    print_warning "Skipping powerline fonts installation"
+fi
+
+# =============================================================================
 # Optional: Additional Developer Fonts
 # =============================================================================
 
@@ -95,6 +153,7 @@ if confirm "Install additional developer fonts? (Fira Code, Hack)"; then
         print_info "Updating font cache..."
         fc-cache -f
         print_success "Additional fonts installed"
+        FONT_INSTALLED=true
     fi
 fi
 
