@@ -5,6 +5,39 @@ This is a comprehensive dotfiles repository that provides automated setup for de
 
 ## Critical Issues Fixed
 
+### MCP Configuration Templating - Stow Conflict (Fixed: 2025-10-29)
+
+**Problem**:
+The MCP configuration file (`~/.mcp.json`) was being created as a symlink by GNU Stow, pointing to the template file with unsubstituted environment variables. This caused Claude Code to fail loading MCP servers with error:
+
+```
+[Warning] [context7] mcpServers.context7: Missing environment variables: CONTEXT7_API_KEY
+```
+
+**Root Cause**:
+- GNU Stow treated `mcp/` as a package and created: `~/.mcp.json` → `dotfiles/mcp/.mcp.json`
+- This symlink pointed to the **template** with `${CONTEXT7_API_KEY}` placeholder
+- `setup-mcp.sh` would remove the symlink and generate proper file, but Stow would recreate it on next run
+- **Architectural conflict**: Can't have both a Stow-managed symlink AND a generated file with substituted secrets
+
+**Solution Applied**:
+1. Renamed template: `mcp/.mcp.json` → `mcp/mcp.json.template`
+2. Updated `scripts/setup-mcp.sh:135` to use new template path
+3. Modified `scripts/setup-stow.sh:32` to exclude `mcp/` directory from Stow packages
+4. Result: Only `setup-mcp.sh` manages `~/.mcp.json` (no Stow interference)
+
+**Files Modified**:
+- `mcp/.mcp.json` → `mcp/mcp.json.template` (git mv)
+- `scripts/setup-mcp.sh` (line 135)
+- `scripts/setup-stow.sh` (line 32)
+- `.claude/CLAUDE.md` (documentation updates)
+
+**Key Lesson**:
+- **Templating tool**: `envsubst` from GNU gettext works perfectly for variable substitution
+- **Not overcomplicated**: The templating itself is simple and standard
+- **Real issue**: Architectural conflict between Stow's symlink management and runtime secret substitution
+- **Solution**: Exclude template directories from Stow; manage them separately
+
 ### Neovim Installation - Dev Build Issue (Fixed: 2025-10-28)
 
 **Problem**:
@@ -266,7 +299,7 @@ MCP servers are configured via **template + environment variables**, NOT committ
 
 ### Configuration Files
 
-**`mcp/.mcp.json`** - Template with environment variable placeholders:
+**`mcp/mcp.json.template`** - Template with environment variable placeholders (NOT stowed):
 ```json
 {
   "mcpServers": {
@@ -292,6 +325,7 @@ CONTEXT7_API_KEY=ctx7sk-actual-key-here
 **`scripts/setup-mcp.sh`** - Substitutes env vars from `.env.mcp.local` into template and deploys to `~/.mcp.json`
   - Removes symlinks if present (file must be generated, not symlinked)
   - Validates required runtime tools (npx, uvx)
+  - **Note**: `mcp/` directory is excluded from GNU Stow to prevent symlink conflicts
 
 ### Setup Process
 
@@ -306,7 +340,7 @@ cd ~/dotfiles
 **Update Configuration:**
 ```bash
 cd ~/dotfiles
-# Edit mcp/.mcp.json to add/remove/change servers
+# Edit mcp/mcp.json.template to add/remove/change servers
 ./scripts/setup-mcp.sh  # Regenerate ~/.mcp.json
 # Restart Claude Code to load changes
 ```

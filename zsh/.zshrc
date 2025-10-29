@@ -94,3 +94,72 @@ fi
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+# ============================================================================
+# Git Worktree Helpers - Auto-fix Husky
+# ============================================================================
+
+# Wrapper for git worktree add that automatically creates Husky symlink
+# Usage: gwa <path> <branch>
+# Example: gwa worktrees/feat-new-feature feat-new-feature
+gwa() {
+    if [ $# -eq 0 ]; then
+        echo "Usage: gwa <path> <branch>"
+        echo "Example: gwa worktrees/feat-new-feature feat-new-feature"
+        return 1
+    fi
+
+    # Run git worktree add with all arguments
+    git worktree add "$@"
+
+    # If successful, create symlink (post-checkout hook should handle this, but just in case)
+    if [ $? -eq 0 ]; then
+        local worktree_path="$1"
+
+        # Find the main repo root (where .git directory is)
+        local main_repo=$(git rev-parse --git-common-dir | sed 's|/.git$||')
+
+        # Calculate relative path from worktree to main repo .husky
+        local relative_husky=$(python3 -c "import os.path; print(os.path.relpath('$main_repo/.husky', '$worktree_path'))" 2>/dev/null)
+
+        # Fallback to simple relative path if Python fails
+        if [ -z "$relative_husky" ]; then
+            relative_husky="../../.husky"
+        fi
+
+        # Create symlink if it doesn't exist
+        if [ ! -e "$worktree_path/.husky" ]; then
+            ln -sf "$relative_husky" "$worktree_path/.husky"
+            echo "✅ Worktree created with Husky symlink"
+        else
+            echo "✅ Worktree created (Husky already configured)"
+        fi
+    fi
+}
+
+# Fix existing worktree Husky symlink
+# Usage: fix-husky-worktree (run from within worktree directory)
+fix-husky-worktree() {
+    # Check if we're in a worktree (worktrees have .git file, not directory)
+    if [ -f .git ]; then
+        local main_repo=$(git rev-parse --git-common-dir | sed 's|/.git/worktrees/.*$||')
+        local current_dir=$(pwd)
+        local relative_husky=$(python3 -c "import os.path; print(os.path.relpath('$main_repo/.husky', '$current_dir'))" 2>/dev/null)
+
+        # Fallback to simple relative path if Python fails
+        if [ -z "$relative_husky" ]; then
+            relative_husky="../../.husky"
+        fi
+
+        # Remove existing .husky if not a symlink
+        if [ -e .husky ] && [ ! -L .husky ]; then
+            rm -rf .husky
+        fi
+
+        ln -sf "$relative_husky" .husky
+        echo "✅ Husky symlink fixed: .husky -> $relative_husky"
+    else
+        echo "❌ Not in a worktree (or already in main repo)"
+        echo "   Worktrees have a .git file (not directory)"
+    fi
+}
