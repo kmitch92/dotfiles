@@ -20,6 +20,49 @@ source "$DOTFILES_DIR/scripts/utils.sh"
 print_header "Setting up MCP Server Configuration"
 
 # =============================================================================
+# Validate runtime tool dependencies
+# =============================================================================
+
+print_info "Checking for required runtime tools..."
+
+# Track missing tools
+MISSING_TOOLS=()
+
+# Check for npx (Node.js/npm)
+if ! command -v npx &> /dev/null; then
+    MISSING_TOOLS+=("npx (Node.js/npm)")
+fi
+
+# Check for uvx (Python/uv)
+if ! command -v uvx &> /dev/null; then
+    MISSING_TOOLS+=("uvx (Python/uv)")
+fi
+
+# If tools are missing, provide guidance and exit
+if [ ${#MISSING_TOOLS[@]} -gt 0 ]; then
+    print_error "Missing required runtime tools:"
+    for tool in "${MISSING_TOOLS[@]}"; do
+        echo "  ✗ $tool"
+    done
+    echo ""
+    print_info "MCP servers require these runtime tools:"
+    echo "  - npx: Required for context7, sequential-thinking, playwright servers"
+    echo "  - uvx: Required for serena, aws-core, aws-cdk servers"
+    echo ""
+    print_info "To install missing tools, run these installation steps:"
+    if [[ " ${MISSING_TOOLS[@]} " =~ "npx" ]]; then
+        echo "  • Node.js/npm: ./install.sh (Step 4: Development Runtimes)"
+    fi
+    if [[ " ${MISSING_TOOLS[@]} " =~ "uvx" ]]; then
+        echo "  • Python/uv: ./install.sh (Step 4: Development Runtimes)"
+    fi
+    echo ""
+    exit 1
+fi
+
+print_success "All required runtime tools found"
+
+# =============================================================================
 # Check for .env.mcp.local
 # =============================================================================
 
