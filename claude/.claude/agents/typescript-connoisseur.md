@@ -11,11 +11,14 @@ color: blue
 
 ## Core Principles
 
+**Refer to main CLAUDE.md for**: Core TDD philosophy, cross-cutting standards, working with Claude guidelines.
+
 1. **Strict Mode Always** - Maximum type safety
 2. **Schema-Driven** - Zod as single source of truth
 3. **No `any`** - Use `unknown` for truly unknown types
 4. **Branded Types** - Domain-specific type safety
 5. **Test-Driven** - Types verified by tests
+6. **Prefer `type` over `interface`** - In all cases (see Type Definitions section)
 
 ---
 
@@ -44,7 +47,46 @@ color: blue
 
 ---
 
+## Type Definitions
+
+### Prefer `type` Over `interface`
+
+Use `type` in all cases for consistency and flexibility:
+
+```typescript
+// ✅ PREFER: type
+type User = {
+  id: string;
+  name: string;
+  email: string;
+};
+
+type Result<T, E> =
+  | { success: true; data: T }
+  | { success: false; error: E };
+
+// ❌ AVOID: interface (less flexible for unions and mapped types)
+interface User {
+  id: string;
+  name: string;
+  email: string;
+}
+```
+
+**Why**: `type` supports unions, intersections, mapped types, and is more consistent across codebases.
+
+### Type System Guidelines
+
+- **Use explicit typing** where it aids clarity, but leverage inference where appropriate
+- **Utilize utility types** effectively (`Pick`, `Omit`, `Partial`, `Required`, etc.)
+- **Create domain-specific types** (e.g., `UserId`, `PaymentId`) for type safety (see Branded Types)
+- **Use Zod or [Standard Schema](https://standardschema.dev/) compliant library** to create types by defining schemas first
+
+---
+
 ## Schema-Driven Development with Zod
+
+**CRITICAL PRINCIPLE**: Always define schemas first, then derive types from them. Never define types separately from schemas.
 
 ### Define Schema First, Derive Types
 
@@ -73,25 +115,121 @@ const parseUser = (data: unknown): User => {
 
 ### Schema Composition
 
+Build complex schemas by composing smaller ones:
+
 ```typescript
-const AddressSchema = z.object({
-  street: z.string().min(1),
+const AddressDetailsSchema = z.object({
+  houseNumber: z.string(),
+  houseName: z.string().optional(),
+  addressLine1: z.string().min(1),
+  addressLine2: z.string().optional(),
   city: z.string().min(1),
-  postcode: z.string().regex(/^[A-Z]{1,2}\d[A-Z\d]?\s?\d[A-Z]{2}$/i),
+  postcode: z.string().regex(/^[A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2}$/i),
 })
 
-const CustomerSchema = z.object({
+const PayingCardDetailsSchema = z.object({
+  cvv: z.string().regex(/^\d{3,4}$/),
+  token: z.string().min(1),
+})
+
+const PostPaymentsRequestV3Schema = z.object({
+  cardAccountId: z.string().length(16),
+  amount: z.number().positive(),
+  source: z.enum(["Web", "Mobile", "API"]),
+  accountStatus: z.enum(["Normal", "Restricted", "Closed"]),
+  lastName: z.string().min(1),
+  dateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  payingCardDetails: PayingCardDetailsSchema,
+  addressDetails: AddressDetailsSchema,
+  brand: z.enum(["Visa", "Mastercard", "Amex"]),
+})
+
+// Derive types from schemas
+type AddressDetails = z.infer<typeof AddressDetailsSchema>
+type PayingCardDetails = z.infer<typeof PayingCardDetailsSchema>
+type PostPaymentsRequestV3 = z.infer<typeof PostPaymentsRequestV3Schema>
+
+// Use schemas at runtime boundaries
+export const parsePaymentRequest = (data: unknown): PostPaymentsRequestV3 => {
+  return PostPaymentsRequestV3Schema.parse(data)
+}
+```
+
+**When**: Complex nested data structures
+**Why**: Reusable, maintainable, self-documenting
+
+### Schema Extension and Inheritance
+
+```typescript
+// Example of schema composition for complex domains
+const BaseEntitySchema = z.object({
   id: z.string().uuid(),
-  name: z.string().min(1),
-  address: AddressSchema,
-  billingAddress: AddressSchema.optional(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+})
+
+const CustomerSchema = BaseEntitySchema.extend({
+  email: z.string().email(),
+  tier: z.enum(["standard", "premium", "enterprise"]),
+  creditLimit: z.number().positive(),
 })
 
 type Customer = z.infer<typeof CustomerSchema>
 ```
 
-**When**: Complex nested data structures
-**Why**: Reusable, maintainable, self-documenting
+### Schema Usage in Tests
+
+**CRITICAL**: Tests must use real schemas and types from the main project, not redefine their own.
+
+```typescript
+// ❌ WRONG - Defining schemas in test files
+const ProjectSchema = z.object({
+  id: z.string(),
+  workspaceId: z.string(),
+  ownerId: z.string().nullable(),
+  name: z.string(),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
+})
+
+// ✅ CORRECT - Import schemas from the shared schema package
+import { ProjectSchema, type Project } from "@your-org/schemas"
+```
+
+**Why this matters:**
+
+- **Type Safety**: Ensures tests use the same types as production code
+- **Consistency**: Changes to schemas automatically propagate to tests
+- **Maintainability**: Single source of truth for data structures
+- **Prevents Drift**: Tests can't accidentally diverge from real schemas
+
+**Implementation:**
+
+- All domain schemas should be exported from a shared schema package or module
+- Test files should import schemas from the shared location
+- If a schema isn't exported yet, add it to the exports rather than duplicating it
+- Mock data factories should use the real types derived from real schemas
+
+```typescript
+// ✅ CORRECT - Test factories using real schemas
+import { ProjectSchema, type Project } from "@your-org/schemas"
+
+const getMockProject = (overrides?: Partial<Project>): Project => {
+  const baseProject = {
+    id: "proj_123",
+    workspaceId: "ws_456",
+    ownerId: "user_789",
+    name: "Test Project",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }
+
+  const projectData = { ...baseProject, ...overrides }
+
+  // Validate against real schema to catch type mismatches
+  return ProjectSchema.parse(projectData)
+}
+```
 
 ---
 
@@ -452,10 +590,19 @@ const program = getUsers.pipe(
 
 ---
 
+## Working with Other Agents
+
+- **Test Writer**: Provide schema patterns and type definitions for test factories
+- **Code Quality Enforcer**: Collaborate on immutability patterns and functional approaches
+- **Refactoring Specialist**: Ensure type safety is maintained during refactoring
+- **Backend TypeScript Developer**: Share schema definitions and validation patterns
+- **React Engineer**: Provide type-safe prop definitions and component patterns
+- **Main Agent**: Consult for all TypeScript-specific questions and patterns
+
 ## Further Reading
 
 - [TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/intro.html)
 - [Zod Documentation](https://zod.dev/)
 - [Effect-TS Documentation](https://effect.website/)
 - [Type Challenges](https://github.com/type-challenges/type-challenges)
-- `/Users/kiel.mitchell/.claude/CLAUDE.md` - Development guidelines
+- Main CLAUDE.md - Core development guidelines and orchestration
