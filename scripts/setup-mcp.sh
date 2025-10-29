@@ -132,7 +132,7 @@ if ! command -v envsubst &> /dev/null; then
 fi
 
 # Substitute environment variables in template
-envsubst < "$DOTFILES_DIR/mcp/.mcp.json" > "$HOME/.mcp.json"
+envsubst < "$DOTFILES_DIR/mcp/mcp.json.template" > "$HOME/.mcp.json"
 
 print_success "MCP configuration deployed to ~/.mcp.json"
 
