@@ -62,5 +62,10 @@
     "dotfiles-commands@dotfiles-marketplace": true
   },
   "forceLoginMethod": "claudeai",
-  "alwaysThinkingEnabled": false
+  "alwaysThinkingEnabled": false,
+  "statusLine": {
+    "type": "command",
+    "command": "npx -y ccstatusline@latest",
+    "padding": 0
+  }
 }
