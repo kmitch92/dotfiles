@@ -58,14 +58,14 @@
   "enabledMcpjsonServers": [
     "playwright"
   ],
-  "enabledPlugins": {
-    "dotfiles-commands@dotfiles-marketplace": true
-  },
-  "forceLoginMethod": "claudeai",
-  "alwaysThinkingEnabled": false,
   "statusLine": {
     "type": "command",
     "command": "npx -y ccstatusline@latest",
     "padding": 0
-  }
+  },
+  "enabledPlugins": {
+    "dotfiles-commands@dotfiles-marketplace": true
+  },
+  "forceLoginMethod": "claudeai",
+  "alwaysThinkingEnabled": true
 }
