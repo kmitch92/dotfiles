@@ -36,26 +36,26 @@
     [
       {
         "id": "fd38ef02-e40d-4050-bc1f-5e3e5203746a",
-        "type": "session-clock",
+        "type": "output-style",
         "color": "brightRed"
       },
       {
         "id": "49dc8c5f-f6dc-4cfc-8c6e-4a8d81735e44",
         "type": "current-working-dir",
         "color": "brightRed"
+      },
+      {
+        "id": "16bf9340-173a-4a30-93f1-596d2bca3b91",
+        "type": "session-cost",
+        "backgroundColor": "bgBlue"
       }
     ],
-    [
-      {
-        "id": "69289e48-ee53-47d5-9667-e8ffa98f05c3",
-        "type": "output-style",
-        "color": "brightGreen"
-      }
-    ]
+    []
   ],
   "flexMode": "full-until-compact",
   "compactThreshold": 60,
   "colorLevel": 2,
+  "defaultPadding": " ",
   "inheritSeparatorColors": false,
   "globalBold": false,
   "powerline": {
@@ -72,8 +72,7 @@
     "endCaps": [
       ""
     ],
-    "autoAlign": false,
-    "theme": "gruvbox"
-  },
-  "defaultPadding": " "
+    "theme": "gruvbox",
+    "autoAlign": false
+  }
 }
