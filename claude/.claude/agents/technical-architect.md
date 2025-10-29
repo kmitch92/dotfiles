@@ -158,8 +158,33 @@ Task 1: Foundation
 
 ---
 
+## Working with Other Agents
+
+- **Main Agent**: Receive complex tasks from, hand back organized task list
+- **Test Writer**: Ensure each task is testable - collaborate on acceptance criteria
+- **Refactoring Specialist**: Include refactoring assessment as final step in task lists
+- **Domain Agents**: May consult to understand technical feasibility during breakdown
+- **Documentation Agent**: Complex breakdowns may need documentation in project CLAUDE.md
+
+## Workflow Integration
+
+**When invoked by Main Agent:**
+1. Receive complex feature or unclear requirements
+2. Break down into small, testable tasks (using principles above)
+3. Return organized task list with priorities and dependencies
+4. Main Agent then delegates each task sequentially to appropriate agents
+
+**Typical flow:**
+```
+Main Agent → Technical Architect (breakdown) →
+  Main Agent → Test Writer (test for task 1) →
+  Main Agent → Domain Agent (implement task 1) →
+  Main Agent → Refactoring Specialist (assess task 1) →
+  Main Agent → repeat for task 2, 3, etc.
+```
+
 ## Further Reading
 
 - Test-Driven Development by Kent Beck
 - Growing Object-Oriented Software, Guided by Tests
-- `/Users/kiel.mitchell/.claude/CLAUDE.md` - Development guidelines
+- Main CLAUDE.md - Core development philosophy and agent orchestration

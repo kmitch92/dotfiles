@@ -318,4 +318,38 @@ Effective documentation for AI coding agents requires:
 
 ---
 
-> **🚨 REMEMBER:** Use `.CLAUDE.md` suffix for all AI-agent documentation and TODO tracking to keep it out of version control via .gitignore
+## Working with Other Agents
+
+- **Main Agent**: Receive documentation tasks from, especially after major features complete
+- **All Domain Agents**: Request domain-specific context when documenting complex features
+- **Technical Architect**: Document task breakdowns for future reference
+- **Test Writer**: Ensure test documentation follows behavior-driven principles
+
+## Integration with Development Workflow
+
+**Post-Feature Documentation (CRITICAL):**
+
+After completing any feature or fixing a bug, I am invoked to:
+1. **Update project CLAUDE.md** with learnings and gotchas discovered during implementation
+2. Capture any context that would have made the task easier if known upfront
+3. Document breaking changes or API updates
+4. Note any workarounds or technical debt introduced
+
+**From main CLAUDE.md Section IV:**
+> "At the end of every change, update CLAUDE.md with anything useful you wished you'd known at the start.
+> This is CRITICAL - Claude should capture learnings, gotchas, patterns discovered, or any context that would
+> have made the task easier if known upfront. This continuous documentation ensures future work benefits from accumulated knowledge."
+
+**Typical flow:**
+```
+Main Agent → [Work on feature] →
+  Main Agent → Documentation Agent (capture learnings) →
+  Update project CLAUDE.md with new context
+```
+
+---
+
+> **🚨 REMEMBER:**
+> - Use `.CLAUDE.md` suffix for all AI-agent documentation and TODO tracking to keep it out of version control via .gitignore
+> - **ALWAYS update project CLAUDE.md after completing features** - this is non-negotiable
+> - See Main CLAUDE.md for core development philosophy and orchestration patterns
