@@ -234,6 +234,139 @@ If you manually install fonts to `~/Library/Fonts/` (macOS) or `~/.local/share/f
 - Create font directories in the dotfiles repo for tracking
 - Rely on manual font copying for reproducibility
 
+## MCP Server Configuration
+
+### Overview
+Model Context Protocol (MCP) servers extend Claude Code with additional capabilities like documentation lookup, browser automation, AWS management, and structured thinking tools.
+
+### Installation Approach
+MCP servers are configured via **template + environment variables**, NOT committed with secrets.
+
+**Why this approach:**
+- Secrets (API keys) never committed to git
+- Template is version controlled for reproducibility
+- Easy to regenerate configuration on new machines
+- Cross-platform support (uses standard bash tools)
+
+### Configured MCP Servers
+
+**Documentation & Context:**
+- **Context7** - Up-to-date documentation from official sources (requires Upstash API key)
+- **Serena** - Semantic code retrieval and editing toolkit
+
+**Problem Solving:**
+- **Sequential Thinking** - Structured problem-solving with dynamic refinement
+
+**Browser Automation:**
+- **Playwright** - Cross-browser automation (Chrome, Firefox, Safari, Edge)
+
+**AWS Infrastructure:**
+- **AWS Core** - Foundation server for AWS operations (required for other AWS servers)
+- **AWS CDK** - Infrastructure as Code with AWS CDK best practices
+
+### Configuration Files
+
+**`mcp/.mcp.json`** - Template with environment variable placeholders:
+```json
+{
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp", "--api-key", "${CONTEXT7_API_KEY}"]
+    }
+  }
+}
+```
+
+**`.env.mcp`** - Template for environment variables (version controlled):
+```bash
+# Context7 API Key (get from https://console.upstash.com)
+CONTEXT7_API_KEY=your_api_key_here
+```
+
+**`.env.mcp.local`** - Actual secrets (gitignored, user creates):
+```bash
+CONTEXT7_API_KEY=ctx7sk-actual-key-here
+```
+
+**`scripts/setup-mcp.sh`** - Substitutes env vars from `.env.mcp.local` into template and deploys to `~/.mcp.json`
+
+### Setup Process
+
+**First Time Setup:**
+```bash
+cd ~/dotfiles
+./install.sh  # Creates .env.mcp.local from template if missing
+# Edit .env.mcp.local with your actual API keys
+./scripts/setup-mcp.sh
+```
+
+**Update Configuration:**
+```bash
+cd ~/dotfiles
+# Edit mcp/.mcp.json to add/remove/change servers
+./scripts/setup-mcp.sh  # Regenerate ~/.mcp.json
+# Restart Claude Code to load changes
+```
+
+**Verify Setup:**
+```bash
+# Check deployed configuration
+cat ~/.mcp.json
+
+# In Claude Code, run:
+/mcp
+```
+
+### Getting API Keys
+
+**Context7 (Upstash):**
+1. Visit https://console.upstash.com
+2. Create account or sign in
+3. Generate Context7 API key
+4. Add to `.env.mcp.local`
+
+**AWS:**
+- Configure AWS CLI: `aws configure`
+- Servers use AWS_REGION environment variable (defaults to eu-west-2)
+- No API keys needed in MCP config (uses AWS CLI credentials)
+
+### Troubleshooting
+
+**MCP servers not loading:**
+1. Check `~/.mcp.json` exists and is valid JSON
+2. Verify no `${VAR}` patterns remain (means env var not substituted)
+3. Check Claude Code logs: `~/.claude/logs/`
+4. Restart Claude Code
+5. Try: `claude --mcp-debug` for detailed logging
+
+**Environment variable not substituted:**
+1. Check `.env.mcp.local` exists and has correct syntax
+2. Verify `envsubst` is installed (setup-mcp.sh will try to install)
+3. Re-run `./scripts/setup-mcp.sh`
+
+**AWS servers failing:**
+1. Ensure `aws-core` server loads first (it's a dependency)
+2. Check AWS CLI is configured: `aws sts get-caller-identity`
+3. Verify AWS_REGION is set correctly in `mcp/.mcp.json`
+
+### Adding New MCP Servers
+
+1. Update `mcp/.mcp.json` with new server config
+2. If server requires secrets:
+   - Add variable to `.env.mcp` template
+   - Add actual value to `.env.mcp.local`
+   - Use `${VARIABLE_NAME}` in `mcp/.mcp.json`
+3. Run `./scripts/setup-mcp.sh` to regenerate
+4. Restart Claude Code
+5. Document in this file
+
+### DO NOT:
+- Commit `.env.mcp.local` (contains secrets)
+- Hardcode API keys in `mcp/.mcp.json`
+- Edit `~/.mcp.json` directly (regenerate from template)
+- Rely on manual copying for reproducibility
+
 ## Future Improvements
 - [ ] Add version pinning option (e.g., install specific Neovim version)
 - [ ] Add automated testing for install scripts

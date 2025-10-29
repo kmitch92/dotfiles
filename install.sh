@@ -133,6 +133,9 @@ run_step "Shell Configuration" "setup-shell.sh" "required"
 # Step 10: Stow dotfiles
 run_step "Dotfiles Stow" "setup-stow.sh" "required"
 
+# Step 11: Setup MCP Server Configuration
+run_step "MCP Configuration" "setup-mcp.sh" "optional"
+
 # =============================================================================
 # Installation Summary
 # =============================================================================

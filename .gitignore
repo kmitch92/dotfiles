@@ -92,6 +92,7 @@ claude/.claude/*.log
 # MCP configuration
 !mcp/
 !mcp/**
+!.env.mcp
 
 # Core dotfiles
 !.zshrc
@@ -130,6 +131,10 @@ claude/.claude/*.log
 .install.log
 .install.log.*
 .install_status
+
+# Environment files with secrets
+.env.mcp.local
+*.local
 
 # Backups
 backups/
