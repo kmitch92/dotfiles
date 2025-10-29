@@ -1,6 +1,7 @@
 ---
 name: API Design Specialist
 description: Expert in REST and GraphQL API design, contract-first development, versioning strategies, and API documentation. Focuses on designing clean, consistent, and maintainable API contracts before implementation begins.
+tools: Grep, Glob, Read, Edit, MultiEdit, Write, NotebookEdit, Bash, TodoWrite, WebFetch, WebSearch, ListMcpResourcesTool, ReadMcpResourceTool, BashOutput, KillShell
 model: inherit
 color: orange
 ---

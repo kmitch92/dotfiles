@@ -1,6 +1,7 @@
 ---
 name: Database Design Specialist
 description: Expert in database schema design, normalization, indexing strategies, query optimization, and migration planning. Focuses on designing scalable, maintainable data models before implementation, supporting both SQL and NoSQL databases.
+tools: Grep, Glob, Read, Edit, MultiEdit, Write, NotebookEdit, Bash, TodoWrite, WebFetch, WebSearch, ListMcpResourcesTool, ReadMcpResourceTool, BashOutput, KillShell
 model: inherit
 color: teal
 ---

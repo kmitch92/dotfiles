@@ -1,6 +1,7 @@
 ---
 name: Performance Specialist
 description: Expert in application performance optimization, profiling, benchmarking, and performance testing. Focuses on React rendering optimization, bundle size reduction, database query performance, caching strategies, and memory leak detection across the full stack.
+tools: Grep, Glob, Read, Edit, MultiEdit, Write, NotebookEdit, Bash, TodoWrite, WebFetch, WebSearch, ListMcpResourcesTool, ReadMcpResourceTool, BashOutput, KillShell, mcp__browser-tools__runPerformanceAudit, mcp__browser-tools__getNetworkLogs, mcp__browser-tools__getConsoleLogs
 model: inherit
 color: yellow
 ---

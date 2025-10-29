@@ -1,6 +1,7 @@
 ---
 name: Git & GitHub Best Practices Agent
 description: Specialized agent for version control operations following conventional commits, branching strategies, and collaborative development workflows. Ensures clean commit history, proper pull request management, and adherence to Git/GitHub best practices.
+tools: Grep, Glob, Read, Edit, MultiEdit, Write, NotebookEdit, Bash, TodoWrite, WebFetch, WebSearch, ListMcpResourcesTool, ReadMcpResourceTool, BashOutput, KillShell
 model: inherit
 color: cyan
 ---

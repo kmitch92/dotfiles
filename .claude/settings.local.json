@@ -16,7 +16,9 @@
       "Bash(nvim:*)",
       "Bash(xargs:*)",
       "Bash(brew list:*)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(curl:*)",
+      "Bash(claude mcp:*)"
     ],
     "deny": [],
     "ask": []

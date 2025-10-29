@@ -290,6 +290,8 @@ CONTEXT7_API_KEY=ctx7sk-actual-key-here
 ```
 
 **`scripts/setup-mcp.sh`** - Substitutes env vars from `.env.mcp.local` into template and deploys to `~/.mcp.json`
+  - Removes symlinks if present (file must be generated, not symlinked)
+  - Validates required runtime tools (npx, uvx)
 
 ### Setup Process
 
@@ -366,6 +368,67 @@ cat ~/.mcp.json
 - Hardcode API keys in `mcp/.mcp.json`
 - Edit `~/.mcp.json` directly (regenerate from template)
 - Rely on manual copying for reproducibility
+
+## Agent MCP Tool Permissions
+
+### Overview
+Agent files (`~/.claude/agents/*.md`) specify which MCP tools each agent can access via the `tools:` field in YAML frontmatter. This ensures agents only have access to tools relevant to their domain.
+
+### Tool Allocation Strategy
+
+**Standard Tools (All Agents):**
+All agents have access to:
+- File operations: `Grep`, `Glob`, `Read`, `Edit`, `MultiEdit`, `Write`, `NotebookEdit`
+- Shell execution: `Bash` (Note: GitHub CLI `gh` should NOT be used - direct git commands preferred)
+- Task tracking: `TodoWrite`
+- Web operations: `WebFetch`, `WebSearch`
+- MCP resources: `ListMcpResourcesTool`, `ReadMcpResourceTool`
+- Background processes: `BashOutput`, `KillShell`
+
+**MCP Tool Allocation by Agent:**
+
+| Agent | MCP Tools | Rationale |
+|-------|-----------|-----------|
+| **React Engineer** | Playwright (puppeteer_*), Browser Tools (accessibility, performance audits) | Needs browser automation for testing React components, responsive design verification, and accessibility checks |
+| **Test Writer** | Playwright (puppeteer_*) | Writes E2E tests requiring browser automation |
+| **Technical Architect** | Sequential Thinking | Complex task decomposition benefits from structured problem-solving |
+| **Refactoring Specialist** | Sequential Thinking | Complex refactoring planning requires structured thinking |
+| **Performance Specialist** | Browser Tools (performance audit, network/console logs) | Needs browser performance profiling tools |
+| **All Other Agents** | Standard tools only | Domain-specific work doesn't require MCP extensions |
+
+**Key Decisions:**
+1. **Context7** (documentation lookup) - Not yet configured with agents, pending API key setup
+2. **AWS Tools** - Not yet added to agents, can be added when needed
+3. **Serena** (code intelligence) - Not yet added to agents, can be added when needed
+4. **GitHub CLI Exclusion** - Per user preference, agents should use git commands directly, not `gh` CLI
+
+### Adding New Tools to Agents
+
+**Process:**
+1. Identify which agents need the new MCP tool
+2. Update agent frontmatter in `~/.claude/agents/<agent-name>.md`:
+   ```yaml
+   ---
+   name: Agent Name
+   description: Agent description
+   tools: Grep, Glob, Read, Edit, ..., mcp__server-name__tool-name
+   model: inherit
+   color: color_name
+   ---
+   ```
+3. Test that agent can access the tool
+4. Document the change in this section
+
+**Tool Discovery:**
+Run `./scripts/list-mcp-tools.sh` to see available MCP tools from configured servers.
+
+### Tool Naming Convention
+MCP tools follow the pattern: `mcp__<server-name>__<tool-name>`
+
+Examples:
+- `mcp__puppeteer__puppeteer_navigate`
+- `mcp__sequential-thinking__sequentialthinking`
+- `mcp__browser-tools__runAccessibilityAudit`
 
 ## Future Improvements
 - [ ] Add version pinning option (e.g., install specific Neovim version)

@@ -1,6 +1,7 @@
 ---
 name: TypeScript Backend Development Guide
 description: Comprehensive guide for building AWS serverless backends with TypeScript. Covers Lambda handlers, HTTP clients, database patterns, validation, and best practices for AI-assisted development.
+tools: Grep, Glob, Read, Edit, MultiEdit, Write, NotebookEdit, Bash, TodoWrite, WebFetch, WebSearch, ListMcpResourcesTool, ReadMcpResourceTool, BashOutput, KillShell
 model: inherit
 color: pink
 ---

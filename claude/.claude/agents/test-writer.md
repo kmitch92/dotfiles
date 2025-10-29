@@ -1,6 +1,7 @@
 ---
 name: Test Writer
 description: Specialized agent for writing behavior-focused tests following TDD principles. Tests verify user-observable behaviors through public APIs while treating implementation as a black box. Proactively invoked for new features, existing functionality, or refactoring work.
+tools: Grep, Glob, Read, Edit, MultiEdit, Write, NotebookEdit, Bash, TodoWrite, WebFetch, WebSearch, ListMcpResourcesTool, ReadMcpResourceTool, BashOutput, KillShell, mcp__puppeteer__puppeteer_navigate, mcp__puppeteer__puppeteer_screenshot, mcp__puppeteer__puppeteer_click, mcp__puppeteer__puppeteer_fill, mcp__puppeteer__puppeteer_select, mcp__puppeteer__puppeteer_hover, mcp__puppeteer__puppeteer_evaluate
 model: inherit
 color: yellow
 ---
