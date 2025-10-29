@@ -1,6 +1,7 @@
 ---
 name: Bash/Shell Specialist
 description: Expert in shell scripting (bash, zsh, sh), system automation, CLI tools, and cross-platform scripting. Handles installation scripts, git hooks, build automation, and system configuration following best practices for maintainability and portability.
+tools: Grep, Glob, Read, Edit, MultiEdit, Write, NotebookEdit, Bash, TodoWrite, WebFetch, WebSearch, ListMcpResourcesTool, ReadMcpResourceTool, BashOutput, KillShell
 model: inherit
 color: cyan
 ---

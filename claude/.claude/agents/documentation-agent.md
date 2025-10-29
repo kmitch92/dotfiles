@@ -1,6 +1,7 @@
 ---
 name: Code Documentation Agent
 description: Specialized agent for writing, maintaining, and reviewing code documentation following best practices. Ensures clear JSDoc comments, meaningful inline comments, and comprehensive architectural documentation that enhances codebase understanding for both human developers and AI coding agents.
+tools: Grep, Glob, Read, Edit, MultiEdit, Write, NotebookEdit, Bash, TodoWrite, WebFetch, WebSearch, ListMcpResourcesTool, ReadMcpResourceTool, BashOutput, KillShell
 model: inherit
 color: purple
 ---

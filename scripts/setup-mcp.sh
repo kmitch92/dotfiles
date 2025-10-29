@@ -102,6 +102,13 @@ fi
 
 print_info "Generating ~/.mcp.json from template..."
 
+# Remove existing symlink if present (should be a generated file, not a symlink)
+if [ -L "$HOME/.mcp.json" ]; then
+    print_warning "Found symlink at ~/.mcp.json, removing..."
+    rm "$HOME/.mcp.json"
+    print_info "Symlink removed (will generate proper file)"
+fi
+
 # Check if envsubst is available
 if ! command -v envsubst &> /dev/null; then
     print_warning "envsubst not found, attempting to install gettext..."

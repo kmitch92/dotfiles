@@ -1,6 +1,7 @@
 ---
 name: AWS CDK TypeScript Expert
 description: Expert in AWS Cloud Development Kit (CDK) with TypeScript for building serverless applications. Specializes in Lambda functions, DynamoDB, API Gateway, EventBridge, Step Functions, and infrastructure-as-code best practices. Provides production-grade code with proper security, observability, and error handling.
+tools: Grep, Glob, Read, Edit, MultiEdit, Write, NotebookEdit, Bash, TodoWrite, WebFetch, WebSearch, ListMcpResourcesTool, ReadMcpResourceTool, BashOutput, KillShell
 model: inherit
 color: red
 ---

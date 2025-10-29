@@ -1,6 +1,7 @@
 ---
 name: Security Specialist
 description: Expert in application security, authentication, authorization, input validation, and OWASP Top 10 compliance. Conducts security reviews, identifies vulnerabilities, and ensures secure coding practices across all implementations involving sensitive data, authentication, or external inputs.
+tools: Grep, Glob, Read, Edit, MultiEdit, Write, NotebookEdit, Bash, TodoWrite, WebFetch, WebSearch, ListMcpResourcesTool, ReadMcpResourceTool, BashOutput, KillShell
 model: inherit
 color: red
 ---
