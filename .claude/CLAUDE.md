@@ -285,7 +285,12 @@ MCP servers are configured via **template + environment variables**, NOT committ
 
 **Documentation & Context:**
 - **Context7** - Up-to-date documentation from official sources (requires Upstash API key)
-- **Serena** - Semantic code retrieval and editing toolkit
+
+**Code Intelligence:**
+- **Serena** - Semantic code retrieval and editing toolkit using LSP (Language Server Protocol). Provides IDE-like symbol analysis, find-references, and code navigation. Supports Python, TypeScript/JavaScript, Java, Go, Rust, C/C++, PHP.
+
+**Task Management:**
+- **TaskMaster** - AI-powered task management for development workflows. PRD parsing, task CRUD with dependency tracking, complexity analysis, and context-based organization (requires Anthropic API key).
 
 **Problem Solving:**
 - **Sequential Thinking** - Structured problem-solving with dynamic refinement
@@ -388,18 +393,19 @@ cat ~/.mcp.json
 
 ### Adding New MCP Servers
 
-1. Update `mcp/.mcp.json` with new server config
+1. Update `mcp/mcp.json.template` with new server config
 2. If server requires secrets:
    - Add variable to `.env.mcp` template
    - Add actual value to `.env.mcp.local`
-   - Use `${VARIABLE_NAME}` in `mcp/.mcp.json`
-3. Run `./scripts/setup-mcp.sh` to regenerate
-4. Restart Claude Code
-5. Document in this file
+   - Use `${VARIABLE_NAME}` in `mcp/mcp.json.template`
+3. Run `./scripts/setup-mcp.sh` to regenerate `~/.mcp.json`
+4. Add MCP tools to relevant agents (update `.claude/agents/*.md`)
+5. Restart Claude Code
+6. Document in this file
 
 ### DO NOT:
 - Commit `.env.mcp.local` (contains secrets)
-- Hardcode API keys in `mcp/.mcp.json`
+- Hardcode API keys in `mcp/mcp.json.template`
 - Edit `~/.mcp.json` directly (regenerate from template)
 - Rely on manual copying for reproducibility
 
@@ -423,18 +429,23 @@ All agents have access to:
 
 | Agent | MCP Tools | Rationale |
 |-------|-----------|-----------|
-| **React Engineer** | Playwright (puppeteer_*), Browser Tools (accessibility, performance audits) | Needs browser automation for testing React components, responsive design verification, and accessibility checks |
+| **React Engineer** | Playwright (puppeteer_*), Browser Tools (accessibility, performance audits), Serena | Browser automation for testing + semantic code analysis for React components |
 | **Test Writer** | Playwright (puppeteer_*) | Writes E2E tests requiring browser automation |
-| **Technical Architect** | Sequential Thinking | Complex task decomposition benefits from structured problem-solving |
-| **Refactoring Specialist** | Sequential Thinking | Complex refactoring planning requires structured thinking |
-| **Performance Specialist** | Browser Tools (performance audit, network/console logs) | Needs browser performance profiling tools |
+| **Technical Architect** | Sequential Thinking, Serena, TaskMaster | Structured thinking + code intelligence + task management for complex planning |
+| **Refactoring Specialist** | Sequential Thinking, Serena | Structured thinking + LSP-based code analysis for refactoring decisions |
+| **Code Quality Enforcer** | Serena | Symbol-level code analysis for pattern detection and quality checks |
+| **TypeScript Connoisseur** | Serena | LSP-based type analysis and symbol navigation for TypeScript |
+| **Backend TypeScript Developer** | Serena | Semantic code analysis for backend implementation |
+| **AWS CDK Expert** | Serena | Code intelligence for CDK infrastructure code |
+| **Performance Specialist** | Browser Tools (performance audit, network/console logs) | Browser performance profiling tools |
 | **All Other Agents** | Standard tools only | Domain-specific work doesn't require MCP extensions |
 
 **Key Decisions:**
-1. **Context7** (documentation lookup) - Not yet configured with agents, pending API key setup
-2. **AWS Tools** - Not yet added to agents, can be added when needed
-3. **Serena** (code intelligence) - Not yet added to agents, can be added when needed
-4. **GitHub CLI Exclusion** - Per user preference, agents should use git commands directly, not `gh` CLI
+1. **Serena** (code intelligence) - Added to code-focused agents for LSP-based semantic analysis
+2. **TaskMaster** (task management) - Added to Technical Architect for AI-powered task breakdown
+3. **Context7** (documentation lookup) - Not yet configured with agents, pending API key setup
+4. **AWS Tools** - Not yet added to agents, can be added when needed
+5. **GitHub CLI Exclusion** - Per user preference, agents should use git commands directly, not `gh` CLI
 
 ### Adding New Tools to Agents
 

@@ -6,7 +6,14 @@
     },
     "serena": {
       "command": "uvx",
-      "args": ["serena", "start-mcp-server", "--context", "ide-assistant"]
+      "args": ["--from", "git+https://github.com/oraios/serena", "serena", "start-mcp-server", "--context", "ide-assistant"]
+    },
+    "taskmaster": {
+      "command": "npx",
+      "args": ["-y", "--package=task-master-ai", "task-master-ai"],
+      "env": {
+        "ANTHROPIC_API_KEY": "${ANTHROPIC_API_KEY}"
+      }
     },
     "sequential-thinking": {
       "command": "npx",
