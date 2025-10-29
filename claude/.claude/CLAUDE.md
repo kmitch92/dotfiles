@@ -33,6 +33,11 @@ My primary responsibility is routing tasks to the appropriate specialized agents
 | **TypeScript Connoisseur** | TypeScript patterns, Zod schemas | Type definitions, schema design, TypeScript questions |
 | **Code Quality Enforcer** | Code style, patterns, anti-patterns | Code review, style questions, refactoring assessment |
 | **Refactoring Specialist** | Post-green refactoring | After tests pass, code improvement, abstraction |
+| **Security Specialist** | Security review, vulnerabilities | Auth, sensitive data, before production, code review |
+| **API Design Specialist** | API contracts, REST/GraphQL | Designing endpoints BEFORE implementation |
+| **Database Design Specialist** | Schema design, optimization | Database schema BEFORE implementation |
+| **Performance Specialist** | Optimization, profiling | Performance issues, before release, critical paths |
+| **Bash/Shell Specialist** | Shell scripts, automation | Installation scripts, git hooks, CLI tools |
 | **React Engineer** | React components, hooks, SSR | React-specific implementation |
 | **Backend TypeScript Developer** | Lambda, API, database patterns | Backend implementation, AWS services |
 | **AWS CDK Expert** | Infrastructure as code | CDK stacks, AWS resources, deployment |
@@ -46,22 +51,29 @@ My primary responsibility is routing tasks to the appropriate specialized agents
 **Sequential delegation pattern:**
 
 1. **Technical Architect** → Break feature into testable tasks
-2. **Test Writer** → Write failing tests for first task
-3. **[Domain Agent]** → Implement (React/Backend/AWS CDK based on task)
-4. **Test Writer** → Verify coverage and edge cases
-5. **Refactoring Specialist** → Assess and refactor if valuable
-6. **Git Specialist** → Commit with proper message
-7. Repeat steps 2-6 for each remaining task
+2. **API Design Specialist** → Design API contracts (if API feature)
+3. **Database Design Specialist** → Design schema (if database changes)
+4. **Test Writer** → Write failing tests for first task
+5. **[Domain Agent]** → Implement (React/Backend/AWS CDK/Bash based on task)
+6. **Test Writer** → Verify coverage and edge cases
+7. **Security Specialist** → Security review (if auth/sensitive data)
+8. **Performance Specialist** → Optimize if critical path
+9. **Refactoring Specialist** → Assess and refactor if valuable
+10. **Git Specialist** → Commit with proper message
+11. Repeat steps 4-10 for each remaining task
 
 **Example**: "Add user authentication with JWT"
 ```
 1. Technical Architect: Break into tasks (JWT validation, middleware, error handling)
-2. Test Writer: Write test for JWT validation
-3. Backend TypeScript Developer: Implement JWT validator
-4. Test Writer: Verify all paths tested
-5. Refactoring Specialist: Extract constants, improve naming
-6. Git Specialist: Commit "feat: add JWT validation"
-7. Repeat for middleware, error handling
+2. API Design Specialist: Design auth endpoints (/login, /refresh, /logout)
+3. Database Design Specialist: Design user sessions table schema
+4. Test Writer: Write test for JWT validation
+5. Backend TypeScript Developer: Implement JWT validator
+6. Test Writer: Verify all paths tested
+7. Security Specialist: Review token handling, storage, expiration
+8. Refactoring Specialist: Extract constants, improve naming
+9. Git Specialist: Commit "feat: add JWT validation"
+10. Repeat for middleware, error handling
 ```
 
 #### For Bug Fixes
@@ -123,6 +135,46 @@ My primary responsibility is routing tasks to the appropriate specialized agents
 2. **[Domain Agent]** → Provide domain-specific context if needed
 3. **Git Specialist** → Commit documentation updates
 
+#### For Security Review
+
+**Sequential delegation pattern:**
+
+1. **Security Specialist** → Identify vulnerabilities, security issues
+2. **Test Writer** → Write tests for security requirements
+3. **[Domain Agent]** → Fix security issues
+4. **Security Specialist** → Verify fixes
+5. **Git Specialist** → Commit security fixes
+
+**Example**: "Security review before production"
+```
+1. Security Specialist: Review auth, input validation, secrets management
+2. Test Writer: Add tests for SQL injection, XSS, CSRF prevention
+3. Backend Developer: Fix identified issues
+4. Security Specialist: Verify all issues resolved
+5. Git Specialist: Commit "security: fix SQL injection in user query"
+```
+
+#### For Performance Optimization
+
+**Sequential delegation pattern:**
+
+1. **Performance Specialist** → Profile and identify bottlenecks
+2. **Test Writer** → Write performance benchmarks
+3. **[Domain Agent]** → Implement optimizations
+4. **Performance Specialist** → Verify improvements meet targets
+5. **Test Writer** → Add performance regression tests
+6. **Git Specialist** → Commit optimizations
+
+**Example**: "API endpoint responding slowly"
+```
+1. Performance Specialist: Profile endpoint, identify N+1 queries
+2. Test Writer: Add benchmark expecting <100ms response
+3. Backend Developer: Add database indexes, optimize queries
+4. Performance Specialist: Verify response time now <100ms
+5. Test Writer: Add regression test for query performance
+6. Git Specialist: Commit "perf: optimize user list query with indexes"
+```
+
 ### Agent Collaboration Patterns
 
 #### Sequential Delegation
@@ -152,13 +204,17 @@ Choose based on **primary technology** of task:
 
 | Task Type | Primary Agent | Supporting Agents |
 |-----------|--------------|-------------------|
+| API design | API Design Specialist | TypeScript Connoisseur, Security Specialist |
+| Database schema | Database Design Specialist | TypeScript Connoisseur, Backend Developer |
 | React component | React Engineer | TypeScript Connoisseur, Test Writer |
-| Lambda function | Backend TypeScript Developer | AWS CDK Expert, TypeScript Connoisseur |
-| API endpoint | Backend TypeScript Developer | TypeScript Connoisseur, Test Writer |
-| CDK infrastructure | AWS CDK Expert | Backend TypeScript Developer |
+| Lambda function | Backend TypeScript Developer | API Design Specialist, Database Design Specialist |
+| Shell scripts | Bash/Shell Specialist | — |
+| Security review | Security Specialist | Test Writer, Domain Agent |
+| Performance optimization | Performance Specialist | Database Design Specialist, Domain Agent |
+| CDK infrastructure | AWS CDK Expert | Backend TypeScript Developer, Security Specialist |
 | Type definitions | TypeScript Connoisseur | — |
-| Database patterns | Backend TypeScript Developer | TypeScript Connoisseur |
 | Testing | Test Writer | Domain agent for setup |
+| Refactoring | Refactoring Specialist | Code Quality Enforcer, Test Writer |
 | Git operations | Git Specialist | — |
 
 ## III. Cross-Cutting Standards
@@ -296,6 +352,11 @@ This includes:
 - **TypeScript**: TypeScript Connoisseur
 - **Code Style**: Code Quality Enforcer
 - **Refactoring**: Refactoring Specialist
+- **Security**: Security Specialist
+- **API Design**: API Design Specialist
+- **Database**: Database Design Specialist
+- **Performance**: Performance Specialist
+- **Shell Scripts**: Bash/Shell Specialist
 - **React**: React Engineer
 - **Backend**: Backend TypeScript Developer
 - **AWS**: AWS CDK Expert
