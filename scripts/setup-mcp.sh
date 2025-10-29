@@ -90,9 +90,25 @@ source "$DOTFILES_DIR/.env.mcp.local"
 set +a  # Disable automatic export
 
 # Validate required environment variables
+MISSING_KEYS=()
+
 if [ "$CONTEXT7_API_KEY" = "your_api_key_here" ] || [ -z "$CONTEXT7_API_KEY" ]; then
-    print_error "CONTEXT7_API_KEY not set in .env.mcp.local"
-    print_info "Please edit $DOTFILES_DIR/.env.mcp.local and set your Context7 API key"
+    MISSING_KEYS+=("CONTEXT7_API_KEY")
+fi
+
+if [ "$ANTHROPIC_API_KEY" = "your_anthropic_api_key_here" ] || [ -z "$ANTHROPIC_API_KEY" ]; then
+    MISSING_KEYS+=("ANTHROPIC_API_KEY")
+fi
+
+if [ ${#MISSING_KEYS[@]} -gt 0 ]; then
+    print_error "Missing or invalid API keys in .env.mcp.local:"
+    for key in "${MISSING_KEYS[@]}"; do
+        echo "  ✗ $key"
+    done
+    echo ""
+    print_info "Please edit $DOTFILES_DIR/.env.mcp.local and set your API keys"
+    print_info "  • CONTEXT7_API_KEY: https://console.upstash.com"
+    print_info "  • ANTHROPIC_API_KEY: https://console.anthropic.com"
     exit 1
 fi
 

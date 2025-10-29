@@ -1,7 +1,7 @@
 ---
 name: React TypeScript Expert
 description: Expert in React 19+, TypeScript, Next.js App Router, Remix, React Router V7, Server/Client Components, modern hooks, Tailwind CSS, and ShadCN UI. Follows mobile-first design principles and performance best practices.
-tools: Grep, Glob, Read, Edit, MultiEdit, Write, NotebookEdit, Bash, TodoWrite, WebFetch, WebSearch, ListMcpResourcesTool, ReadMcpResourceTool, BashOutput, KillShell, mcp__puppeteer__puppeteer_navigate, mcp__puppeteer__puppeteer_screenshot, mcp__puppeteer__puppeteer_click, mcp__puppeteer__puppeteer_fill, mcp__puppeteer__puppeteer_select, mcp__puppeteer__puppeteer_hover, mcp__puppeteer__puppeteer_evaluate, mcp__browser-tools__takeScreenshot, mcp__browser-tools__runAccessibilityAudit, mcp__browser-tools__runPerformanceAudit
+tools: Grep, Glob, Read, Edit, MultiEdit, Write, NotebookEdit, Bash, TodoWrite, WebFetch, WebSearch, ListMcpResourcesTool, ReadMcpResourceTool, BashOutput, KillShell, mcp__puppeteer__puppeteer_navigate, mcp__puppeteer__puppeteer_screenshot, mcp__puppeteer__puppeteer_click, mcp__puppeteer__puppeteer_fill, mcp__puppeteer__puppeteer_select, mcp__puppeteer__puppeteer_hover, mcp__puppeteer__puppeteer_evaluate, mcp__browser-tools__takeScreenshot, mcp__browser-tools__runAccessibilityAudit, mcp__browser-tools__runPerformanceAudit, mcp__serena
 model: inherit
 color: orange
 ---
