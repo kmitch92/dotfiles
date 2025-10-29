@@ -1,0 +1,129 @@
+#!/bin/bash
+
+# =============================================================================
+# MCP Server Configuration Setup
+# =============================================================================
+# Substitutes environment variables from .env.mcp.local into .mcp.json template
+# and deploys to home directory
+#
+# Usage: ./scripts/setup-mcp.sh
+# =============================================================================
+
+set -e
+
+# Get the directory where this script's parent (dotfiles) is located
+DOTFILES_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+
+# Source utilities
+source "$DOTFILES_DIR/scripts/utils.sh"
+
+print_header "Setting up MCP Server Configuration"
+
+# =============================================================================
+# Check for .env.mcp.local
+# =============================================================================
+
+if [ ! -f "$DOTFILES_DIR/.env.mcp.local" ]; then
+    print_warning ".env.mcp.local not found"
+    print_info "Creating from template..."
+    
+    cp "$DOTFILES_DIR/.env.mcp" "$DOTFILES_DIR/.env.mcp.local"
+    
+    print_warning "Please edit .env.mcp.local with your actual API keys:"
+    print_info "  1. Open: $DOTFILES_DIR/.env.mcp.local"
+    print_info "  2. Replace placeholder values with real API keys"
+    print_info "  3. Run this script again: ./scripts/setup-mcp.sh"
+    echo ""
+    exit 1
+fi
+
+# =============================================================================
+# Source environment variables
+# =============================================================================
+
+print_info "Loading environment variables from .env.mcp.local..."
+set -a  # Automatically export all variables
+source "$DOTFILES_DIR/.env.mcp.local"
+set +a  # Disable automatic export
+
+# Validate required environment variables
+if [ "$CONTEXT7_API_KEY" = "your_api_key_here" ] || [ -z "$CONTEXT7_API_KEY" ]; then
+    print_error "CONTEXT7_API_KEY not set in .env.mcp.local"
+    print_info "Please edit $DOTFILES_DIR/.env.mcp.local and set your Context7 API key"
+    exit 1
+fi
+
+# =============================================================================
+# Generate .mcp.json from template
+# =============================================================================
+
+print_info "Generating ~/.mcp.json from template..."
+
+# Check if envsubst is available
+if ! command -v envsubst &> /dev/null; then
+    print_warning "envsubst not found, attempting to install gettext..."
+    
+    if is_macos; then
+        brew install gettext
+        # Add gettext to PATH for this session
+        export PATH="/usr/local/opt/gettext/bin:$PATH"
+    elif is_linux; then
+        if command -v apt-get &> /dev/null; then
+            sudo apt-get install -y gettext-base
+        elif command -v dnf &> /dev/null; then
+            sudo dnf install -y gettext
+        elif command -v pacman &> /dev/null; then
+            sudo pacman -S --noconfirm gettext
+        else
+            print_error "Could not install gettext. Please install it manually."
+            exit 1
+        fi
+    fi
+fi
+
+# Substitute environment variables in template
+envsubst < "$DOTFILES_DIR/mcp/.mcp.json" > "$HOME/.mcp.json"
+
+print_success "MCP configuration deployed to ~/.mcp.json"
+
+# =============================================================================
+# Verify configuration
+# =============================================================================
+
+print_info "Verifying configuration..."
+
+if [ -f "$HOME/.mcp.json" ]; then
+    # Check that env vars were substituted (no ${VAR} patterns remaining)
+    if grep -q '${' "$HOME/.mcp.json"; then
+        print_warning "Some environment variables may not have been substituted"
+        print_info "Please check $HOME/.mcp.json for any remaining \${VAR} patterns"
+    else
+        print_success "All environment variables substituted successfully"
+    fi
+    
+    # Show configured servers
+    echo ""
+    print_info "Configured MCP servers:"
+    if command -v jq &> /dev/null; then
+        jq -r '.mcpServers | keys[]' "$HOME/.mcp.json" | while read server; do
+            echo "  - $server"
+        done
+    else
+        grep '"' "$HOME/.mcp.json" | grep ':' | head -10 | sed 's/.*"\(.*\)".*/  - \1/'
+    fi
+else
+    print_error "Failed to create ~/.mcp.json"
+    exit 1
+fi
+
+# =============================================================================
+# Next steps
+# =============================================================================
+
+echo ""
+print_success "MCP setup complete!"
+print_info "Next steps:"
+print_info "  1. Restart Claude Code to load new MCP servers"
+print_info "  2. Verify with: /mcp command in Claude Code"
+print_info "  3. Check logs if servers don't load: ~/.claude/logs/"
+echo ""
