@@ -167,9 +167,77 @@ sudo rm -f /usr/bin/nvim* /usr/local/bin/nvim*
 cd ~/dotfiles && source scripts/utils.sh && source scripts/linux/install-dev-tools.sh
 ```
 
+## Font Management
+
+### Installation Approach
+Fonts are installed via **package managers and automated scripts**, NOT tracked as binary files in git.
+
+**Why this approach:**
+- Keeps git repository lean (no large binary blobs)
+- Declarative: "what to install" not "the files themselves"
+- Easy to update via package managers
+- Cross-platform support (macOS Homebrew, Linux package managers)
+
+### Installed Fonts
+
+**Primary Coding Font:**
+- **JetBrains Mono** - Main font for terminal and code editors
+  - macOS: Installed via Homebrew (`font-jetbrains-mono`)
+  - Linux: Downloaded from GitHub releases
+
+**Powerline Fonts** (Terminal styling and status bars):
+- **Meslo for Powerline** - Popular monospace font with powerline glyphs
+- **DejaVu Sans Mono for Powerline** - Classic monospace with powerline support
+- **Inconsolata for Powerline** - Clean monospace with powerline glyphs
+- **Powerline Symbols** - Universal powerline symbol font
+  - macOS: Installed via Homebrew casks
+  - Linux: Installed via distro package managers (fonts-powerline, powerline-fonts)
+
+**Optional Developer Fonts:**
+- Fira Code - Font with programming ligatures
+- Hack - Clean, readable monospace font
+- Source Code Pro - Adobe's coding font
+
+### Usage in Configurations
+
+**Kitty Terminal** (`config/.config/kitty/kitty.conf`):
+```
+font_family      JetBrains Mono
+tab_bar_style    powerline
+tab_powerline_style slanted
+```
+
+**Status Bars/Prompts:**
+- Powerline fonts provide special glyphs (arrows, separators, branch symbols)
+- Used by: tmux status bars, shell prompts (starship), vim statusline
+
+### Installation Scripts
+
+**macOS**: `scripts/macos/install-fonts.sh`
+- Installs fonts via Homebrew casks
+- Interactive prompts for each font category
+
+**Linux**: `scripts/linux/install-fonts.sh`
+- Uses distro package managers (apt, dnf, pacman)
+- Falls back to manual download from GitHub for unsupported distros
+
+### Manual Font Installation
+
+If you manually install fonts to `~/Library/Fonts/` (macOS) or `~/.local/share/fonts/` (Linux), they will NOT be tracked in git. To ensure reproducibility:
+
+1. Add the font to the appropriate installation script
+2. Test the installation on a clean system
+3. Update this documentation with any new fonts
+
+**DO NOT:**
+- Commit binary font files to git
+- Create font directories in the dotfiles repo for tracking
+- Rely on manual font copying for reproducibility
+
 ## Future Improvements
 - [ ] Add version pinning option (e.g., install specific Neovim version)
 - [ ] Add automated testing for install scripts
 - [ ] Consider using Neovim PPA for Ubuntu instead of AppImage
 - [ ] Add rollback mechanism if installation fails
 - [ ] Document all optional installation flags
+- [ ] Consider migrating to Nerd Fonts for comprehensive icon support

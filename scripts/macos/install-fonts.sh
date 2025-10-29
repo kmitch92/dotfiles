@@ -36,6 +36,31 @@ else
 fi
 
 # =============================================================================
+# Powerline Fonts (Terminal styling and status bars)
+# =============================================================================
+
+echo ""
+print_info "Powerline fonts provide special glyphs for terminal prompts and status bars"
+if confirm "Install powerline fonts? (Meslo, DejaVu, Inconsolata, Powerline Symbols)"; then
+    print_info "Installing powerline fonts via Homebrew..."
+
+    # Ensure fonts tap is available
+    brew tap homebrew/cask-fonts 2>/dev/null || true
+
+    # Install commonly used powerline fonts
+    brew install --cask \
+        font-meslo-for-powerline \
+        font-dejavu-sans-mono-for-powerline \
+        font-inconsolata-for-powerline \
+        font-powerline-symbols
+
+    print_success "Powerline fonts installed"
+    FONT_INSTALLED=true
+else
+    print_warning "Skipping powerline fonts installation"
+fi
+
+# =============================================================================
 # Optional: Additional Developer Fonts
 # =============================================================================
 
@@ -50,6 +75,7 @@ if confirm "Install additional developer fonts? (Fira Code, Hack, Source Code Pr
     brew install --cask font-fira-code font-hack font-source-code-pro
 
     print_success "Additional fonts installed"
+    FONT_INSTALLED=true
 fi
 
 echo ""
