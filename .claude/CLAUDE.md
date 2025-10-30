@@ -38,6 +38,43 @@ The MCP configuration file (`~/.mcp.json`) was being created as a symlink by GNU
 - **Real issue**: Architectural conflict between Stow's symlink management and runtime secret substitution
 - **Solution**: Exclude template directories from Stow; manage them separately
 
+### Claude Code Statusline Configuration - Duplicate Config Issue (Fixed: 2025-10-30)
+
+**Problem**:
+Claude Code statusline displayed basic separators and colors instead of powerline display with gruvbox theme. The intended powerline configuration was not being loaded.
+
+**Root Cause**:
+- **Intended config**: `config/.config/ccstatusline/settings.json` (powerline enabled, gruvbox theme, custom fields)
+- **Problematic duplicate**: `tmux/.config/ccstatusline/settings.json` (untracked, powerline disabled, basic settings)
+- When GNU Stow processed packages, `tmux/.config/` contents overwrote `config/.config/` contents
+- Claude Code loaded the duplicate config instead of the intended one (confirmed by MD5 hash match)
+- The duplicate also included `tmux/.config/git/ignore`, causing additional conflicts
+
+**Solution Applied**:
+1. Removed untracked duplicate directories: `tmux/.config/ccstatusline/` and `tmux/.config/git/`
+2. Unstowed tmux package to clear conflicting symlinks: `stow --delete tmux`
+3. Restowed config package to establish correct configuration: `stow --restow config`
+4. Restowed tmux package for tmux-specific configs only: `stow tmux`
+5. Verified deployed config matches intended config (MD5 hash match)
+
+**Files Removed**:
+- `tmux/.config/ccstatusline/settings.json` (untracked duplicate)
+- `tmux/.config/git/ignore` (untracked duplicate)
+
+**Key Lesson**:
+- **Configuration ownership**: Each config file should exist in only ONE stow package to prevent conflicts
+- **Package separation**: Keep tmux-specific configs in `tmux/.config/tmux/`, keep general configs in `config/.config/`
+- **Verify stow order**: Later-processed packages can overwrite earlier ones if they contain overlapping paths
+- **Solution**: Maintain strict separation - tmux package should only contain tmux-specific files under `.config/tmux/`
+
+**Configuration Location Rules**:
+- ✓ `config/.config/ccstatusline/` - Claude Code statusline config (ONLY location)
+- ✓ `config/.config/git/` - Git global config (ONLY location)
+- ✓ `tmux/.config/tmux/` - Tmux-specific configs and scripts
+- ✓ `tmux/.tmux.conf` - Tmux main configuration
+- ✗ `tmux/.config/ccstatusline/` - NEVER (causes conflicts)
+- ✗ `tmux/.config/git/` - NEVER (causes conflicts)
+
 ### Neovim Installation - Dev Build Issue (Fixed: 2025-10-28)
 
 **Problem**:
@@ -266,6 +303,45 @@ If you manually install fonts to `~/Library/Fonts/` (macOS) or `~/.local/share/f
 - Commit binary font files to git
 - Create font directories in the dotfiles repo for tracking
 - Rely on manual font copying for reproducibility
+
+## Tmux Configuration
+
+### Overview
+Tmux configuration with Catppuccin Mocha theme, vim-like keybindings, and smart automatic window naming.
+
+### Window Naming
+
+**Automatic abbreviated window names** based on git repository + branch:
+
+- **Format**: `repo/branch` abbreviated to first 3 chars of each word
+- **Examples**:
+  - `dotfiles` (main branch) → `dot/mai`
+  - `my-awesome-project` (feature-branch) → `my-awe-pro/fea-bra`
+  - `/tmp` (non-git directory) → `tmp`
+
+**Implementation**:
+- **Script**: `tmux/.config/tmux/scripts/tmux-window-name.sh`
+- **Logic**: Extracts git repo root and branch, abbreviates each word (hyphenated, camelCase, underscore-separated)
+- **Fallback**: If not in git repo, shows abbreviated directory name
+- **Updates**: Automatically as you `cd` between directories
+
+**Configuration** (`tmux/.tmux.conf`):
+```bash
+set-option -g automatic-rename on
+set-option -g automatic-rename-format '#(~/.config/tmux/scripts/tmux-window-name.sh "#{pane_current_path}")'
+```
+
+**Manual rename**: Use `Prefix + ,` to manually rename a window (overrides automatic naming for that window)
+
+### Key Features
+- **Prefix**: `Ctrl-a` (changed from default `Ctrl-b`)
+- **Split panes**: `|` horizontal, `-` vertical
+- **Navigate panes**: Vim keys (`h`, `j`, `k`, `l`) or Alt+arrows (no prefix needed)
+- **Resize panes**: `Prefix + H/J/K/L` (capital letters)
+- **Copy mode**: Vim-like (`v` to select, `y` to yank)
+- **Mouse support**: Enabled for pane selection and resizing
+- **Catppuccin Mocha theme**: Purple accents, dark background
+- **Status bar**: Shows session name, user, date/time, hostname
 
 ## MCP Server Configuration
 
