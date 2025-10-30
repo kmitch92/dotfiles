@@ -21,7 +21,7 @@
     },
     "playwright": {
       "command": "npx",
-      "args": ["-y", "@playwright/mcp-server"]
+      "args": ["-y", "@hisma/server-puppeteer"]
     },
     "aws-core": {
       "command": "uvx",
