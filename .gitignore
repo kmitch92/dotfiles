@@ -88,6 +88,9 @@ claude/.claude/*.log
 # Tmux configuration
 !tmux/
 !tmux/**
+# But NEVER track .config/* in tmux package (belongs in config/ package)
+tmux/.config/*/
+!tmux/.config/tmux/
 
 # MCP configuration
 !mcp/

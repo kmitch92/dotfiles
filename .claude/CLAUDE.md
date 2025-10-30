@@ -5,6 +5,86 @@ This is a comprehensive dotfiles repository that provides automated setup for de
 
 ## Critical Issues Fixed
 
+### Playwright MCP Package Migration (Fixed: 2025-10-30)
+
+**Problem**:
+The playwright MCP server was failing to load with error: `'@playwright/mcp-server@*' is not in this registry`. The package doesn't exist on npm.
+
+**Root Cause**:
+- The MCP template (`mcp/mcp.json.template:24`) was configured with incorrect package name: `@playwright/mcp-server`
+- The correct package is `@modelcontextprotocol/server-puppeteer`
+- However, as of 2025, the original package is no longer supported/maintained
+- Need to migrate to maintained fork
+
+**Solution Applied**:
+1. Updated `mcp/mcp.json.template` line 24 to use `@hisma/server-puppeteer` (maintained fork)
+2. Regenerated deployed config: ran `./scripts/setup-mcp.sh`
+3. Verified `~/.mcp.json` contains correct package reference
+4. Result: Playwright MCP server loads successfully
+
+**Files Modified**:
+- `mcp/mcp.json.template` (line 24: `@playwright/mcp-server` → `@hisma/server-puppeteer`)
+- `~/.mcp.json` (regenerated from updated template)
+
+**Key Lessons**:
+1. **Package naming matters**: `@playwright/mcp-server` never existed; correct name was `@modelcontextprotocol/server-puppeteer`
+2. **Maintained fork**: Original package archived/unsupported as of 2025; `@hisma/server-puppeteer` is the maintained fork (v0.6.2+)
+3. **Alternative packages available**: `puppeteer-mcp-server` is an experimental alternative
+4. **Template changes require redeployment**: Always run `./scripts/setup-mcp.sh` after editing `mcp/mcp.json.template`
+
+### Statusline Config Reversion (Fixed: 2025-10-30)
+
+**Problem**:
+The deployed statusline config (`~/.config/ccstatusline/settings.json`) reverted to having `powerline: enabled: false` instead of the intended powerline + gruvbox theme configuration.
+
+**Root Cause**:
+The deployed file was a regular file (not symlinked), suggesting it was manually edited or overwritten by a tool/process outside of Stow management. The source of truth in `dotfiles/config/.config/ccstatusline/settings.json` was correct, but the deployed version was wrong.
+
+**Solution Applied**:
+1. Copied correct config from source to deployment location: `cp dotfiles/config/.config/ccstatusline/settings.json ~/.config/ccstatusline/settings.json`
+2. Verified deployed config now has powerline enabled with gruvbox theme
+3. Result: Statusline displays with powerline arrows and gruvbox colors
+
+**Files Modified**:
+- `~/.config/ccstatusline/settings.json` (restored from correct source)
+
+**Key Lesson**:
+The deployed statusline config can be overwritten by processes outside of Stow. If reversion happens again, investigate what tool/process is modifying `~/.config/ccstatusline/settings.json` and prevent it from doing so. The canonical source is always `dotfiles/config/.config/ccstatusline/settings.json`.
+
+### MCP Server Dependencies - Missing uvx Runtime (Fixed: 2025-10-30)
+
+**Problem**:
+MCP servers serena, aws-core, and aws-cdk were failing to load. Claude Code showed errors about uvx command not found, and the deployed configuration at `~/.mcp.json` was out of date with the template.
+
+**Root Cause**:
+- **Missing uvx runtime**: uvx (Python/uv package runner) was not installed on the system
+- **Out-of-date deployment**: `~/.mcp.json` contained old serena configuration (URL without git+ prefix)
+- **Overly strict validation**: setup-mcp.sh required ANTHROPIC_API_KEY even though user didn't need taskmaster server
+
+**Solution Applied**:
+1. Installed uv/uvx via Homebrew: `brew install uv` (v0.9.5)
+2. Modified `scripts/setup-mcp.sh` to make ANTHROPIC_API_KEY optional:
+   - Changed from exit-on-missing to warning-on-missing
+   - Allows setup to proceed without taskmaster if user doesn't need it
+3. Re-ran `./scripts/setup-mcp.sh` to regenerate `~/.mcp.json` with updated template
+4. Verified all MCP servers load correctly (context7, serena, sequential-thinking, playwright, aws-core, aws-cdk)
+
+**Files Modified**:
+- `scripts/setup-mcp.sh` (made ANTHROPIC_API_KEY optional)
+- `~/.mcp.json` (regenerated from updated template)
+- System: Installed uv/uvx v0.9.5
+
+**Key Lessons**:
+1. **Runtime dependencies are critical** - MCP servers require specific runtimes (npx for Node.js servers, uvx for Python servers)
+2. **Template changes require redeployment** - Editing `mcp/mcp.json.template` doesn't automatically update `~/.mcp.json`
+3. **Optional dependencies should be optional** - Don't fail setup for API keys the user doesn't need
+4. **uvx is relatively new** - Not installed by default, must be explicitly added via `brew install uv`
+
+**Follow-up Actions**:
+- Added uv/uvx installation to `scripts/install-runtimes.sh` (2025-10-30)
+- Future dotfiles installations will automatically include uv/uvx
+- No manual installation required for new users
+
 ### MCP Configuration Templating - Stow Conflict (Fixed: 2025-10-29)
 
 **Problem**:
@@ -74,6 +154,47 @@ Claude Code statusline displayed basic separators and colors instead of powerlin
 - ✓ `tmux/.tmux.conf` - Tmux main configuration
 - ✗ `tmux/.config/ccstatusline/` - NEVER (causes conflicts)
 - ✗ `tmux/.config/git/` - NEVER (causes conflicts)
+
+### Technical Enforcement (Added: 2025-10-30)
+
+**Problem with Documentation-Only Approach**:
+The initial fix only removed duplicate files without preventing their return. The `.gitignore` rule `!tmux/**` (line 90) whitelisted ALL files under tmux/, allowing duplicates to be created and tracked again.
+
+**Root Cause of Recurrence**:
+- Files were removed but not ignored by git
+- No technical barrier prevented recreating `tmux/.config/ccstatusline/` or `tmux/.config/git/`
+- Duplicates appeared again as untracked files
+- User had to manually notice and remove them again
+
+**Solution Applied - Gitignore Enforcement (Option 3: Aggressive)**:
+
+Added to `.gitignore` after line 90:
+```gitignore
+# But NEVER track .config/* in tmux package (belongs in config/ package)
+tmux/.config/*/
+!tmux/.config/tmux/
+```
+
+**How It Works**:
+1. Blocks ANY subdirectory under `tmux/.config/` from being tracked
+2. EXCEPT `tmux/.config/tmux/` (legitimate tmux-specific configs remain whitelisted)
+3. Prevents ccstatusline, git, and all future cross-package conflicts
+4. Root-level tmux files (`.tmux.conf`) remain tracked normally
+
+**Verification**:
+- Test files under `tmux/.config/ccstatusline/` are automatically ignored
+- Git check-ignore confirms: `.gitignore:92:tmux/.config/*/`
+- Legitimate files (`.tmux.conf`, `tmux/.config/tmux/*`) remain tracked
+- Duplicate files physically removed from repository
+
+**Why This Approach**:
+- **Automatic enforcement**: Git prevents accidental staging/committing of duplicates
+- **Comprehensive**: Blocks ALL potential config conflicts, not just known ones
+- **Low maintenance**: No need to add exclusions for each new conflict
+- **Aligns with documented rules**: Enforces "tmux/.config/ccstatusline/ NEVER" policy
+
+**Result**:
+Configuration separation is now technically enforced, not just documented. Duplicate configs cannot be accidentally committed to the repository.
 
 ### Main Agent Delegation Enforcement - Technical Limitations (Investigated: 2025-10-30)
 
@@ -462,17 +583,29 @@ MCP servers are configured via **template + environment variables**, NOT committ
 **`.env.mcp`** - Template for environment variables (version controlled):
 ```bash
 # Context7 API Key (get from https://console.upstash.com)
+# REQUIRED: Context7 server will fail without this
 CONTEXT7_API_KEY=your_api_key_here
+
+# Anthropic API Key (get from https://console.anthropic.com)
+# OPTIONAL: Only needed if using TaskMaster server for AI-powered task management
+# Setup will proceed with warning if missing
+ANTHROPIC_API_KEY=your_api_key_here
 ```
 
 **`.env.mcp.local`** - Actual secrets (gitignored, user creates):
 ```bash
+# Required for Context7 documentation lookup
 CONTEXT7_API_KEY=ctx7sk-actual-key-here
+
+# Optional - only add if you want to use TaskMaster
+# ANTHROPIC_API_KEY=sk-ant-actual-key-here
 ```
 
 **`scripts/setup-mcp.sh`** - Substitutes env vars from `.env.mcp.local` into template and deploys to `~/.mcp.json`
   - Removes symlinks if present (file must be generated, not symlinked)
-  - Validates required runtime tools (npx, uvx)
+  - Validates required runtime tools (npx, uvx) - exits with helpful message if missing
+  - Validates CONTEXT7_API_KEY (required) - exits if missing
+  - Warns about ANTHROPIC_API_KEY if missing but continues (optional, only needed for taskmaster)
   - **Note**: `mcp/` directory is excluded from GNU Stow to prevent symlink conflicts
 
 ### Setup Process
@@ -484,6 +617,8 @@ cd ~/dotfiles
 # Edit .env.mcp.local with your actual API keys
 ./scripts/setup-mcp.sh
 ```
+
+**Note**: Running `./install.sh` will prompt you to install uv/uvx during the "Development Runtimes" step (Step 4). This is required for Python-based MCP servers (serena, aws-core, aws-cdk). Accept the prompt to ensure all MCP servers can load correctly.
 
 **Update Configuration:**
 ```bash
@@ -502,6 +637,33 @@ cat ~/.mcp.json
 /mcp
 ```
 
+### MCP Server Dependencies
+
+MCP servers require specific runtime environments to execute. Missing dependencies will cause servers to fail loading.
+
+**npx (Node.js/npm)** - Required for Node.js-based servers:
+- **Servers**: context7, sequential-thinking, playwright, taskmaster
+- **Installation**: Automatically handled by `./install.sh` (Step 4: Development Runtimes)
+- **Manual install (if needed)**:
+  - macOS: `brew install node`
+  - Linux: Use distro package manager (nodejs, npm)
+- **Verify**: `which npx` should return a path
+
+**uvx (Python/uv)** - Required for Python-based servers:
+- **Servers**: serena, aws-core, aws-cdk
+- **Installation**: Automatically handled by `./install.sh` (Step 4: Development Runtimes)
+- **Manual install (if needed)**:
+  - macOS: `brew install uv`
+  - Linux: `curl -LsSf https://astral.sh/uv/install.sh | sh`
+- **Verify**: `which uvx` should return a path
+- **Note**: uvx is relatively new (2024+), installation is prompted during dotfiles setup
+
+**setup-mcp.sh Dependency Checking**:
+- Script validates both npx and uvx are installed before attempting deployment
+- Exits with helpful message if either is missing: "Error: uvx not found. Install with: brew install uv"
+- Ensures user knows exactly what to install to fix the issue
+- **Recommendation**: If you see this error, re-run `./install.sh` and accept the "Development Runtimes" step
+
 ### Getting API Keys
 
 **Context7 (Upstash):**
@@ -515,24 +677,91 @@ cat ~/.mcp.json
 - Servers use AWS_REGION environment variable (defaults to eu-west-2)
 - No API keys needed in MCP config (uses AWS CLI credentials)
 
+**TaskMaster (Anthropic):**
+1. Visit https://console.anthropic.com
+2. Create account or sign in
+3. Generate API key
+4. Add to `.env.mcp.local` (optional - only if you want AI-powered task management)
+
+### Understanding Configuration Warnings
+
+**"File does not exist" warning for project-level .mcp.json**:
+
+When working in the dotfiles directory, you may see this warning in Claude Code:
+```
+[Warning] MCP config file does not exist: /Users/username/dotfiles/.mcp.json
+```
+
+**This is expected behavior and NOT a problem:**
+
+1. **Claude Code's configuration hierarchy**: Claude Code checks for MCP configuration in this order:
+   - Project-level: `<project-dir>/.mcp.json` (checked first)
+   - Global: `~/.mcp.json` (fallback if project-level doesn't exist)
+
+2. **Why the warning appears**:
+   - The dotfiles directory doesn't have a project-level `.mcp.json` (by design)
+   - Claude Code checks for it, doesn't find it, logs a warning
+   - Immediately falls back to global `~/.mcp.json` which DOES exist
+
+3. **How to verify it's working correctly**:
+   - Run `/mcp` in Claude Code - you should see all configured servers loaded
+   - Check logs: MCP servers should initialize successfully after the warning
+   - The warning only appears when working in dotfiles directory, not in other projects
+
+4. **Why we don't create a project-level .mcp.json in dotfiles**:
+   - The dotfiles directory is for managing configurations, not a development project
+   - Global `~/.mcp.json` is the correct location for system-wide MCP configuration
+   - Creating `.mcp.json` in dotfiles would be redundant and confusing
+
+**Bottom line**: If MCP servers load correctly (verify with `/mcp`), the warning is benign. Servers are loading from `~/.mcp.json` as intended.
+
 ### Troubleshooting
 
 **MCP servers not loading:**
 1. Check `~/.mcp.json` exists and is valid JSON
 2. Verify no `${VAR}` patterns remain (means env var not substituted)
-3. Check Claude Code logs: `~/.claude/logs/`
-4. Restart Claude Code
-5. Try: `claude --mcp-debug` for detailed logging
+3. **Check runtime dependencies installed**:
+   - For Node.js servers: `which npx` (install: `brew install node`)
+   - For Python servers: `which uvx` (install: `brew install uv`)
+4. Check Claude Code logs: `~/.claude/logs/`
+5. Restart Claude Code
+6. Try: `claude --mcp-debug` for detailed logging
+
+**"File does not exist" warning for .mcp.json:**
+- **Expected behavior** when working in dotfiles directory
+- Verify servers load correctly: run `/mcp` in Claude Code
+- If servers are listed and working, warning is benign
+- Servers load from global `~/.mcp.json` (fallback location)
+- See "Understanding Configuration Warnings" section above for full explanation
 
 **Environment variable not substituted:**
 1. Check `.env.mcp.local` exists and has correct syntax
 2. Verify `envsubst` is installed (setup-mcp.sh will try to install)
-3. Re-run `./scripts/setup-mcp.sh`
+3. Check `setup-mcp.sh` output for warnings about missing variables
+4. Re-run `./scripts/setup-mcp.sh` and review output carefully
+
+**uvx or npx command not found:**
+1. **Preferred**: Re-run `./install.sh` and accept the "Development Runtimes" step (installs both uv/uvx and Node.js/npx)
+2. **Manual install - uvx**:
+   - macOS: `brew install uv`
+   - Linux: `curl -LsSf https://astral.sh/uv/install.sh | sh`
+3. **Manual install - npx**:
+   - macOS: `brew install node`
+   - Linux: Use distro package manager (nodejs, npm)
+4. Verify installation: `which uvx` and `which npx` should return paths
+5. Re-run `./scripts/setup-mcp.sh` after installing missing dependencies
+6. Restart Claude Code to reload MCP servers
 
 **AWS servers failing:**
 1. Ensure `aws-core` server loads first (it's a dependency)
 2. Check AWS CLI is configured: `aws sts get-caller-identity`
 3. Verify AWS_REGION is set correctly in `mcp/.mcp.json`
+
+**TaskMaster server failing:**
+- TaskMaster requires ANTHROPIC_API_KEY
+- If you don't need AI-powered task management, ignore the warning
+- setup-mcp.sh will proceed without it (ANTHROPIC_API_KEY is optional)
+- To enable: Add `ANTHROPIC_API_KEY=sk-ant-...` to `.env.mcp.local` and re-run setup
 
 ### Adding New MCP Servers
 
