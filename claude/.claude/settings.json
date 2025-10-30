@@ -56,7 +56,12 @@
   },
   "enableAllProjectMcpServers": false,
   "enabledMcpjsonServers": [
-    "playwright"
+    "playwright",
+    "context7",
+    "serena",
+    "sequential-thinking",
+    "aws-core",
+    "aws-cdk"
   ],
   "statusLine": {
     "type": "command",

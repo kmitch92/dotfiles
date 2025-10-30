@@ -3,7 +3,7 @@
 # =============================================================================
 # Development Runtimes Installation
 # =============================================================================
-# Installs Python, Node.js, npm, and related tools
+# Installs Python, uv/uvx, Node.js, npm, and related tools
 
 print_header "Installing Development Runtimes"
 
@@ -39,6 +39,41 @@ else
     print_warning "pip3 not found"
     if is_macos && confirm "Install pip3?"; then
         python3 -m ensurepip --upgrade
+    fi
+fi
+
+# =============================================================================
+# uv/uvx Installation (Python package runner)
+# =============================================================================
+echo ""
+print_info "Checking uv/uvx (Python package runner)..."
+
+if command_exists uvx; then
+    UV_VERSION=$(uv --version 2>&1 | awk '{print $2}')
+    print_success "uv found: $UV_VERSION"
+else
+    print_warning "uv not installed"
+    print_info "uv is a fast Python package installer and runner"
+    print_info "Required for MCP servers: serena, aws-core, aws-cdk"
+
+    if confirm "Install uv?"; then
+        if is_macos; then
+            print_info "Installing uv via Homebrew..."
+            brew install uv
+        elif is_linux; then
+            print_info "Installing uv via official installer..."
+            curl -LsSf https://astral.sh/uv/install.sh | sh
+            print_info "Note: You may need to restart your shell or source your shell config"
+        fi
+
+        # Verify installation
+        if command_exists uvx; then
+            UV_VERSION=$(uv --version 2>&1 | awk '{print $2}')
+            print_success "uv installed: $UV_VERSION"
+        else
+            print_warning "uv installation may require shell restart"
+            print_info "Run: source ~/.bashrc  (or ~/.zshrc for zsh)"
+        fi
     fi
 fi
 

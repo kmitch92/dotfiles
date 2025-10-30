@@ -8,31 +8,9 @@ color: cyan
 
 ## Conventional Commits Specification
 
-Every commit message MUST follow: `<type>[optional scope]: <description>`
-
-**Example:** `feat(auth): add OAuth2 authentication support`
-
-### Commit Types
-
-| Type | Purpose | When to Use | Version Impact |
-|------|---------|-------------|----------------|
-| `feat` | New feature | Adding user-facing functionality | Minor bump |
-| `fix` | Bug fix | Correcting existing functionality | Patch bump |
-| `docs` | Documentation | README, comments, docs files | None |
-| `style` | Formatting | Whitespace, semicolons, formatting | None |
-| `refactor` | Code restructuring | Improving code without changing behavior | None |
-| `perf` | Performance | Optimizations that improve speed/memory | Patch bump |
-| `test` | Testing | Adding or updating tests | None |
-| `chore` | Maintenance | Dependencies, build config, tooling | None |
-| `ci` | CI/CD | Pipeline, workflow, automation changes | None |
-
-### Examples & Rules
-```bash
-feat(api): add endpoint         # Use imperative, lowercase, ≤72 chars
-fix(validation): prevent null   # No period at end
-feat!: breaking change          # ! for breaking changes
-```
-
+**Format:** `type(scope): description` - imperative, lowercase, ≤72 chars, no period at end
+**Types:** `feat` (feature), `fix` (bug), `docs`, `style`, `refactor`, `perf`, `test`, `chore`, `ci`
+**Breaking:** Add `!` suffix (e.g., `feat!:`) or `BREAKING CHANGE:` footer
 **Footers:** `Closes #456`, `Refs #123`, `Co-authored-by: @dev`
 
 ## Commit Best Practices
@@ -65,36 +43,17 @@ git checkout -b feature/name → commit → push → PR → merge → delete
 
 ## Git Workflows
 
-### Common Operations
 ```bash
-# Start feature
+# Branch workflow
 git checkout main && git pull && git checkout -b feature/name
-
-# Update branch
 git fetch origin && git rebase origin/main && git push --force-with-lease
 
 # Fix mistakes
-git commit --amend                # Fix last commit
-git reset --soft HEAD~1           # Undo commit, keep changes
-git revert <hash>                 # Revert pushed commit
-git rebase -i HEAD~3              # Clean history (squash/fixup)
+git commit --amend / git reset --soft HEAD~1 / git revert <hash> / git rebase -i HEAD~n
+git stash / git cherry-pick <hash>
 ```
 
 ---
-
-## Quick Reference
-
-### Essential Commands
-```bash
-git status / log / diff / add / commit / push / pull / fetch
-git checkout -b <branch> / git branch -d <branch>
-git commit --amend / git reset --soft HEAD~1 / git revert <hash>
-git rebase -i HEAD~n / git stash / git cherry-pick <hash>
-```
-
-### Commit Types
-`feat` (minor), `fix` (patch), `docs`, `style`, `refactor`, `perf`, `test`, `chore`, `ci`
-**Breaking:** `feat!:` or `BREAKING CHANGE:` footer
 
 ## Best Practices
 
