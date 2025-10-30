@@ -75,6 +75,73 @@ Claude Code statusline displayed basic separators and colors instead of powerlin
 - ✗ `tmux/.config/ccstatusline/` - NEVER (causes conflicts)
 - ✗ `tmux/.config/git/` - NEVER (causes conflicts)
 
+### Main Agent Delegation Enforcement - Technical Limitations (Investigated: 2025-10-30)
+
+**Goal:**
+Implement technical enforcement to restrict main agent to orchestration-only role, forcing delegation to specialized subagents for all code implementation (inspired by coygeek's solution in GitHub issue #6800).
+
+**Approaches Tested:**
+
+**Approach 1: Global permissions.deny[]**
+```json
+{
+  "permissions": {
+    "deny": ["Edit", "MultiEdit", "Write"]
+  }
+}
+```
+- **Result**: ✗ Failed - Blocked ALL agents including subagents
+- **Finding**: Global deny list creates hard block that cannot be overridden by agent `tools:` field
+- **Conclusion**: Deny list is too aggressive, blocks legitimate subagent operations
+
+**Approach 2: Remove from permissions.allow[]**
+```json
+{
+  "permissions": {
+    "allow": [
+      "Read", "Grep", "Glob", "Task", "TodoWrite"
+      // Removed: "Edit", "Write", "MultiEdit", "NotebookEdit"
+    ],
+    "defaultMode": "default"  // Changed from "bypassPermissions"
+  }
+}
+```
+- **Result**: ✗ Failed - Only added approval prompt, didn't deny access
+- **Finding**: Removing from allow list + `defaultMode: "default"` prompts user for approval rather than creating hard block
+- **Test**: Main agent successfully used Write tool after user approval
+- **Conclusion**: Permission system designed for user control, not agent-specific restrictions
+
+**Root Cause:**
+Claude Code's permission model doesn't support agent-specific overrides. The system is designed for:
+1. User-controlled approvals (via prompts)
+2. Global security constraints (deny dangerous operations)
+3. NOT for differential permissions between main agent and subagents
+
+**Solution Implemented:**
+**Option 2: Documentation-Only Enforcement**
+- Updated `~/.claude/CLAUDE.md` with new section "II. Main Agent Role: Orchestration Only"
+- Explicit rules: NEVER write code, edit files, or create files directly
+- Training mechanism: User corrects when main agent violates pattern
+- Meta-tasks exception: Reading, read-only bash, research, task tracking allowed
+
+**Key Lessons:**
+1. **Claude Code permissions are user-centric, not agent-centric** - Designed to protect user/system, not enforce architectural patterns
+2. **Agent tools: field doesn't override global restrictions** - Cannot grant back permissions that are globally denied
+3. **defaultMode values**:
+   - `"bypassPermissions"` - Skip all permission checks
+   - `"default"` - Prompt user for approval on disallowed operations
+   - `"acceptEdits"` - Auto-accept edit operations
+   - `"plan"` - Force plan mode
+4. **Documentation-based enforcement is the only viable option** - Rely on clear instructions + user correction
+
+**Files Modified (then reverted):**
+- `claude/.claude/settings.json` - Tested both approaches, reverted to original
+- `~/.claude/CLAUDE.md` - Added delegation emphasis (permanent change)
+
+**Reference:**
+- GitHub issue: anthropics/claude-code#6800 (coygeek's solution)
+- Findings suggest the issue author may have misunderstood how permissions work, or Claude Code's permission model changed since their post
+
 ### Neovim Installation - Dev Build Issue (Fixed: 2025-10-28)
 
 **Problem**:
