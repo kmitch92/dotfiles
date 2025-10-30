@@ -23,9 +23,20 @@
       "Bash(envsubst:*)",
       "Bash(export CONTEXT7_API_KEY=\"ctx7sk-bd103548-7d32-44b6-b7cb-a896e5d19721\")",
       "Bash(readlink:*)",
-      "Bash(md5:*)"
+      "Bash(md5:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(awk:*)",
+      "Bash(stat:*)"
     ],
     "deny": [],
     "ask": []
-  }
+  },
+  "enabledMcpjsonServers": [
+    "playwright",
+    "context7",
+    "serena",
+    "sequential-thinking",
+    "aws-core",
+    "aws-cdk"
+  ]
 }
