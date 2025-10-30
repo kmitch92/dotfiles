@@ -317,6 +317,46 @@ All code changes follow this process:
    - **Git Specialist** commits changes
 4. **Documentation Agent** captures learnings in project CLAUDE.md
 
+### Plan Requirements
+
+When presenting a plan via ExitPlanMode, you MUST:
+
+1. **Assign sub-agents to every step**
+   - Never say "implement X" - say "Backend TypeScript Developer: implement X"
+   - Never say "test Y" - say "Test Writer: write tests for Y"
+   - Main agent NEVER implements directly - always delegates
+
+2. **Use this format:**
+   ```
+   Step 1: [Agent Name] - [Task description]
+   Step 2: [Agent Name] - [Task description]
+   ```
+
+3. **Specify execution model:**
+   - Mark parallel steps: "(parallel with Step 2)"
+   - Indicate dependencies: "(after Step 1 completes)"
+   - Default assumption: sequential execution
+
+**Example:**
+
+❌ **Bad plan:**
+```
+1. Write tests for user authentication
+2. Implement authentication
+3. Commit changes
+```
+
+✓ **Good plan:**
+```
+Step 1: Test Writer - Write failing tests for user authentication
+Step 2: Backend TypeScript Developer - Implement auth to pass tests (after Step 1)
+Step 3: Security Specialist - Security review auth implementation (after Step 2)
+Step 4: Refactoring Specialist - Assess refactoring opportunities (after Step 2)
+Step 5: Git Specialist - Commit auth implementation (after Steps 3 and 4)
+```
+
+**Enforcement:** User will reject plans that don't specify sub-agents for each step.
+
 ### Communication Standards
 
 - Be explicit about tradeoffs in different approaches
