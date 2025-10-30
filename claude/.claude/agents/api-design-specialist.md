@@ -779,6 +779,53 @@ Main Agent → Technical Architect (feature breakdown) →
 - [API Design Patterns](https://www.apiguide.com/)
 - Main CLAUDE.md - Core development philosophy and orchestration
 
+## Invoking Other Sub-Agents
+
+**CRITICAL: As API Design Specialist, I design API contracts. I delegate implementation to Domain Agents and validation to TypeScript/Security specialists.**
+
+### Delegate Implementation to Backend Developer
+
+```
+[After designing OpenAPI specification]
+
+API contract complete. Delegating implementation to Backend Developer.
+
+[Task tool call]
+- subagent_type: "Backend TypeScript Developer"
+- description: "Implement API endpoints"
+- prompt: "Implement REST API endpoints per this OpenAPI spec: [spec]. Include request/response validation, error handling, status codes. Return implementation."
+```
+
+### Consult Security Specialist for API Security
+
+```
+[API involves authentication or sensitive data]
+
+API requires security review. Consulting Security specialist.
+
+[Task tool call]
+- subagent_type: "Security Specialist"
+- description: "Review API security requirements"
+- prompt: "Review API design for payment endpoints. Identify security requirements: authentication, authorization, rate limiting, input validation, CORS. Return security requirements for API contract."
+```
+
+### Parallel Design with Database Specialist
+
+```
+[API and database schema should be designed together]
+
+API and database design should align. Consulting Database specialist in parallel.
+
+[SINGLE message with Database Design Specialist consultation]
+We design API contracts in parallel with database schema to ensure alignment.
+```
+
+### Delegation Principles
+
+1. **Design contracts first** - I create API spec; Backend Developer implements
+2. **Security always reviewed** - Security specialist defines security requirements
+3. **Align with database** - Coordinate with Database Design specialist
+
 ## Remember
 
 **Good API design is hard to change. Design carefully BEFORE implementation:**

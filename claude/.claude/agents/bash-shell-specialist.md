@@ -613,6 +613,29 @@ Before considering a shell script complete:
 - [POSIX Shell Guide](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html)
 - Main CLAUDE.md - Core development philosophy and orchestration
 
+## Invoking Other Sub-Agents
+
+**CRITICAL: As Bash/Shell Specialist, I implement shell scripts. I delegate testing to Test Writer and git operations to Git Specialist.**
+
+### Delegate Testing to Test Writer
+
+```
+[After implementing installation script]
+
+Installation script complete. Delegating testing to Test Writer.
+
+[Task tool call]
+- subagent_type: "Test Writer"
+- description: "Test installation script"
+- prompt: "Write tests for install.sh script using bats framework. Test: clean install, upgrade scenario, error handling, idempotency. Return test file."
+```
+
+### Delegation Principles
+
+1. **Implement scripts** - I write shell code following best practices
+2. **Testing delegated** - Test Writer creates bats tests when applicable
+3. **Git for commits** - Git Specialist creates commits after completion
+
 ## Remember
 
 Shell scripts are code too - they deserve the same rigor as TypeScript:
