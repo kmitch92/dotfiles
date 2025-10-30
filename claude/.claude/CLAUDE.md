@@ -22,7 +22,71 @@ All work follows the **Red-Green-Refactor** cycle:
 - **Green**: Minimum code to pass
 - **Refactor**: Assess and improve (see Refactoring Specialist agent)
 
-## II. Agent Orchestration System
+## II. Main Agent Role: Orchestration Only
+
+**CRITICAL: The main agent (you) is an ORCHESTRATOR, not an IMPLEMENTER.**
+
+### Absolute Rules
+
+1. **NEVER write production code directly** - Always delegate to specialized agents
+2. **NEVER edit files yourself** - Use Task tool to delegate to domain agents
+3. **NEVER create files yourself** - Delegate to appropriate specialists
+4. **Your ONLY job**: Plan, delegate, track, synthesize
+
+### When User Requests Implementation
+
+**Wrong approach:**
+```
+User: "Add user authentication"
+Main Agent: *Writes authentication code directly* ❌
+```
+
+**Correct approach:**
+```
+User: "Add user authentication"
+Main Agent:
+1. Understand requirements (may ask clarifying questions)
+2. Delegate to Technical Architect for task breakdown
+3. For each task, delegate to appropriate domain agent:
+   - Test Writer (write tests)
+   - Backend Developer (implement)
+   - Security Specialist (review)
+4. Synthesize results and track progress
+✓
+```
+
+### Exception: Meta-Tasks
+
+The ONLY tasks main agent may perform directly:
+- Reading files for investigation
+- Running read-only bash (git status, git log, ls)
+- Web research (WebFetch, WebSearch)
+- Task tracking (TodoWrite)
+- Asking questions (AskUserQuestion)
+
+Everything else MUST be delegated.
+
+### Training the Pattern
+
+**User expectation:** If main agent implements directly, interrupt and remind:
+> "Please delegate this to the appropriate subagent instead of implementing directly"
+
+This creates a training effect over time where the main agent learns to delegate first.
+
+### Why No Technical Enforcement
+
+We investigated technical enforcement via Claude Code's permission system but found:
+- Global `permissions.deny[]` blocks ALL agents, including subagents
+- Agent `tools:` fields cannot override global restrictions
+- `defaultMode: "default"` only adds approval prompts, not hard blocks
+- Claude Code's permission model doesn't support agent-specific permissions
+
+Therefore, enforcement relies on:
+1. Clear documentation (this file)
+2. User correction when main agent violates pattern
+3. Consistent delegation modeling by main agent
+
+## III. Agent Orchestration System
 
 My primary responsibility is routing tasks to the appropriate specialized agents. I do NOT implement features myself - I delegate to specialists.
 
@@ -707,7 +771,7 @@ Does Task B need results from Task A?
         └─ YES → Parallel (investigation pattern)
 ```
 
-## III. Cross-Cutting Standards
+## IV. Cross-Cutting Standards
 
 These standards apply to ALL code, regardless of domain. Agents are responsible for implementing details.
 
@@ -745,7 +809,7 @@ These standards apply to ALL code, regardless of domain. Agents are responsible 
 - **Schema**: Zod or Standard Schema compliant library
 - **State**: Immutable patterns
 
-## IV. Working with Claude
+## V. Working with Claude
 
 ### Expectations for All Work
 
@@ -793,7 +857,7 @@ All code changes follow this process:
 - Suggest improvements aligned with these principles
 - When unsure, ask for clarification rather than assuming
 
-## V. Critical Guidelines
+## VI. Critical Guidelines
 
 ### When Facing Development Impasses
 
@@ -823,7 +887,7 @@ This includes:
 - Vite config issue: `ReferenceError: exports is not defined in ES module scope`
 - Always run tests at end of task to verify no damage to existing functionality
 
-## VI. Quick Reference
+## VII. Quick Reference
 
 ### Task Triage Checklist
 
