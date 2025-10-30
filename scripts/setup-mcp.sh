@@ -92,14 +92,20 @@ set +a  # Disable automatic export
 # Validate required environment variables
 MISSING_KEYS=()
 
+# Required keys
 if [ "$CONTEXT7_API_KEY" = "your_api_key_here" ] || [ -z "$CONTEXT7_API_KEY" ]; then
     MISSING_KEYS+=("CONTEXT7_API_KEY")
 fi
 
+# Optional keys (warn but don't fail)
 if [ "$ANTHROPIC_API_KEY" = "your_anthropic_api_key_here" ] || [ -z "$ANTHROPIC_API_KEY" ]; then
-    MISSING_KEYS+=("ANTHROPIC_API_KEY")
+    print_warning "ANTHROPIC_API_KEY not configured - taskmaster server will not be available"
+    print_info "To enable taskmaster later: Add ANTHROPIC_API_KEY to .env.mcp.local and re-run setup-mcp.sh"
+    # Set empty value so envsubst doesn't fail
+    export ANTHROPIC_API_KEY=""
 fi
 
+# Only fail if required keys are missing
 if [ ${#MISSING_KEYS[@]} -gt 0 ]; then
     print_error "Missing or invalid API keys in .env.mcp.local:"
     for key in "${MISSING_KEYS[@]}"; do
@@ -108,7 +114,6 @@ if [ ${#MISSING_KEYS[@]} -gt 0 ]; then
     echo ""
     print_info "Please edit $DOTFILES_DIR/.env.mcp.local and set your API keys"
     print_info "  • CONTEXT7_API_KEY: https://console.upstash.com"
-    print_info "  • ANTHROPIC_API_KEY: https://console.anthropic.com"
     exit 1
 fi
 
