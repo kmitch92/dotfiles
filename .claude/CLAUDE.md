@@ -118,7 +118,7 @@ The MCP configuration file (`~/.mcp.json`) was being created as a symlink by GNU
 - **Real issue**: Architectural conflict between Stow's symlink management and runtime secret substitution
 - **Solution**: Exclude template directories from Stow; manage them separately
 
-### Claude Code Statusline Configuration - Duplicate Config Issue (Fixed: 2025-10-30)
+### Claude Code Statusline Configuration - Duplicate Config Issue (Fixed: 2025-10-30, Superseded: 2025-10-31)
 
 **Problem**:
 Claude Code statusline displayed basic separators and colors instead of powerline display with gruvbox theme. The intended powerline configuration was not being loaded.
@@ -147,15 +147,17 @@ Claude Code statusline displayed basic separators and colors instead of powerlin
 - **Verify stow order**: Later-processed packages can overwrite earlier ones if they contain overlapping paths
 - **Solution**: Maintain strict separation - tmux package should only contain tmux-specific files under `.config/tmux/`
 
-**Configuration Location Rules**:
+**Configuration Location Rules** (Obsolete as of 2025-10-31):
 - ✓ `config/.config/ccstatusline/` - Claude Code statusline config (ONLY location)
 - ✓ `config/.config/git/` - Git global config (ONLY location)
-- ✓ `tmux/.config/tmux/` - Tmux-specific configs and scripts
+- ✓ `tmux/.config/tmux/` - Tmux-specific configs and scripts *(moved to config/ package on 2025-10-31)*
 - ✓ `tmux/.tmux.conf` - Tmux main configuration
 - ✗ `tmux/.config/ccstatusline/` - NEVER (causes conflicts)
 - ✗ `tmux/.config/git/` - NEVER (causes conflicts)
 
-### Technical Enforcement (Added: 2025-10-30)
+**Note**: This fix was temporary. The root cause was resolved permanently on 2025-10-31 through package architecture restructuring. All `.config/` subdirectories now live in the `config/` package only. See "Package Architecture Restructuring - Permanent Fix" section below.
+
+### Technical Enforcement (Added: 2025-10-30, Superseded: 2025-10-31)
 
 **Problem with Documentation-Only Approach**:
 The initial fix only removed duplicate files without preventing their return. The `.gitignore` rule `!tmux/**` (line 90) whitelisted ALL files under tmux/, allowing duplicates to be created and tracked again.
@@ -195,6 +197,77 @@ tmux/.config/*/
 
 **Result**:
 Configuration separation is now technically enforced, not just documented. Duplicate configs cannot be accidentally committed to the repository.
+
+**Note**: Gitignore rules were removed on 2025-10-31 as part of package architecture restructuring. The problem is now solved architecturally - `tmux/.config/` no longer exists, so there's nothing to ignore. See next section for permanent fix.
+
+### Package Architecture Restructuring - Permanent Fix (Implemented: 2025-10-31)
+
+**Problem**:
+The previous fixes (duplicate removal + gitignore rules) addressed symptoms but not the root cause: multiple stow packages trying to own the same directory tree (`~/.config/`). This violated stow's fundamental principle: **"one package owns one directory tree."**
+
+**Architectural Issue**:
+```
+config/.config/  → tries to create: ~/.config/ → dotfiles/config/.config/
+tmux/.config/    → tries to create: ~/.config/ → dotfiles/tmux/.config/
+Result: Last package stowed overwrites the first, causing conflicts
+```
+
+**Root Cause Analysis**:
+- Following "one package per tool" pattern (tmux, zsh, nvim) seemed logical
+- But created ownership conflict when multiple packages needed `~/.config/` subdirectories
+- Gitignore rules prevented git tracking but didn't prevent stow conflicts
+- Duplicates kept reappearing because stow processing order was unpredictable
+
+**Permanent Solution Applied**:
+
+**New Architecture**: `config/` package owns ALL `~/.config/` contents
+
+```
+Before (broken):                After (fixed):
+tmux/.config/tmux/       →     config/.config/tmux/
+tmux/.config/ccstatusline/ →   (deleted - was duplicate)
+tmux/.tmux.conf          →     tmux/.tmux.conf (unchanged)
+
+config/.config/tmux/     →     config/.config/tmux/ (moved from tmux/)
+config/.config/ccstatusline/ → config/.config/ccstatusline/ (unchanged)
+config/.config/nvim/     →     config/.config/nvim/ (unchanged)
+...
+```
+
+**Changes Made**:
+1. Moved `tmux/.config/tmux/` → `config/.config/tmux/` (git mv for history)
+2. Deleted duplicate `tmux/.config/ccstatusline/`
+3. Removed empty `tmux/.config/` directory
+4. Removed gitignore rules (lines 93-95) - no longer needed
+5. Updated documentation
+
+**Package Ownership Rules (Enforced by Structure)**:
+- ✓ `config/` owns **ALL** of `~/.config/` (single source of truth)
+- ✓ `tmux/` owns root-level tmux files only (`.tmux.conf`)
+- ✓ `zsh/` owns root-level zsh files only (`.zshrc`, `.zshenv`)
+- ✓ Each package owns completely distinct directory trees (no conflicts possible)
+
+**Key Benefits**:
+1. **Stow conflicts physically impossible** - no overlapping ownership
+2. **Duplicates physically impossible** - only one location exists for each config
+3. **No gitignore rules needed** - architecture prevents the problem
+4. **Simpler mental model** - clear ownership boundaries
+5. **Deployed paths unchanged** - `~/.config/tmux/scripts/...` still works
+
+**Migration Impact**:
+- ✓ No breaking changes to deployed configurations
+- ✓ `.tmux.conf` references `~/.config/tmux/scripts/...` (deployed path, unchanged)
+- ✓ All other tools reference `~/.config/...` paths (unchanged)
+- ✓ Git history preserved (used `git mv`)
+
+**Verification**:
+- Tmux package contains only `.tmux.conf`
+- Config package contains all `.config/` subdirectories
+- Stow processes without conflicts
+- Deployed symlinks correct
+
+**Result**:
+Problem solved architecturally, not just symptomatically. The duplicate config issue cannot recur because the structure that allowed it no longer exists.
 
 ### Main Agent Delegation Enforcement - Technical Limitations (Investigated: 2025-10-30)
 
@@ -508,7 +581,7 @@ Tmux configuration with Catppuccin Mocha theme, vim-like keybindings, and smart 
   - `/tmp` (non-git directory) → `tmp`
 
 **Implementation**:
-- **Script**: `tmux/.config/tmux/scripts/tmux-window-name.sh`
+- **Script**: `config/.config/tmux/scripts/tmux-window-name.sh` (source), deployed to `~/.config/tmux/scripts/tmux-window-name.sh`
 - **Logic**: Extracts git repo root and branch, abbreviates each word (hyphenated, camelCase, underscore-separated)
 - **Fallback**: If not in git repo, shows abbreviated directory name
 - **Updates**: Automatically as you `cd` between directories
