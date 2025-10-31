@@ -54,11 +54,11 @@ The deployed statusline config can be overwritten by processes outside of Stow. 
 ### MCP Server Dependencies - Missing uvx Runtime (Fixed: 2025-10-30)
 
 **Problem**:
-MCP servers serena, aws-core, and aws-cdk were failing to load. Claude Code showed errors about uvx command not found, and the deployed configuration at `~/.mcp.json` was out of date with the template.
+MCP servers aws-core and aws-cdk were failing to load. Claude Code showed errors about uvx command not found, and the deployed configuration at `~/.mcp.json` was out of date with the template.
 
 **Root Cause**:
 - **Missing uvx runtime**: uvx (Python/uv package runner) was not installed on the system
-- **Out-of-date deployment**: `~/.mcp.json` contained old serena configuration (URL without git+ prefix)
+- **Out-of-date deployment**: `~/.mcp.json` was out of sync with the template
 - **Overly strict validation**: setup-mcp.sh required ANTHROPIC_API_KEY even though user didn't need taskmaster server
 
 **Solution Applied**:
@@ -67,7 +67,7 @@ MCP servers serena, aws-core, and aws-cdk were failing to load. Claude Code show
    - Changed from exit-on-missing to warning-on-missing
    - Allows setup to proceed without taskmaster if user doesn't need it
 3. Re-ran `./scripts/setup-mcp.sh` to regenerate `~/.mcp.json` with updated template
-4. Verified all MCP servers load correctly (context7, serena, sequential-thinking, playwright, aws-core, aws-cdk)
+4. Verified all MCP servers load correctly (context7, sequential-thinking, playwright, aws-core, aws-cdk)
 
 **Files Modified**:
 - `scripts/setup-mcp.sh` (made ANTHROPIC_API_KEY optional)
@@ -663,9 +663,6 @@ MCP servers are configured via **template + environment variables**, NOT committ
 **Documentation & Context:**
 - **Context7** - Up-to-date documentation from official sources (requires Upstash API key)
 
-**Code Intelligence:**
-- **Serena** - Semantic code retrieval and editing toolkit using LSP (Language Server Protocol). Provides IDE-like symbol analysis, find-references, and code navigation. Supports Python, TypeScript/JavaScript, Java, Go, Rust, C/C++, PHP.
-
 **Task Management:**
 - **TaskMaster** - AI-powered task management for development workflows. PRD parsing, task CRUD with dependency tracking, complexity analysis, and context-based organization (requires Anthropic API key).
 
@@ -731,7 +728,7 @@ cd ~/dotfiles
 ./scripts/setup-mcp.sh
 ```
 
-**Note**: Running `./install.sh` will prompt you to install uv/uvx during the "Development Runtimes" step (Step 4). This is required for Python-based MCP servers (serena, aws-core, aws-cdk). Accept the prompt to ensure all MCP servers can load correctly.
+**Note**: Running `./install.sh` will prompt you to install uv/uvx during the "Development Runtimes" step (Step 4). This is required for Python-based MCP servers (aws-core, aws-cdk). Accept the prompt to ensure all MCP servers can load correctly.
 
 **Update Configuration:**
 ```bash
@@ -763,7 +760,7 @@ MCP servers require specific runtime environments to execute. Missing dependenci
 - **Verify**: `which npx` should return a path
 
 **uvx (Python/uv)** - Required for Python-based servers:
-- **Servers**: serena, aws-core, aws-cdk
+- **Servers**: aws-core, aws-cdk
 - **Installation**: Automatically handled by `./install.sh` (Step 4: Development Runtimes)
 - **Manual install (if needed)**:
   - macOS: `brew install uv`
@@ -914,23 +911,18 @@ All agents have access to:
 
 | Agent | MCP Tools | Rationale |
 |-------|-----------|-----------|
-| **React Engineer** | Playwright (puppeteer_*), Browser Tools (accessibility, performance audits), Serena | Browser automation for testing + semantic code analysis for React components |
+| **React Engineer** | Playwright (puppeteer_*), Browser Tools (accessibility, performance audits) | Browser automation for testing |
 | **Test Writer** | Playwright (puppeteer_*) | Writes E2E tests requiring browser automation |
-| **Technical Architect** | Sequential Thinking, Serena, TaskMaster | Structured thinking + code intelligence + task management for complex planning |
-| **Refactoring Specialist** | Sequential Thinking, Serena | Structured thinking + LSP-based code analysis for refactoring decisions |
-| **Code Quality Enforcer** | Serena | Symbol-level code analysis for pattern detection and quality checks |
-| **TypeScript Connoisseur** | Serena | LSP-based type analysis and symbol navigation for TypeScript |
-| **Backend TypeScript Developer** | Serena | Semantic code analysis for backend implementation |
-| **AWS CDK Expert** | Serena | Code intelligence for CDK infrastructure code |
+| **Technical Architect** | Sequential Thinking, TaskMaster | Structured thinking + task management for complex planning |
+| **Refactoring Specialist** | Sequential Thinking | Structured thinking for refactoring decisions |
 | **Performance Specialist** | Browser Tools (performance audit, network/console logs) | Browser performance profiling tools |
 | **All Other Agents** | Standard tools only | Domain-specific work doesn't require MCP extensions |
 
 **Key Decisions:**
-1. **Serena** (code intelligence) - Added to code-focused agents for LSP-based semantic analysis
-2. **TaskMaster** (task management) - Added to Technical Architect for AI-powered task breakdown
-3. **Context7** (documentation lookup) - Not yet configured with agents, pending API key setup
-4. **AWS Tools** - Not yet added to agents, can be added when needed
-5. **GitHub CLI Exclusion** - Per user preference, agents should use git commands directly, not `gh` CLI
+1. **TaskMaster** (task management) - Added to Technical Architect for AI-powered task breakdown
+2. **Context7** (documentation lookup) - Not yet configured with agents, pending API key setup
+3. **AWS Tools** - Not yet added to agents, can be added when needed
+4. **GitHub CLI Exclusion** - Per user preference, agents should use git commands directly, not `gh` CLI
 
 ### Adding New Tools to Agents
 
