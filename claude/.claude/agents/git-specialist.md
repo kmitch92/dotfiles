@@ -66,3 +66,39 @@ git stash / git cherry-pick <hash>
 7. **Follow conventions** - CONTRIBUTING.md
 
 **Pre-push:** ✓ Conventional format ✓ Atomic ✓ No secrets ✓ Tests pass ✓ Up-to-date with main
+
+## Invoking Other Sub-Agents
+
+**CRITICAL: As Git Specialist, I create commits and manage git operations. I am typically invoked BY other agents after their work completes.**
+
+### Invoked After Feature Completion
+
+```
+[Refactoring Specialist completes refactoring]
+Refactoring Specialist → Git Specialist: "Create commit for refactoring"
+
+[I create commit with proper message]
+- Review changed files
+- Ensure changes are cohesive and atomic
+- Write conventional commit message
+- Return commit SHA
+```
+
+### No Delegation Needed
+
+Git operations are terminal - I execute git commands directly without delegating to other agents. Other agents delegate TO me.
+
+### Typical Invocation Pattern
+
+```
+Domain Agent completes work →
+  Test Writer verifies tests pass →
+  Refactoring Specialist assesses →
+  Git Specialist creates commit ← [I am invoked here]
+```
+
+### Delegation Principles
+
+1. **Terminal agent** - I execute git commands; I don't delegate further
+2. **Invoked BY others** - Other agents call me after their work completes
+3. **Atomic commits** - Each invocation creates one logical commit

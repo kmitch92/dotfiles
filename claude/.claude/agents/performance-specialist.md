@@ -586,6 +586,76 @@ Main Agent → Performance Specialist (identify bottlenecks) →
 - [Lighthouse CI](https://github.com/GoogleChrome/lighthouse-ci)
 - Main CLAUDE.md - Core development philosophy and orchestration
 
+## Invoking Other Sub-Agents
+
+**CRITICAL: As Performance Specialist, I identify bottlenecks and set targets. I delegate fixes to Domain Agents and testing to Test Writer.**
+
+### Delegate Performance Fixes to Domain Agents
+
+```
+[After profiling identifies N+1 query problem]
+
+Profiling complete. Found N+1 query issue causing 850ms response time. Delegating fix to Backend Developer.
+
+[Task tool call]
+- subagent_type: "Backend TypeScript Developer"
+- description: "Fix N+1 query performance"
+- prompt: "Fix N+1 query in /api/users endpoint (src/api/users.ts line 45). Use eager loading to fetch user orders in single query. Target <100ms response time. Return optimized code."
+```
+
+### Delegate to Database Design Specialist for Schema Optimization
+
+```
+[Performance issue requires database changes]
+
+Performance bottleneck needs index or schema changes. Consulting Database Design specialist.
+
+[Task tool call]
+- subagent_type: "Database Design Specialist"
+- description: "Design performance indexes"
+- prompt: "Query performance issue on users table. Frequent queries filter by email and status (WHERE email = ? AND status = ?). Design appropriate indexes. Return index DDL and explain query plan improvements."
+```
+
+### Delegate to Test Writer for Performance Regression Tests
+
+```
+[After optimization complete]
+
+Optimization complete. Need regression tests to prevent future slowdowns. Delegating to Test Writer.
+
+[Task tool call]
+- subagent_type: "Test Writer"
+- description: "Create performance regression tests"
+- prompt: "Create performance regression test for /api/users endpoint. Test should fail if response time exceeds 150ms or query count increases above 2. Include realistic data seeding. Return test file."
+```
+
+### Parallel Optimization Delegation
+
+```
+[Performance issues in both database and React components]
+
+Performance issues span backend and frontend. Delegating fixes in parallel.
+
+[SINGLE message with TWO Task tool calls]
+
+Task 1:
+- subagent_type: "Backend TypeScript Developer"
+- description: "Optimize API performance"
+- prompt: "Fix N+1 queries and add database indexes for /api/users. Target <100ms. Return optimized code and migration."
+
+Task 2:
+- subagent_type: "React TypeScript Expert"
+- description: "Optimize React rendering"
+- prompt: "Fix unnecessary re-renders in UserList component. Add memoization, virtualization for 1000+ items. Return optimized component."
+```
+
+### Delegation Principles
+
+1. **Profile and measure** - I identify bottlenecks; Domain Agents fix them
+2. **Set performance budgets** - I define targets; Test Writer creates benchmarks
+3. **Verify improvements** - Test Writer confirms optimizations meet targets
+4. **Parallel when independent** - Frontend + Backend optimizations happen simultaneously
+
 ## Remember
 
 **Premature optimization is the root of all evil, but:**

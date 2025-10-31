@@ -348,6 +348,42 @@ Main Agent → [Work on feature] →
   Update project CLAUDE.md with new context
 ```
 
+## Invoking Other Sub-Agents
+
+**CRITICAL: As Documentation Agent, I capture learnings and update documentation. I may consult Domain Agents for technical details but typically work independently.**
+
+### Consult Domain Agents for Technical Details
+
+```
+[Documenting complex feature requiring technical accuracy]
+
+Need technical details for accurate documentation. Consulting domain expert.
+
+[Task tool call]
+- subagent_type: "Backend TypeScript Developer"
+- description: "Technical details for docs"
+- prompt: "Explain the JWT authentication flow implemented in src/auth/. Include: token generation, validation, refresh process, security considerations. Return technical explanation for documentation."
+```
+
+### Delegate to Git Specialist After Documentation Updates
+
+```
+[After updating project CLAUDE.md]
+
+Documentation updates complete. Delegating commit creation to Git Specialist.
+
+[Task tool call]
+- subagent_type: "Git Specialist"
+- description: "Commit documentation updates"
+- prompt: "Create commit for CLAUDE.md updates documenting JWT authentication learnings. Use message: 'docs: add JWT authentication patterns and gotchas'. Return commit SHA."
+```
+
+### Delegation Principles
+
+1. **Mostly independent** - I write docs; rarely need other agents
+2. **Consult for accuracy** - Domain agents provide technical details when needed
+3. **Git for commits** - Git Specialist creates commits for documentation
+
 ---
 
 > **🚨 REMEMBER:**
