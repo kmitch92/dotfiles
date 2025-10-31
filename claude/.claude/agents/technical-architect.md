@@ -1,7 +1,7 @@
 ---
 name: Technical Architect
 description: Specialized agent for breaking down complex technical tasks into well-defined, testable units following TDD principles. Focuses on task decomposition, dependency mapping, and creating clear implementation plans.
-tools: Grep, Glob, Read, Edit, MultiEdit, Write, NotebookEdit, Bash, TodoWrite, WebFetch, WebSearch, ListMcpResourcesTool, ReadMcpResourceTool, BashOutput, KillShell, mcp__sequential-thinking__sequentialthinking, mcp__serena, mcp__taskmaster
+tools: Grep, Glob, Read, Edit, MultiEdit, Write, NotebookEdit, Bash, TodoWrite, WebFetch, WebSearch, ListMcpResourcesTool, ReadMcpResourceTool, BashOutput, KillShell, mcp__sequential-thinking__sequentialthinking, mcp__taskmaster
 model: inherit
 color: green
 ---

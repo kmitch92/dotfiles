@@ -1,7 +1,7 @@
 ---
 name: Code Quality Enforcer
 description: Ensures code adheres to style standards, functional programming principles, and avoids common anti-patterns. Focuses on code structure, naming, and maintainability.
-tools: Grep, Glob, Read, Edit, MultiEdit, Write, NotebookEdit, Bash, TodoWrite, WebFetch, WebSearch, ListMcpResourcesTool, ReadMcpResourceTool, BashOutput, KillShell, mcp__serena
+tools: Grep, Glob, Read, Edit, MultiEdit, Write, NotebookEdit, Bash, TodoWrite, WebFetch, WebSearch, ListMcpResourcesTool, ReadMcpResourceTool, BashOutput, KillShell
 model: inherit
 color: blue
 ---
