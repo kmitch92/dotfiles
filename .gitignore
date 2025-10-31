@@ -35,6 +35,8 @@ config/.config/google-chrome-for-testing/
 config/.config/chromium/
 config/.config/BraveSoftware/
 config/.config/firefox/
+config/.config/docker/
+config/.config/Docker Desktop/
 config/.config/Kiro/
 config/.config/dconf/
 config/.config/pulse/
