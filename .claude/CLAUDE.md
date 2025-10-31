@@ -594,6 +594,46 @@ set-option -g automatic-rename-format '#(~/.config/tmux/scripts/tmux-window-name
 
 **Manual rename**: Use `Prefix + ,` to manually rename a window (overrides automatic naming for that window)
 
+### Tmux Plugins
+
+**Overview**: Tmux uses TPM (Tmux Plugin Manager) for plugin management, extending functionality with session persistence, clipboard integration, and file/URL opening capabilities.
+
+**Installed Plugins**:
+
+1. **tmux-resurrect** - Session persistence across restarts
+   - Saves tmux environment (windows, panes, layouts)
+   - Persists working directories and running programs
+   - Stores sessions in `~/.tmux/resurrect/`
+
+2. **tmux-continuum** - Automatic session save/restore
+   - Auto-saves session every 15 minutes
+   - Auto-restores last saved session on tmux start
+   - Captures pane contents for complete restoration
+
+3. **tmux-yank** - Enhanced clipboard integration
+   - System clipboard integration with native tmux copy mode
+   - Works across macOS (pbcopy), Linux (xclip/xsel), WSL
+
+4. **tmux-open** - Open files and URLs from tmux
+   - Smart detection of file paths and URLs under cursor
+   - Opens files in default editor, URLs in browser
+
+**Key Bindings**:
+
+- **Session save**: `Ctrl-a Ctrl-s` (tmux-resurrect)
+- **Session restore**: `Ctrl-a Ctrl-r` (tmux-resurrect)
+- **Copy to clipboard**: `y` in copy mode (tmux-yank)
+- **Open file**: `o` in copy mode (tmux-open)
+- **Open URL**: `Ctrl-o` in copy mode (tmux-open)
+
+**Plugin Management**:
+
+- **Install plugins**: `Ctrl-a I` (capital I)
+- **Update plugins**: `Ctrl-a U` (capital U)
+- **Uninstall removed plugins**: `Ctrl-a Alt-u`
+
+**Configuration**: `tmux/.tmux.conf` lines 119-147
+
 ### Key Features
 - **Prefix**: `Ctrl-a` (changed from default `Ctrl-b`)
 - **Split panes**: `|` horizontal, `-` vertical
