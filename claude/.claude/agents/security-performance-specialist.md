@@ -67,287 +67,48 @@ I operate in two domains within a single invocation:
 
 ## OWASP Top 10 (2021) Coverage
 
-### 1. Broken Access Control
+| # | Vulnerability | Key Concern | Prevention |
+|---|--------------|-------------|------------|
+| 1 | Broken Access Control | Missing authorization checks, IDOR, privilege escalation | Check authorization on every resource access; users can only access own data unless admin |
+| 2 | Cryptographic Failures | Weak hashing, hardcoded secrets, plaintext storage | Use bcrypt/argon2 for passwords (12+ rounds); store secrets in env vars; never log sensitive data |
+| 3 | Injection | SQL/NoSQL/Command/XSS injection | Use parameterized queries; validate all input with Zod schemas; React auto-escapes (use DOMPurify if needed) |
+| 4 | Insecure Design | Missing rate limits, no account lockout | Rate limit auth endpoints (5 attempts/15min); lock accounts after failures; secure session config (httpOnly, secure, sameSite) |
+| 5 | Security Misconfiguration | Debug mode in prod, weak CORS, missing headers | Environment-specific configs; strict CORS in prod; security headers (X-Frame-Options, CSP, HSTS, X-Content-Type-Options) |
+| 6 | Vulnerable Components | Outdated dependencies, known CVEs | Run `npm audit`; keep dependencies updated; minimize dependency footprint |
+| 7 | ID & Auth Failures | Weak passwords, no MFA, session fixation | Enforce strong passwords; implement MFA for sensitive accounts; rotate session IDs on login |
+| 8 | Software & Data Integrity | Unsigned packages, missing integrity checks | Use lock files; verify package signatures; implement integrity checks for critical data |
+| 9 | Security Logging Failures | No audit logs, unmonitored events | Log authentication events, access control failures, input validation failures; monitor logs |
+| 10 | Server-Side Request Forgery | Unvalidated URLs, unrestricted outbound requests | Validate all URLs; whitelist allowed hosts; use separate network for external requests |
 
-**Common Issues:**
-- Missing authorization checks
-- Insecure direct object references (IDOR)
-- Privilege escalation
+## Authentication & Authorization
 
-**Prevention:**
+- All endpoints require authentication except explicitly public ones
+- Authorization check on EVERY resource access (prevent IDOR)
+- Sessions: httpOnly, secure, sameSite strict cookies
+- Passwords: bcrypt/argon2 with 12+ rounds (never plaintext)
+- Rate limiting: 5 attempts per 15min on auth endpoints
+- Account lockout after 5 failed attempts (30min)
+- MFA for admin/sensitive roles
 
-```typescript
-// ❌ BAD: No authorization check
-export const getUser = async (userId: string): Promise<User> => {
-  return await db.users.findById(userId);
-};
+## Input Validation
 
-// ✅ GOOD: Check authorization
-export const getUser = async (
-  userId: string,
-  requestingUserId: string
-): Promise<User> => {
-  const user = await db.users.findById(userId);
-
-  // Users can only access their own data
-  if (user.id !== requestingUserId) {
-    throw new ForbiddenError("Cannot access other users' data");
-  }
-
-  return user;
-};
-
-// ✅ BETTER: Extract authorization logic
-const canAccessUser = (user: User, requestingUserId: string): boolean => {
-  return user.id === requestingUserId || hasRole(requestingUserId, "admin");
-};
-
-export const getUser = async (
-  userId: string,
-  requestingUserId: string
-): Promise<User> => {
-  const user = await db.users.findById(userId);
-
-  if (!canAccessUser(user, requestingUserId)) {
-    throw new ForbiddenError("Insufficient permissions");
-  }
-
-  return user;
-};
-```
-
-### 2. Cryptographic Failures
-
-**Prevention:**
-
-```typescript
-import bcrypt from "bcrypt";
-import { z } from "zod";
-
-// ✅ GOOD: Hash passwords with bcrypt
-const SALT_ROUNDS = 12;
-
-export const hashPassword = async (password: string): Promise<string> => {
-  return await bcrypt.hash(password, SALT_ROUNDS);
-};
-
-export const verifyPassword = async (
-  password: string,
-  hash: string
-): Promise<boolean> => {
-  return await bcrypt.compare(password, hash);
-};
-
-// ✅ GOOD: Use environment variables for secrets
-const ApiKeySchema = z.string().min(32);
-
-export const getApiKey = (): string => {
-  const apiKey = process.env.API_KEY;
-
-  if (!apiKey) {
-    throw new Error("API_KEY environment variable not set");
-  }
-
-  return ApiKeySchema.parse(apiKey);
-};
-
-// ❌ BAD: Hardcoded secret
-const API_KEY = "sk_live_abc123";  // Never do this!
-
-// ❌ BAD: Logging sensitive data
-logger.info(`User password: ${password}`);  // Never log secrets!
-```
-
-### 3. Injection
-
-**Prevention:**
-
-```typescript
-// SQL Injection
-// ❌ BAD: String concatenation
-const getUserByEmail = async (email: string) => {
-  const query = `SELECT * FROM users WHERE email = '${email}'`;
-  return await db.query(query);
-};
-
-// ✅ GOOD: Parameterized queries
-const getUserByEmail = async (email: string) => {
-  const query = "SELECT * FROM users WHERE email = $1";
-  return await db.query(query, [email]);
-};
-
-// NoSQL Injection
-// ❌ BAD: Direct object insertion
-const findUser = async (query: unknown) => {
-  return await db.collection("users").findOne(query);
-};
-
-// ✅ GOOD: Validate with schema
-const UserQuerySchema = z.object({
-  email: z.string().email(),
-  status: z.enum(["active", "suspended"]).optional(),
-});
-
-const findUser = async (query: unknown) => {
-  const validQuery = UserQuerySchema.parse(query);
-  return await db.collection("users").findOne(validQuery);
-};
-
-// XSS Prevention
-// ✅ Use React (auto-escapes by default)
-const UserProfile = ({ userName }: { userName: string }) => {
-  return <div>{userName}</div>;  // Automatically escaped
-};
-
-// ❌ BAD: dangerouslySetInnerHTML without sanitization
-<div dangerouslySetInnerHTML={{ __html: userInput }} />
-
-// ✅ GOOD: Sanitize if HTML is necessary
-import DOMPurify from "dompurify";
-<div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(userInput) }} />
-```
-
-### 4. Insecure Design
-
-**Prevention:**
-
-```typescript
-// ✅ GOOD: Rate limiting by design
-type RateLimitConfig = {
-  windowMs: number;
-  maxRequests: number;
-};
-
-const LOGIN_RATE_LIMIT: RateLimitConfig = {
-  windowMs: 15 * 60 * 1000,  // 15 minutes
-  maxRequests: 5,             // 5 attempts
-};
-
-// ✅ GOOD: Account lockout after failed attempts
-const MAX_FAILED_ATTEMPTS = 5;
-const LOCKOUT_DURATION_MS = 30 * 60 * 1000;  // 30 minutes
-
-// ✅ GOOD: Secure session configuration
-const SESSION_CONFIG = {
-  secret: getSecret("SESSION_SECRET"),
-  cookie: {
-    httpOnly: true,      // Prevent XSS access
-    secure: true,        // HTTPS only
-    sameSite: "strict",  // CSRF protection
-    maxAge: 24 * 60 * 60 * 1000,  // 24 hours
-  },
-};
-```
-
-### 5. Security Misconfiguration
-
-**Prevention:**
-
-```typescript
-// ✅ GOOD: Environment-specific configurations
-const getConfig = () => {
-  const env = process.env.NODE_ENV || "development";
-
-  if (env === "production") {
-    return {
-      debug: false,
-      detailedErrors: false,
-      cors: {
-        origin: ["https://yourdomain.com"],
-      },
-    };
-  }
-
-  return {
-    debug: true,
-    detailedErrors: true,
-    cors: {
-      origin: "*",  // Only in development!
-    },
-  };
-};
-
-// ✅ GOOD: Security headers
-app.use((req, res, next) => {
-  res.setHeader("X-Frame-Options", "DENY");
-  res.setHeader("X-Content-Type-Options", "nosniff");
-  res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
-  res.setHeader("Content-Security-Policy", "default-src 'self'");
-  next();
-});
-```
-
-## Input Validation Best Practices
-
-```typescript
-import { z } from "zod";
-
-// ✅ GOOD: Comprehensive validation
-const CreateUserSchema = z.object({
-  email: z.string().email().max(255),
-  name: z.string().min(1).max(100),
-  age: z.number().int().min(18).max(120),
-  role: z.enum(["user", "admin"]),
-});
-
-export const createUser = async (data: unknown): Promise<User> => {
-  // Validate BEFORE using
-  const validated = CreateUserSchema.parse(data);
-
-  // Now safe to use
-  return await db.users.create(validated);
-};
-
-// ✅ GOOD: File upload validation
-const validateFileUpload = (file: Express.Multer.File): void => {
-  const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/gif"];
-  const MAX_SIZE = 5 * 1024 * 1024;  // 5MB
-
-  if (!ALLOWED_TYPES.includes(file.mimetype)) {
-    throw new BadRequestError("Invalid file type");
-  }
-
-  if (file.size > MAX_SIZE) {
-    throw new BadRequestError("File too large");
-  }
-};
-```
+- Validate ALL user input with Zod schemas (type, length, format)
+- Parameterized queries for SQL (never string concatenation)
+- File uploads: validate type, size, content (not just extension)
+- XSS prevention: React auto-escapes; use DOMPurify for HTML
+- Command injection: avoid shell execution; if necessary, strict validation
 
 ## Security Review Checklist
 
-### Authentication & Authorization
-- [ ] All endpoints require authentication (except public ones)
-- [ ] Authorization checks on every resource access
-- [ ] No IDOR vulnerabilities (users can't access others' data)
-- [ ] Session tokens are cryptographically secure
-- [ ] Passwords hashed with bcrypt/argon2 (never plaintext)
-- [ ] Rate limiting on authentication endpoints
-- [ ] Account lockout after failed attempts
-
-### Input Validation
-- [ ] All user input validated with Zod schemas
-- [ ] No SQL injection (use parameterized queries/ORM)
-- [ ] No command injection (avoid shell execution)
-- [ ] File uploads validated (type, size, content)
-- [ ] No XSS vulnerabilities (React auto-escapes, or use DOMPurify)
-
-### Data Protection
-- [ ] Sensitive data encrypted at rest
-- [ ] HTTPS enforced (secure cookies, HSTS header)
-- [ ] No secrets in code (use environment variables)
-- [ ] No sensitive data in logs
-- [ ] Proper error messages (no stack traces in production)
-
-### Security Headers
-- [ ] X-Frame-Options: DENY
-- [ ] X-Content-Type-Options: nosniff
-- [ ] Strict-Transport-Security
-- [ ] Content-Security-Policy
-
-### Dependencies
-- [ ] No known vulnerabilities (npm audit clean)
-- [ ] Dependencies up to date
-- [ ] Minimal dependency footprint
+- [ ] All endpoints require authentication (except public ones); authorization checks on every resource access
+- [ ] No IDOR vulnerabilities (users can't access others' data); session tokens cryptographically secure
+- [ ] Passwords hashed with bcrypt/argon2 (never plaintext); rate limiting on auth endpoints
+- [ ] All user input validated with Zod schemas; no SQL injection (parameterized queries)
+- [ ] File uploads validated (type, size, content); no XSS (React auto-escapes or DOMPurify)
+- [ ] Sensitive data encrypted at rest; HTTPS enforced (secure cookies, HSTS)
+- [ ] No secrets in code (env vars); no sensitive data in logs; no stack traces in prod
+- [ ] Security headers: X-Frame-Options, X-Content-Type-Options, HSTS, CSP
+- [ ] No known vulnerabilities (npm audit clean); dependencies updated; minimal footprint
 
 ---
 
@@ -364,294 +125,61 @@ const validateFileUpload = (file: Express.Multer.File): void => {
 
 ## Performance Budgets
 
-```typescript
-// Define performance budgets
-const PERFORMANCE_BUDGETS = {
-  // Bundle size (after gzip)
-  bundleSize: {
-    main: 200, // KB
-    vendor: 300, // KB
-    total: 500, // KB
-  },
-
-  // Load times
-  loadTime: {
-    firstContentfulPaint: 1.5, // seconds
-    timeToInteractive: 3.0, // seconds
-    largestContentfulPaint: 2.5, // seconds
-  },
-
-  // API latency
-  apiLatency: {
-    p50: 100, // ms
-    p95: 500, // ms
-    p99: 1000, // ms
-  },
-
-  // Database queries
-  dbQuery: {
-    simple: 10, // ms
-    complex: 50, // ms
-    max: 100, // ms
-  },
-};
-```
+Define targets for measurable metrics:
+- **Bundle size**: main 200KB, vendor 300KB, total 500KB (gzipped)
+- **Load times**: FCP 1.5s, TTI 3.0s, LCP 2.5s
+- **API latency**: p50 100ms, p95 500ms, p99 1000ms
+- **Database queries**: simple 10ms, complex 50ms, max 100ms
 
 ## React Performance Optimization
 
-### Prevent Unnecessary Re-renders
-
-```typescript
-import { memo, useMemo, useCallback } from "react";
-
-// ❌ BAD: Re-renders on every parent render
-const UserList = ({ users }) => {
-  return users.map(user => <UserCard key={user.id} user={user} />);
-};
-
-// ✅ GOOD: Memoized component
-const UserCard = memo(({ user }) => {
-  return <div>{user.name}</div>;
-});
-
-// ❌ BAD: New function reference every render
-const Parent = () => {
-  const handleClick = () => console.log("clicked");
-  return <Child onClick={handleClick} />;
-};
-
-// ✅ GOOD: Stable function reference
-const Parent = () => {
-  const handleClick = useCallback(() => {
-    console.log("clicked");
-  }, []);
-
-  return <Child onClick={handleClick} />;
-};
-
-// ❌ BAD: Expensive calculation every render
-const Dashboard = ({ data }) => {
-  const stats = calculateStatistics(data); // Runs every render!
-  return <Stats data={stats} />;
-};
-
-// ✅ GOOD: Memoized calculation
-const Dashboard = ({ data }) => {
-  const stats = useMemo(() => calculateStatistics(data), [data]);
-  return <Stats data={stats} />;
-};
-```
-
-### Virtualization for Large Lists
-
-```typescript
-import { FixedSizeList } from "react-window";
-
-// ❌ BAD: Rendering 10,000 items
-const UserList = ({ users }) => {
-  return (
-    <div>
-      {users.map(user => <UserCard key={user.id} user={user} />)}
-    </div>
-  );
-};
-
-// ✅ GOOD: Virtual scrolling (only renders visible items)
-const UserList = ({ users }) => {
-  return (
-    <FixedSizeList
-      height={600}
-      itemCount={users.length}
-      itemSize={80}
-      width="100%"
-    >
-      {({ index, style }) => (
-        <div style={style}>
-          <UserCard user={users[index]} />
-        </div>
-      )}
-    </FixedSizeList>
-  );
-};
-```
+**Prevent unnecessary re-renders:**
+- Use `memo()` for components that receive same props frequently
+- Use `useCallback()` for stable function references passed as props
+- Use `useMemo()` for expensive calculations
+- Virtualize large lists with react-window/react-virtualized (only render visible items)
+- Code splitting: lazy load routes and heavy components
+- Bundle size: tree-shake unused code, analyze with webpack-bundle-analyzer
 
 ## Database Query Optimization
 
-### Identify Slow Queries
-
-```typescript
-// ✅ GOOD: Query logging with timing
-const queryWithTiming = async (query: string, params: any[]) => {
-  const start = performance.now();
-
-  try {
-    const result = await db.query(query, params);
-    const duration = performance.now() - start;
-
-    if (duration > 100) { // Slow query threshold
-      logger.warn("Slow query detected", {
-        query,
-        duration: `${duration.toFixed(2)}ms`,
-        params,
-      });
-    }
-
-    return result;
-  } catch (error) {
-    logger.error("Query failed", { query, params, error });
-    throw error;
-  }
-};
-```
-
-### Optimize N+1 Queries
-
-```typescript
-// ❌ BAD: N+1 query problem
-const getUsersWithOrders = async () => {
-  const users = await db.query("SELECT * FROM users");
-
-  for (const user of users) {
-    user.orders = await db.query("SELECT * FROM orders WHERE user_id = $1", [user.id]);
-  }
-
-  return users;
-};
-
-// ✅ GOOD: Single query with join
-const getUsersWithOrders = async () => {
-  return await db.query(`
-    SELECT
-      u.*,
-      json_agg(
-        json_build_object(
-          'id', o.id,
-          'total', o.total_amount,
-          'status', o.status
-        )
-      ) as orders
-    FROM users u
-    LEFT JOIN orders o ON o.user_id = u.id
-    GROUP BY u.id
-  `);
-};
-```
+**Key strategies:**
+- **N+1 queries**: Use joins or dataloader pattern instead of loops with queries
+- **Indexing**: Index foreign keys and frequently queried columns
+- **Query analysis**: Log queries >100ms; use EXPLAIN ANALYZE to identify bottlenecks
+- **Connection pooling**: Reuse connections instead of creating new ones
+- **Pagination**: Limit result sets; use cursor-based pagination for large datasets
+- **Select only needed columns**: Avoid `SELECT *`
 
 ## Caching Strategies
 
-### Application-Level Caching
-
-```typescript
-import { LRUCache } from "lru-cache";
-
-// ✅ GOOD: In-memory cache for expensive operations
-const cache = new LRUCache<string, any>({
-  max: 500, // Maximum items
-  ttl: 1000 * 60 * 5, // 5 minutes
-});
-
-const getUser = async (userId: string): Promise<User> => {
-  const cacheKey = `user:${userId}`;
-  const cached = cache.get(cacheKey);
-
-  if (cached) {
-    return cached;
-  }
-
-  const user = await db.users.findById(userId);
-  cache.set(cacheKey, user);
-  return user;
-};
-```
+**Cache levels:**
+- **In-memory**: LRU cache for frequently accessed data (5-15min TTL)
+- **Redis**: Distributed cache for shared state across instances
+- **HTTP caching**: Cache-Control headers (public/private, max-age)
+- **CDN**: Static assets and API responses at edge locations
+- **Database query cache**: Built-in caching in ORMs (use carefully)
 
 ## Memory Leak Detection
 
-```typescript
-// ❌ BAD: Leaked event listener
-useEffect(() => {
-  window.addEventListener("resize", handleResize);
-  // Missing cleanup! Memory leak!
-}, []);
+**Common sources:**
+- Event listeners without cleanup (return cleanup function in useEffect)
+- Intervals/timeouts not cleared on unmount
+- Unsubscribed observables/subscriptions
+- Circular references in closures
+- Large objects retained in caches beyond TTL
 
-// ✅ GOOD: Cleanup on unmount
-useEffect(() => {
-  window.addEventListener("resize", handleResize);
-
-  return () => {
-    window.removeEventListener("resize", handleResize);
-  };
-}, [handleResize]);
-
-// ❌ BAD: Leaked interval
-useEffect(() => {
-  setInterval(() => {
-    fetchData();
-  }, 5000);
-  // Missing cleanup! Memory leak!
-}, []);
-
-// ✅ GOOD: Clear interval on unmount
-useEffect(() => {
-  const interval = setInterval(() => {
-    fetchData();
-  }, 5000);
-
-  return () => {
-    clearInterval(interval);
-  };
-}, []);
-```
-
-## Performance Testing
-
-```typescript
-import { performance } from "perf_hooks";
-
-// ✅ GOOD: Benchmark critical functions
-const benchmarkFunction = async (
-  fn: () => Promise<any>,
-  iterations: number = 100
-): Promise<void> => {
-  const times: number[] = [];
-
-  for (let i = 0; i < iterations; i++) {
-    const start = performance.now();
-    await fn();
-    const end = performance.now();
-    times.push(end - start);
-  }
-
-  const avg = times.reduce((a, b) => a + b) / times.length;
-  const sorted = times.sort((a, b) => a - b);
-  const p50 = sorted[Math.floor(sorted.length * 0.5)];
-  const p95 = sorted[Math.floor(sorted.length * 0.95)];
-  const p99 = sorted[Math.floor(sorted.length * 0.99)];
-
-  console.log(`Average: ${avg.toFixed(2)}ms`);
-  console.log(`P50: ${p50.toFixed(2)}ms`);
-  console.log(`P95: ${p95.toFixed(2)}ms`);
-  console.log(`P99: ${p99.toFixed(2)}ms`);
-};
-```
+**Detection:**
+- Browser DevTools: Memory profiler, heap snapshots
+- Node.js: `--inspect` flag + Chrome DevTools, heapdump module
 
 ## Performance Optimization Checklist
 
-### Frontend
-- [ ] Bundle size within budget
-- [ ] Code splitting implemented for routes
-- [ ] Heavy libraries lazy-loaded
-- [ ] Images optimized (WebP, lazy loading)
-- [ ] Unnecessary re-renders eliminated
-- [ ] Large lists virtualized
-- [ ] Service worker for offline/caching
-
-### Backend
-- [ ] Database queries have appropriate indexes
-- [ ] No N+1 query problems
-- [ ] Slow query monitoring enabled
-- [ ] Caching strategy implemented
-- [ ] API responses compressed (gzip)
-- [ ] Rate limiting in place
+- [ ] Bundle size within budget; code splitting for routes; heavy libraries lazy-loaded
+- [ ] Images optimized (WebP, lazy loading); unnecessary re-renders eliminated
+- [ ] Large lists virtualized; service worker for offline/caching
+- [ ] Database queries have indexes; no N+1 problems; slow query monitoring enabled
+- [ ] Caching strategy implemented; API responses compressed (gzip); rate limiting in place
 
 ---
 
@@ -659,43 +187,42 @@ const benchmarkFunction = async (
 
 ## Rate Limiting (Security + Performance)
 
-```typescript
-// Prevents both DoS attacks (security) and resource exhaustion (performance)
-type RateLimitConfig = {
-  windowMs: number;
-  maxRequests: number;
-};
-
-const RATE_LIMITS: Record<string, RateLimitConfig> = {
-  "/api/auth/login": {
-    windowMs: 15 * 60 * 1000,  // 15 minutes
-    maxRequests: 5,             // Prevent brute force
-  },
-  "/api/users": {
-    windowMs: 15 * 60 * 1000,
-    maxRequests: 100,           // Prevent abuse
-  },
-};
-```
+**Prevents DoS attacks (security) and resource exhaustion (performance):**
+- Auth endpoints: 5 requests per 15min (prevent brute force)
+- Public APIs: 100 requests per 15min (prevent abuse)
+- Use sliding window or token bucket algorithms
+- Return 429 status with Retry-After header
 
 ## Caching (Security + Performance)
 
-```typescript
-// Cache control headers balance performance with security
-app.get("/api/users/:id", async (req, res) => {
-  const user = await db.users.findById(req.params.id);
+**Balance performance with security:**
+- Public data: `Cache-Control: public, max-age=300` (5min)
+- Private data: `Cache-Control: private, max-age=60, must-revalidate` (1min)
+- Never cache: sensitive data, authenticated responses, POST/PUT/DELETE
+- Use ETag for conditional requests
 
-  // Public data: longer cache
-  if (!user.isPrivate) {
-    res.setHeader("Cache-Control", "public, max-age=300");  // 5 min
-  } else {
-    // Private data: shorter cache, must revalidate
-    res.setHeader("Cache-Control", "private, max-age=60, must-revalidate");
-  }
+## Browser Tools MCP Usage
 
-  res.json(user);
-});
-```
+**I have access to Browser Tools MCP for performance profiling:**
+
+**Performance audit** (`mcp__browser-tools__runPerformanceAudit`):
+- Lighthouse-style performance metrics
+- Returns FCP, LCP, TTI, TBT, CLS scores
+- Identifies optimization opportunities
+
+**Network logs** (`mcp__browser-tools__getNetworkLogs`):
+- Request timing, payload sizes, status codes
+- Identify slow requests, large payloads
+- Analyze caching behavior
+
+**Console logs** (`mcp__browser-tools__getConsoleLogs`):
+- JavaScript errors, warnings, performance marks
+- Identify client-side issues
+
+**When to use:**
+- Pre-production performance audits
+- Investigating reported performance issues
+- Comparing before/after optimization changes
 
 ---
 
