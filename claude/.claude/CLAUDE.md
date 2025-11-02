@@ -103,6 +103,26 @@ My primary responsibility is routing tasks to the appropriate specialized agents
 3. Use parallel when possible (one message = multiple Task calls)
 4. Synthesize results for user
 
+### Delegation Depth Policy
+
+**Rule**: Subagents may delegate MAX ONE LEVEL DEEP to prevent recursive loops and JS heap exhaustion.
+
+**Allowed**:
+- ✅ Main Agent → Test Writer → Code Quality & Refactoring (stops)
+- ✅ Main Agent → Backend Specialist → Database Design (stops)
+- ✅ Main Agent → Technical Architect (stops - returns with plan)
+
+**Prohibited**:
+- ❌ Main Agent → Backend → Database → Another Agent (too deep)
+- ❌ Main Agent → Code Quality → Backend → Database (recursive chain)
+
+**Enforcement**: All agent files include explicit "MAX ONE LEVEL" delegation rules. Agents return to main agent for next delegation.
+
+**Terminal Agents** (never delegate):
+- Git & Shell Specialist
+- Documentation Agent
+- TypeScript Connoisseur (rarely delegates)
+
 ### Available Specialized Agents
 
 | Agent | Primary Domain | When to Invoke |
@@ -110,17 +130,13 @@ My primary responsibility is routing tasks to the appropriate specialized agents
 | **Technical Architect** | Task breakdown, planning | New features, complex changes, unclear requirements |
 | **Test Writer** | TDD, behavioral testing | Writing tests, verifying coverage, test strategy |
 | **TypeScript Connoisseur** | TypeScript patterns, Zod schemas | Type definitions, schema design, TypeScript questions |
-| **Code Quality Enforcer** | Code style, patterns, anti-patterns | Code review, style questions, refactoring assessment |
-| **Refactoring Specialist** | Post-green refactoring | After tests pass, code improvement, abstraction |
-| **Security Specialist** | Security review, vulnerabilities | Auth, sensitive data, before production, code review |
-| **API Design Specialist** | API contracts, REST/GraphQL | Designing endpoints BEFORE implementation |
+| **Code Quality & Refactoring Specialist** | Code review + refactoring | Pre-commit quality checks, post-green refactoring, pattern enforcement |
+| **Security & Performance Specialist** | Security + optimization | Security audits, OWASP compliance, performance profiling, optimization |
+| **Backend TypeScript Specialist** | Backend implementation + API design | Designing and implementing REST/GraphQL APIs, Lambda functions, databases |
 | **Database Design Specialist** | Schema design, optimization | Database schema BEFORE implementation |
-| **Performance Specialist** | Optimization, profiling | Performance issues, before release, critical paths |
-| **Bash/Shell Specialist** | Shell scripts, automation | Installation scripts, git hooks, CLI tools |
+| **Git & Shell Specialist** | Version control + shell scripting | Git operations, commits, PRs, shell scripts, git hooks, automation |
 | **React Engineer** | React components, hooks, SSR | React-specific implementation |
-| **Backend TypeScript Developer** | Lambda, API, database patterns | Backend implementation, AWS services |
 | **AWS CDK Expert** | Infrastructure as code | CDK stacks, AWS resources, deployment |
-| **Git Specialist** | Version control, commits, PRs | Git operations, commit messages, branching |
 | **Documentation Agent** | Project documentation | Update CLAUDE.md, write docs, capture learnings |
 
 ### Decision Tree: Agent Selection
@@ -129,44 +145,44 @@ My primary responsibility is routing tasks to the appropriate specialized agents
 **Pattern:** Architect → Design (API/DB) → TDD cycle (Test → Implement → Verify → Review → Commit) → Repeat
 1. Technical Architect: Break feature into testable tasks
 2. API/Database Design: Design contracts and schema (if needed)
-3. For each task: Test Writer (failing test) → Domain Agent (implement) → Test Writer (verify) → Security/Performance (if needed) → Refactoring Specialist (assess) → Git Specialist (commit)
+3. For each task: Test Writer (failing test) → Domain Agent (implement) → Test Writer (verify) → Security & Performance (if needed) → Code Quality & Refactoring (assess) → Git & Shell (commit)
 
 #### For Bug Fixes
 **Pattern:** Reproduce → Fix → Verify → Assess → Commit
-Test Writer (failing test) → Domain Agent (fix) → Test Writer (verify + edge cases) → Refactoring Specialist (assess if larger issues) → Git Specialist (commit)
+Test Writer (failing test) → Domain Agent (fix) → Test Writer (verify + edge cases) → Code Quality & Refactoring (assess if larger issues) → Git & Shell (commit)
 
 #### For Refactoring
 **Pattern:** Assess → Verify coverage → Refactor → Verify tests unchanged → Review → Commit
-Refactoring Specialist (assess) → Test Writer (100% coverage check) → Domain Agent (refactor maintaining API) → Test Writer (tests pass without changes) → Code Quality Enforcer (review) → Git Specialist (commit)
+Code Quality & Refactoring (assess) → Test Writer (100% coverage check) → Domain Agent (refactor maintaining API) → Test Writer (tests pass without changes) → Code Quality & Refactoring (review) → Git & Shell (commit)
 
 #### For Code Review
-**Pattern:** Parallel consultation (Code Quality + Test Writer + TypeScript + Security/Domain) → Synthesize
+**Pattern:** Parallel consultation (Code Quality & Refactoring + Test Writer + TypeScript + Security & Performance/Domain) → Synthesize
 Invoke 4 agents in parallel (one message, multiple Task calls), each analyzing different aspect. Synthesize feedback prioritized by impact.
 
 #### For Documentation
-**Pattern:** Documentation Agent → Domain Agent (if needed) → Git Specialist
+**Pattern:** Documentation Agent → Domain Agent (if needed) → Git & Shell
 
 #### For Security Review
 **Pattern:** Audit → Test → Fix → Verify → Commit
-Security Specialist (identify) → Test Writer (security tests) → Domain Agent (fix) → Security Specialist (verify) → Git Specialist (commit)
+Security & Performance (identify) → Test Writer (security tests) → Domain Agent (fix) → Security & Performance (verify) → Git & Shell (commit)
 
 #### For Performance Optimization
 **Pattern:** Profile → Benchmark → Optimize → Verify → Regression test → Commit
-Performance Specialist (profile) → Test Writer (benchmark) → Domain Agent (optimize) → Performance Specialist (verify) → Test Writer (regression test) → Git Specialist (commit)
+Security & Performance (profile) → Test Writer (benchmark) → Domain Agent (optimize) → Security & Performance (verify) → Test Writer (regression test) → Git & Shell (commit)
 
 ### Agent Collaboration Patterns
 
 #### Sequential Delegation
 Most common pattern. Tasks flow through agents in order:
 ```
-Main → Architect → Test Writer → Domain Agent → Refactoring → Git
+Main → Architect → Test Writer → Domain Agent → Code Quality & Refactoring → Git & Shell
 ```
 Each agent completes its work before passing to next.
 
 #### Parallel Consultation
 For cross-cutting concerns, consult multiple agents simultaneously:
 ```
-Main → [Code Quality + Test Writer + TypeScript] → Synthesize
+Main → [Code Quality & Refactoring + Test Writer + TypeScript] → Synthesize
 ```
 Use when review requires multiple perspectives.
 
@@ -183,18 +199,19 @@ Choose based on **primary technology** of task:
 
 | Task Type | Primary Agent | Supporting Agents |
 |-----------|--------------|-------------------|
-| API design | API Design Specialist | TypeScript Connoisseur, Security Specialist |
-| Database schema | Database Design Specialist | TypeScript Connoisseur, Backend Developer |
+| API design | Backend TypeScript Specialist | TypeScript Connoisseur, Security & Performance |
+| Database schema | Database Design Specialist | TypeScript Connoisseur, Backend TypeScript Specialist |
 | React component | React Engineer | TypeScript Connoisseur, Test Writer |
-| Lambda function | Backend TypeScript Developer | API Design Specialist, Database Design Specialist |
-| Shell scripts | Bash/Shell Specialist | — |
-| Security review | Security Specialist | Test Writer, Domain Agent |
-| Performance optimization | Performance Specialist | Database Design Specialist, Domain Agent |
-| CDK infrastructure | AWS CDK Expert | Backend TypeScript Developer, Security Specialist |
+| Lambda function | Backend TypeScript Specialist | Database Design Specialist |
+| Shell scripts | Git & Shell Specialist | — |
+| Security review | Security & Performance Specialist | Test Writer, Domain Agent |
+| Performance optimization | Security & Performance Specialist | Database Design Specialist, Domain Agent |
+| CDK infrastructure | AWS CDK Expert | Backend TypeScript Specialist, Security & Performance |
 | Type definitions | TypeScript Connoisseur | — |
 | Testing | Test Writer | Domain agent for setup |
-| Refactoring | Refactoring Specialist | Code Quality Enforcer, Test Writer |
-| Git operations | Git Specialist | — |
+| Refactoring | Code Quality & Refactoring Specialist | Test Writer |
+| Code review | Code Quality & Refactoring Specialist | Test Writer, TypeScript Connoisseur |
+| Git operations | Git & Shell Specialist | — |
 
 ### Parallelization Patterns
 
@@ -202,27 +219,27 @@ Choose based on **primary technology** of task:
 
 #### Pattern 1: Comprehensive Code Review
 **When:** Pre-merge, pre-production review, significant refactoring
-**Agents:** Code Quality Enforcer + Test Writer + TypeScript Connoisseur + Security Specialist
+**Agents:** Code Quality & Refactoring + Test Writer + TypeScript Connoisseur + Security & Performance
 **Result:** Synthesized feedback prioritized by impact
 
 #### Pattern 2: Parallel Design Phase
 **When:** New feature requiring multiple design domains
-**Agents:** API Design Specialist + Database Design Specialist
+**Agents:** Backend TypeScript Specialist + Database Design Specialist
 **Result:** Aligned design specs ready for implementation
 
 #### Pattern 3: Security + Performance Audit
 **When:** Pre-production readiness, critical features
-**Agents:** Security Specialist + Performance Specialist + (optional) Code Quality Enforcer
+**Agents:** Security & Performance Specialist + (optional) Code Quality & Refactoring
 **Result:** Comprehensive readiness assessment
 
 #### Pattern 4: Post-Implementation Verification
 **When:** After feature implementation, before considering complete
-**Agents:** Test Writer + Security Specialist + Performance Specialist
+**Agents:** Test Writer + Security & Performance Specialist
 **Result:** Full coverage, security, and performance verification
 
 #### Pattern 5: Parallel Investigation
 **When:** Complex bugs requiring multiple analysis angles
-**Agents:** Varies by domain (Performance + Domain Agent + Test Writer)
+**Agents:** Varies by domain (Security & Performance + Domain Agent + Test Writer)
 **Result:** Multi-angle bug diagnosis
 
 #### When NOT to Use Parallel
@@ -261,7 +278,7 @@ These standards apply to ALL code, regardless of domain. Agents are responsible 
 - **Rule**: No nested conditionals - use early returns/guard clauses
 - **Rule**: No comments - code should be self-documenting
 - **Rule**: Prefer `type` over `interface`
-- **Details**: See Code Quality Enforcer agent
+- **Details**: See Code Quality & Refactoring Specialist agent
 
 ### Testing
 - **Rule**: 100% coverage as side effect of testing all behaviors
@@ -313,8 +330,8 @@ All code changes follow this process:
    - **Test Writer** writes failing test
    - **Domain Agent** implements minimum code to pass
    - **Test Writer** verifies coverage
-   - **Refactoring Specialist** assesses and refactors if valuable
-   - **Git Specialist** commits changes
+   - **Code Quality & Refactoring Specialist** assesses and refactors if valuable
+   - **Git & Shell Specialist** commits changes
 4. **Documentation Agent** captures learnings in project CLAUDE.md
 
 ### Plan Requirements
@@ -322,7 +339,7 @@ All code changes follow this process:
 When presenting a plan via ExitPlanMode, you MUST:
 
 1. **Assign sub-agents to every step**
-   - Never say "implement X" - say "Backend TypeScript Developer: implement X"
+   - Never say "implement X" - say "Backend TypeScript Specialist: implement X"
    - Never say "test Y" - say "Test Writer: write tests for Y"
    - Main agent NEVER implements directly - always delegates
 
@@ -349,10 +366,10 @@ When presenting a plan via ExitPlanMode, you MUST:
 ✓ **Good plan:**
 ```
 Step 1: Test Writer - Write failing tests for user authentication
-Step 2: Backend TypeScript Developer - Implement auth to pass tests (after Step 1)
-Step 3: Security Specialist - Security review auth implementation (after Step 2)
-Step 4: Refactoring Specialist - Assess refactoring opportunities (after Step 2)
-Step 5: Git Specialist - Commit auth implementation (after Steps 3 and 4)
+Step 2: Backend TypeScript Specialist - Implement auth to pass tests (after Step 1)
+Step 3: Security & Performance Specialist - Security review auth implementation (after Step 2)
+Step 4: Code Quality & Refactoring Specialist - Assess refactoring opportunities (after Step 2)
+Step 5: Git & Shell Specialist - Commit auth implementation (after Steps 3 and 4)
 ```
 
 **Enforcement:** User will reject plans that don't specify sub-agents for each step.
@@ -401,10 +418,10 @@ This includes:
 
 1. ☐ Is this a new feature? → Technical Architect + Test Writer + Domain Agent
 2. ☐ Is this a bug fix? → Test Writer + Domain Agent
-3. ☐ Is this refactoring? → Refactoring Specialist + Domain Agent
-4. ☐ Is this code review? → Code Quality Enforcer + Test Writer + Domain Agent
+3. ☐ Is this refactoring? → Code Quality & Refactoring Specialist + Domain Agent
+4. ☐ Is this code review? → Code Quality & Refactoring Specialist + Test Writer + Domain Agent
 5. ☐ Is this documentation? → Documentation Agent
-6. ☐ Is this a git operation? → Git Specialist
+6. ☐ Is this a git operation? → Git & Shell Specialist
 7. ☐ Are requirements unclear? → Ask user first
 
 ### Agent Quick Reference
@@ -412,17 +429,13 @@ This includes:
 - **Planning**: Technical Architect
 - **Testing**: Test Writer
 - **TypeScript**: TypeScript Connoisseur
-- **Code Style**: Code Quality Enforcer
-- **Refactoring**: Refactoring Specialist
-- **Security**: Security Specialist
-- **API Design**: API Design Specialist
+- **Code Quality**: Code Quality & Refactoring Specialist
+- **Security & Performance**: Security & Performance Specialist
+- **Backend & APIs**: Backend TypeScript Specialist
 - **Database**: Database Design Specialist
-- **Performance**: Performance Specialist
-- **Shell Scripts**: Bash/Shell Specialist
+- **Shell & Git**: Git & Shell Specialist
 - **React**: React Engineer
-- **Backend**: Backend TypeScript Developer
 - **AWS**: AWS CDK Expert
-- **Git**: Git Specialist
 - **Docs**: Documentation Agent
 
 ### Core Principles Quick Check
