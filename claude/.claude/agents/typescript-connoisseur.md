@@ -114,69 +114,26 @@ const parseUser = (data: unknown): User => {
 **When**: API boundaries, external data, config files
 **Why**: Single source of truth, runtime + compile-time safety
 
-### Schema Composition
+### Schema Composition and Extension
 
-Build complex schemas by composing smaller ones:
-
-```typescript
-const AddressDetailsSchema = z.object({
-  houseNumber: z.string(),
-  houseName: z.string().optional(),
-  addressLine1: z.string().min(1),
-  addressLine2: z.string().optional(),
-  city: z.string().min(1),
-  postcode: z.string().regex(/^[A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2}$/i),
-})
-
-const PayingCardDetailsSchema = z.object({
-  cvv: z.string().regex(/^\d{3,4}$/),
-  token: z.string().min(1),
-})
-
-const PostPaymentsRequestV3Schema = z.object({
-  cardAccountId: z.string().length(16),
-  amount: z.number().positive(),
-  source: z.enum(["Web", "Mobile", "API"]),
-  accountStatus: z.enum(["Normal", "Restricted", "Closed"]),
-  lastName: z.string().min(1),
-  dateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  payingCardDetails: PayingCardDetailsSchema,
-  addressDetails: AddressDetailsSchema,
-  brand: z.enum(["Visa", "Mastercard", "Amex"]),
-})
-
-// Derive types from schemas
-type AddressDetails = z.infer<typeof AddressDetailsSchema>
-type PayingCardDetails = z.infer<typeof PayingCardDetailsSchema>
-type PostPaymentsRequestV3 = z.infer<typeof PostPaymentsRequestV3Schema>
-
-// Use schemas at runtime boundaries
-export const parsePaymentRequest = (data: unknown): PostPaymentsRequestV3 => {
-  return PostPaymentsRequestV3Schema.parse(data)
-}
-```
-
-**When**: Complex nested data structures
-**Why**: Reusable, maintainable, self-documenting
-
-### Schema Extension and Inheritance
+Compose schemas using `.extend()` and nested objects:
 
 ```typescript
-// Example of schema composition for complex domains
 const BaseEntitySchema = z.object({
   id: z.string().uuid(),
   createdAt: z.date(),
-  updatedAt: z.date(),
 })
 
 const CustomerSchema = BaseEntitySchema.extend({
   email: z.string().email(),
   tier: z.enum(["standard", "premium", "enterprise"]),
-  creditLimit: z.number().positive(),
 })
 
 type Customer = z.infer<typeof CustomerSchema>
 ```
+
+**When**: Complex nested structures, shared base schemas
+**Why**: Reusable, DRY, type-safe composition
 
 ### Schema Usage in Tests
 
@@ -184,53 +141,18 @@ type Customer = z.infer<typeof CustomerSchema>
 
 ```typescript
 // ❌ WRONG - Defining schemas in test files
-const ProjectSchema = z.object({
-  id: z.string(),
-  workspaceId: z.string(),
-  ownerId: z.string().nullable(),
-  name: z.string(),
-  createdAt: z.coerce.date(),
-  updatedAt: z.coerce.date(),
-})
+const ProjectSchema = z.object({ id: z.string(), name: z.string() })
 
-// ✅ CORRECT - Import schemas from the shared schema package
-import { ProjectSchema, type Project } from "@your-org/schemas"
-```
-
-**Why this matters:**
-
-- **Type Safety**: Ensures tests use the same types as production code
-- **Consistency**: Changes to schemas automatically propagate to tests
-- **Maintainability**: Single source of truth for data structures
-- **Prevents Drift**: Tests can't accidentally diverge from real schemas
-
-**Implementation:**
-
-- All domain schemas should be exported from a shared schema package or module
-- Test files should import schemas from the shared location
-- If a schema isn't exported yet, add it to the exports rather than duplicating it
-- Mock data factories should use the real types derived from real schemas
-
-```typescript
-// ✅ CORRECT - Test factories using real schemas
+// ✅ CORRECT - Import from shared location
 import { ProjectSchema, type Project } from "@your-org/schemas"
 
+// ✅ Test factory validates against real schema
 const getMockProject = (overrides?: Partial<Project>): Project => {
-  const baseProject = {
-    id: "proj_123",
-    workspaceId: "ws_456",
-    ownerId: "user_789",
-    name: "Test Project",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  }
-
-  const projectData = { ...baseProject, ...overrides }
-
-  // Validate against real schema to catch type mismatches
-  return ProjectSchema.parse(projectData)
+  return ProjectSchema.parse({ id: "proj_123", name: "Test", ...overrides })
 }
 ```
+
+**Why**: Type safety, consistency, prevents schema drift between tests and production
 
 ---
 
@@ -265,57 +187,29 @@ getUser(orderId) // Type error!
 
 ## Utility Types
 
-### Essential Built-ins
+| Utility | Use Case |
+|---------|----------|
+| `Partial<T>` | Make all properties optional |
+| `Required<T>` | Make all properties required |
+| `Readonly<T>` | Make all properties readonly |
+| `Pick<T, K>` | Select specific properties |
+| `Omit<T, K>` | Exclude specific properties |
+| `Record<K, T>` | Key-value map type |
+| `NonNullable<T>` | Remove null/undefined |
 
-```typescript
-type User = { id: string; name: string; email: string; role: string }
-
-type ReadonlyUser = Readonly<User>           // All props readonly
-type PartialUser = Partial<User>             // All props optional
-type UserWithoutId = Omit<User, 'id'>        // Exclude props
-type UserIdAndName = Pick<User, 'id' | 'name'> // Include only
-type RequiredUser = Required<User>           // All props required
-type UserRecord = Record<string, User>       // Key-value map
-```
-
-### Custom Utility Types
-
-```typescript
-// Make specific fields optional
-type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
-type UserOptionalRole = Optional<User, 'role'>
-
-// Make specific fields required
-type RequiredKeys<T, K extends keyof T> = T & Required<Pick<T, K>>
-type UserRequiredEmail = RequiredKeys<Partial<User>, 'email'>
-
-// Extract non-nullable properties
-type NonNullableProps<T> = {
-  [K in keyof T]-?: NonNullable<T[K]>
-}
-```
-
-**When**: Transforming types, API boundaries
-**Why**: DRY, type safety, maintainability
+**Custom utilities**: Combine built-ins for specific needs (e.g., `Omit<T, K> & Partial<Pick<T, K>>` for optional-specific-fields)
 
 ---
 
 ## Discriminated Unions
+
+Type-safe unions with a discriminant property for exhaustive checking:
 
 ```typescript
 type Result<T, E> =
   | { success: true; data: T }
   | { success: false; error: E }
 
-const handleResult = <T, E>(result: Result<T, E>): void => {
-  if (result.success) {
-    console.log(result.data) // TypeScript knows this exists
-  } else {
-    console.error(result.error) // TypeScript knows this exists
-  }
-}
-
-// Real-world example
 type PaymentState =
   | { status: 'pending'; transactionId: string }
   | { status: 'success'; transactionId: string; amount: number }
@@ -323,44 +217,36 @@ type PaymentState =
 
 const processPayment = (payment: PaymentState) => {
   switch (payment.status) {
-    case 'pending':
-      return payment.transactionId // Only transactionId available
-    case 'success':
-      return payment.amount // Amount available here
-    case 'failed':
-      return payment.reason // Reason available here
+    case 'pending': return payment.transactionId
+    case 'success': return payment.amount
+    case 'failed': return payment.reason
   }
 }
 ```
 
 **When**: State machines, result types, variant data
-**Why**: Exhaustive checking, type-safe branching
+**Why**: Exhaustive checking, type-safe branching, TypeScript narrows types automatically
 
 ---
 
 ## Type Guards
 
+Bridge runtime checks with compile-time types using `value is Type`:
+
 ```typescript
-// User-defined type guard
 const isUser = (value: unknown): value is User => {
   return UserSchema.safeParse(value).success
 }
 
-// Usage
 const processData = (data: unknown) => {
   if (isUser(data)) {
     console.log(data.email) // TypeScript knows it's User
   }
 }
-
-// Array type guard
-const isStringArray = (arr: unknown[]): arr is string[] => {
-  return arr.every(item => typeof item === 'string')
-}
 ```
 
-**When**: Runtime type checking, API boundaries
-**Why**: Bridge runtime and compile-time safety
+**When**: Runtime validation, API boundaries
+**Why**: Type-safe narrowing after runtime checks
 
 ---
 
@@ -396,101 +282,54 @@ const parse = (data: unknown) => {
 
 ## Immutability Patterns
 
-```typescript
-// Read-only
-const numbers: readonly number[] = [1, 2, 3]
-type Config = { readonly apiUrl: string }
-
-// Deep readonly utility
-type DeepReadonly<T> = {
-  readonly [K in keyof T]: T[K] extends object ? DeepReadonly<T[K]> : T[K]
-}
-
-// Immutable updates
-const updateUser = (user: User, updates: Partial<User>): User => ({
-  ...user, ...updates
-})
-```
-
-**When**: State management, functional code
-**Why**: Prevents bugs, easier to reason about
+- Use `readonly` arrays and properties
+- Spread operators for updates: `{ ...user, ...updates }`
+- `DeepReadonly<T>` utility for nested readonly
+- No mutations, pure functions only
 
 ---
 
 ## Function Types
 
+Define function signatures as types for callbacks, HOFs, and APIs:
+
 ```typescript
 type Processor<T, R> = (input: T) => R
 type AsyncProcessor<T, R> = (input: T) => Promise<R>
-type FetchUser = (userId: string, options?: { includeProfile?: boolean }) => Promise<User>
-
-// Higher-order function
-type MapFn<T, R> = (fn: (item: T) => R) => (items: T[]) => R[]
 ```
-
-**When**: Callbacks, HOFs, API definitions
-**Why**: Type-safe function composition
 
 ---
 
 ## Testing with TypeScript
 
-```typescript
-import { z } from 'zod'
+Type-safe test factories validate against real schemas:
 
-// Test factory using real schema
+```typescript
 const getMockUser = (overrides?: Partial<User>): User => {
-  const baseUser = {
+  return UserSchema.parse({
     id: 'user-123',
     email: 'test@example.com',
-    role: 'user' as const,
+    role: 'user',
     createdAt: new Date(),
-  }
-  const userData = { ...baseUser, ...overrides }
-  return UserSchema.parse(userData) // Validates against schema
+    ...overrides,
+  })
 }
 
-// Test with type safety
-describe('processUser', () => {
-  it('should process valid user', () => {
-    const user = getMockUser({ role: 'admin' })
-    const result = processUser(user)
-    expect(result.isAdmin).toBe(true)
-  })
-
-  it('should reject invalid user', () => {
-    const invalidData = { id: 123, email: 'not-an-email' }
-    expect(() => UserSchema.parse(invalidData)).toThrow()
-  })
+it('should process valid user', () => {
+  const user = getMockUser({ role: 'admin' })
+  expect(processUser(user).isAdmin).toBe(true)
 })
 ```
 
-**When**: All tests, especially integration tests
-**Why**: Type-safe test data, validates schemas
+**Key**: Import real schemas, validate test data, let TypeScript catch type mismatches
 
 ---
 
 ## Common Patterns
 
-```typescript
-// Options object pattern
-type Options = { timeout?: number; retries?: number }
-const fetchData = (url: string, options: Options = {}) => {
-  const { timeout = 5000, retries = 3 } = options
-}
-
-// Builder pattern
-class QueryBuilder<T> {
-  private filters: Array<(item: T) => boolean> = []
-  where(predicate: (item: T) => boolean): this {
-    this.filters.push(predicate)
-    return this
-  }
-  execute(items: T[]): T[] {
-    return items.filter(item => this.filters.every(f => f(item)))
-  }
-}
-```
+- **Options object**: `(url: string, options: { timeout?: number } = {}) => ...`
+- **Builder pattern**: Fluent APIs with `return this` for chaining
+- **Factory functions**: Type-safe constructors for domain objects
 
 ---
 
@@ -522,126 +361,44 @@ class QueryBuilder<T> {
 
 ## Effect-TS: Functional Effect System
 
-Effect-TS provides a typed functional effect system for complex async flows, error handling, and resource management.
+Effect-TS provides typed functional effects for complex async flows, error handling, and resource management.
 
-### Core Effect Type
-
-```typescript
-import { Effect } from 'effect'
-
-// Effect<Success, Error, Requirements>
-type UserEffect = Effect.Effect<User, DatabaseError, DatabaseService>
-
-// Basic effects
-const success = Effect.succeed(42)
-const failure = Effect.fail(new Error('Failed'))
-const async = Effect.promise(() => fetch('/api/data'))
-
-// Transformation
-const doubled = Effect.succeed(21).pipe(
-  Effect.map(n => n * 2)
-)
-```
-
-### Typed Error Handling
-
-```typescript
-type DatabaseError = { _tag: 'DatabaseError'; message: string }
-type ValidationError = { _tag: 'ValidationError'; field: string }
-
-const program = pipe(
-  validateUser(data),
-  Effect.flatMap(saveUser),
-  Effect.catchTag('ValidationError', err => Effect.succeed({ handled: true })),
-  Effect.catchTag('DatabaseError', err => Effect.fail({ critical: true }))
-)
-```
-
-### Dependency Injection with Context
-
-```typescript
-class DatabaseService extends Context.Tag('DatabaseService')<
-  DatabaseService,
-  { query: (sql: string) => Effect.Effect<unknown[]> }
->() {}
-
-const getUsers = Effect.gen(function* (_) {
-  const db = yield* _(DatabaseService)
-  const users = yield* _(db.query('SELECT * FROM users'))
-  return users
-})
-
-// Provide implementation
-const program = getUsers.pipe(
-  Effect.provideService(DatabaseService, { query: (sql) => Effect.succeed([]) })
-)
-```
-
-**When to Use Effect**:
+**When to Use**:
 - Complex error handling with multiple typed errors
 - Structured concurrency with resource guarantees
 - Dependency injection for testable architecture
-- Building complex async pipelines
+- Complex async pipelines
 
-**When NOT to Use Effect**:
-- Simple CRUD operations (use async/await)
+**When NOT to Use**:
+- Simple CRUD (use async/await)
 - Team unfamiliar with functional patterns
-- Small utility functions
-- Straightforward linear flows
+- Small utilities
+
+**Core**: `Effect<Success, Error, Requirements>` - typed effects with error handling and dependency injection via Context
 
 ---
 
 ## Invoking Other Sub-Agents
 
-**CRITICAL: As TypeScript Connoisseur, I provide type guidance and schema design. I delegate implementation to Domain Agents and testing to Test Writer.**
+**CRITICAL**: I design schemas and types. I delegate implementation and testing to specialists.
 
-### Delegate Schema Implementation to Domain Agents
+**Delegation Pattern**:
+1. Design Zod schemas and types
+2. Delegate implementation to Backend TypeScript Developer
+3. Consult Test Writer for schema test strategy
 
-After designing schemas, delegate implementation:
-
+**Example**:
 ```
-[After designing Zod schemas for payment types]
+[Task: Backend TypeScript Developer]
+Implement payment validation using PaymentSchema. Integrate into handlers.
 
-Schema design complete. Delegating implementation to Backend Developer.
-
-[Task tool call]
-- subagent_type: "Backend TypeScript Developer"
-- description: "Implement payment schema validation"
-- prompt: "Implement payment validation using this Zod schema design: [schema]. Integrate into API handlers, add error handling for validation failures. Return implementation."
+[Task: Test Writer]
+Design test strategy for PaymentSchema discriminated union variants.
 ```
-
-### Consult Test Writer for Schema Testing
-
-```
-[Complex discriminated union schema needs thorough testing]
-
-This schema requires comprehensive test coverage. Consulting Test Writer.
-
-[Task tool call]
-- subagent_type: "Test Writer"
-- description: "Design schema test strategy"
-- prompt: "Design test strategy for PaymentSchema with discriminated union (card/bank/wallet). Each variant has different required fields. Guide on testing all variants, invalid combinations, edge cases. Return test strategy."
-```
-
-### Delegation Principles
-
-1. **Design schemas, delegate use** - I create type-safe schemas; Domain Agents integrate them
-2. **Consult for testing** - Test Writer ensures schemas are properly validated
-3. **Provide guidance only** - I advise on types; others implement
 
 ## Working with Other Agents
 
-- **Test Writer**: Consult for schema test strategies; they implement the tests
-- **Code Quality Enforcer**: Collaborate on type-safe patterns and immutability
-- **Refactoring Specialist**: Invoked BY to verify type safety maintained during refactoring
-- **Backend TypeScript Developer**: I design schemas; they integrate into implementation
-- **React Engineer**: I provide type-safe prop definitions; they use in components
-- **Main Agent**: Invoked BY for TypeScript-specific questions and patterns
-
-## Further Reading
-
-- [TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/intro.html)
-- [Zod Documentation](https://zod.dev/)
-- [Effect-TS Documentation](https://effect.website/)
-- [Type Challenges](https://github.com/type-challenges/type-challenges)
-- Main CLAUDE.md - Core development guidelines and orchestration
+- **Test Writer**: Consult for schema test strategies
+- **Code Quality Enforcer**: Collaborate on type-safe patterns
+- **Backend/React Developers**: I design schemas; they implement
+- **Main Agent**: Invoked for TypeScript questions and patterns

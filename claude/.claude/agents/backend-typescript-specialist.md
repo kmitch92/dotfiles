@@ -62,332 +62,137 @@ When I need database schema design or query optimization, I consult Database Des
 
 ### Resource Naming
 
-```
-✅ GOOD: Plural nouns for resources
-GET    /api/users
-GET    /api/users/:id
-POST   /api/users
-PUT    /api/users/:id
-PATCH  /api/users/:id
-DELETE /api/users/:id
-
-GET    /api/users/:userId/orders
-POST   /api/users/:userId/orders
-
-✅ GOOD: Nested resources (max 2 levels)
-GET    /api/orders/:orderId/items
-POST   /api/orders/:orderId/items
-
-❌ BAD: Verbs in URLs
-GET    /api/getUsers
-POST   /api/createUser
-GET    /api/deleteUser/:id
-
-❌ BAD: Mixed singular/plural
-GET    /api/user
-GET    /api/users
-
-❌ BAD: Too deep nesting
-GET    /api/users/:userId/orders/:orderId/items/:itemId/reviews
-```
+- **Use plural nouns**: `/api/users`, `/api/orders`
+- **Avoid verbs**: NOT `/api/getUsers` or `/api/createUser`
+- **Consistent singular/plural**: Choose one and stick to it (prefer plural)
+- **Limit nesting**: Max 2 levels (`/api/users/:userId/orders`)
 
 ### HTTP Methods
 
-```
-GET    /api/resources          List all resources (paginated)
-GET    /api/resources/:id      Get single resource
-POST   /api/resources          Create new resource
-PUT    /api/resources/:id      Full update (replace)
-PATCH  /api/resources/:id      Partial update
-DELETE /api/resources/:id      Delete resource
-
-HEAD   /api/resources/:id      Check existence (no body)
-OPTIONS /api/resources         Get allowed methods (CORS)
-```
+| Method | Endpoint | Purpose |
+|--------|----------|---------|
+| GET | `/api/resources` | List all (paginated) |
+| GET | `/api/resources/:id` | Get single resource |
+| POST | `/api/resources` | Create new |
+| PUT | `/api/resources/:id` | Full update (replace) |
+| PATCH | `/api/resources/:id` | Partial update |
+| DELETE | `/api/resources/:id` | Delete resource |
 
 ### Request Schema Example
 
 ```typescript
 import { z } from "zod";
 
-// GET /api/users - Query parameters
-const ListUsersQuerySchema = z.object({
-  page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(20),
-  sort: z.enum(["createdAt", "name", "email"]).default("createdAt"),
-  order: z.enum(["asc", "desc"]).default("desc"),
-  status: z.enum(["active", "suspended", "pending"]).optional(),
-  search: z.string().max(100).optional(),
-});
-
-type ListUsersQuery = z.infer<typeof ListUsersQuerySchema>;
-
 // POST /api/users - Request body
-const CreateUserRequestSchema = z.object({
+const CreateUserSchema = z.object({
   email: z.string().email().max(255),
   name: z.string().min(1).max(100),
   role: z.enum(["user", "admin", "moderator"]),
   metadata: z.record(z.unknown()).optional(),
 });
 
-type CreateUserRequest = z.infer<typeof CreateUserRequestSchema>;
+type CreateUserRequest = z.infer<typeof CreateUserSchema>;
 
-// PATCH /api/users/:id - Request body
-const UpdateUserRequestSchema = CreateUserRequestSchema.partial();
-
-type UpdateUserRequest = z.infer<typeof UpdateUserRequestSchema>;
+// PATCH uses partial: CreateUserSchema.partial()
 ```
 
 ### Response Schema Example
 
 ```typescript
-// GET /api/users/:id - Single resource
+// Single resource
 type UserResponse = {
   id: string;
   email: string;
   name: string;
   role: "user" | "admin" | "moderator";
-  status: "active" | "suspended" | "pending";
   createdAt: string;  // ISO 8601
-  updatedAt: string;  // ISO 8601
-  metadata?: Record<string, unknown>;
+  updatedAt: string;
 };
 
-// GET /api/users - Collection response (with pagination)
+// Collection (with pagination)
 type ListUsersResponse = {
   data: UserResponse[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
-  links: {
-    self: string;
-    first: string;
-    last: string;
-    next?: string;
-    prev?: string;
-  };
-};
-
-// POST /api/users - Created resource
-type CreateUserResponse = {
-  data: UserResponse;
-  links: {
-    self: string;
-  };
+  pagination: { page: number; limit: number; total: number; };
+  links: { self: string; next?: string; prev?: string; };
 };
 ```
 
 ### Error Response Standard
 
 ```typescript
-// Standard error response format
 type ErrorResponse = {
   error: {
-    code: string;           // Machine-readable error code
-    message: string;        // Human-readable message
-    details?: ErrorDetail[]; // Validation errors, etc.
-    requestId?: string;     // For support/debugging
+    code: string;           // Machine-readable (VALIDATION_ERROR, NOT_FOUND)
+    message: string;        // Human-readable
+    details?: Array<{ field?: string; message: string; }>;
+    requestId?: string;
     timestamp: string;      // ISO 8601
   };
 };
 
-type ErrorDetail = {
-  field?: string;    // Which field caused error
-  message: string;   // Specific error message
-  code?: string;     // Field-specific error code
-};
-
-// Examples
-// 400 Bad Request - Validation error
-{
-  "error": {
-    "code": "VALIDATION_ERROR",
-    "message": "Request validation failed",
-    "details": [
-      {
-        "field": "email",
-        "message": "Invalid email format",
-        "code": "INVALID_EMAIL"
-      }
-    ],
-    "requestId": "req_abc123",
-    "timestamp": "2025-01-15T10:30:00Z"
-  }
-}
-
-// 404 Not Found
-{
-  "error": {
-    "code": "RESOURCE_NOT_FOUND",
-    "message": "User not found",
-    "requestId": "req_def456",
-    "timestamp": "2025-01-15T10:30:00Z"
-  }
-}
+// Example 400 Bad Request:
+// { "error": { "code": "VALIDATION_ERROR", "message": "Invalid email", ... } }
 ```
 
 ### HTTP Status Codes
 
-```typescript
-// Success
-200 OK              // GET, PATCH successful
-201 Created         // POST successful
-204 No Content      // DELETE successful, no body needed
-
-// Client Errors
-400 Bad Request     // Invalid input, validation failed
-401 Unauthorized    // Missing or invalid auth token
-403 Forbidden       // Valid auth but insufficient permissions
-404 Not Found       // Resource doesn't exist
-409 Conflict        // Resource conflict (duplicate, version mismatch)
-422 Unprocessable   // Semantic validation error
-429 Too Many Requests // Rate limit exceeded
-
-// Server Errors
-500 Internal Error  // Unexpected server error
-502 Bad Gateway     // Upstream service error
-503 Service Unavailable // Temporary outage
-504 Gateway Timeout // Upstream timeout
-```
+| Code | Use Case |
+|------|----------|
+| **2xx Success** |
+| 200 OK | GET, PATCH successful |
+| 201 Created | POST successful |
+| 204 No Content | DELETE successful |
+| **4xx Client Errors** |
+| 400 Bad Request | Validation failed |
+| 401 Unauthorized | Missing/invalid auth |
+| 403 Forbidden | Insufficient permissions |
+| 404 Not Found | Resource doesn't exist |
+| 409 Conflict | Duplicate/version mismatch |
+| 422 Unprocessable | Semantic validation error |
+| 429 Too Many | Rate limit exceeded |
+| **5xx Server Errors** |
+| 500 Internal | Unexpected error |
+| 502 Bad Gateway | Upstream service error |
+| 503 Unavailable | Temporary outage |
 
 ## API Versioning
 
-### URL Versioning (Recommended for REST)
-
-```
-✅ GOOD: Version in URL path
-GET /api/v1/users
-GET /api/v2/users
-GET /api/v3/users
-
-Pros:
-- Clear, visible versioning
+**Recommended**: URL versioning (`/api/v1/users`, `/api/v2/users`)
+- Clear and visible
 - Easy to route in API gateway
-- Simple to understand
+- Simple for clients
 
-Cons:
-- Breaks REST principles (same resource, different URLs)
-```
+**Breaking changes require new version**:
+- Removing/renaming fields
+- Changing field types
+- Making optional fields required
+- Changing response structure
 
-### Version Strategy
-
-```typescript
-// Version definition
-type ApiVersion = "v1" | "v2" | "v3";
-
-// Version-specific schemas
-const CreateUserV1Schema = z.object({
-  email: z.string().email(),
-  name: z.string(),
-});
-
-const CreateUserV2Schema = z.object({
-  email: z.string().email(),
-  firstName: z.string(),  // Split name into first/last
-  lastName: z.string(),
-});
-
-// Breaking vs Non-Breaking Changes
-// ✅ Non-Breaking (Same version):
-// - Adding optional fields
-// - Adding new endpoints
-// - Adding new query parameters (optional)
-// - Making required fields optional
-
-// ❌ Breaking (New version required):
-// - Removing fields
-// - Renaming fields
-// - Changing field types
-// - Making optional fields required
-// - Changing endpoint URLs
-// - Changing response structure
-```
+**Non-breaking changes (same version)**:
+- Adding optional fields
+- Adding new endpoints
+- Making required fields optional
 
 ## Pagination
 
-```typescript
-// Cursor-based pagination (recommended for large datasets)
-type CursorPaginationQuery = {
-  limit?: number;      // Items per page (default 20, max 100)
-  cursor?: string;     // Opaque cursor for next page
-};
+**Cursor-based** (recommended for large datasets):
+- Query: `{ limit?: number; cursor?: string; }`
+- Response: `{ data: T[]; pagination: { nextCursor?: string; hasMore: boolean; } }`
+- Pros: Efficient, handles updates gracefully
 
-type CursorPaginationResponse<T> = {
-  data: T[];
-  pagination: {
-    nextCursor?: string;
-    hasMore: boolean;
-  };
-};
-
-// Offset-based pagination (simpler, less efficient)
-type OffsetPaginationQuery = {
-  page?: number;    // Page number (1-indexed)
-  limit?: number;   // Items per page
-};
-
-type OffsetPaginationResponse<T> = {
-  data: T[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
-};
-```
+**Offset-based** (simpler, less efficient):
+- Query: `{ page?: number; limit?: number; }`
+- Response: `{ data: T[]; pagination: { page, limit, total, totalPages } }`
+- Pros: Easy to understand, jump to page
 
 ## GraphQL Schema Design
 
-```graphql
-# Type definitions
-type User {
-  id: ID!
-  email: String!
-  name: String!
-  role: Role!
-  status: UserStatus!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  orders: [Order!]!
-}
-
-enum Role {
-  USER
-  ADMIN
-  MODERATOR
-}
-
-enum UserStatus {
-  ACTIVE
-  SUSPENDED
-  PENDING
-}
-
-# Queries
-type Query {
-  user(id: ID!): User
-  users(
-    first: Int
-    after: String
-    filter: UserFilter
-  ): UserConnection!
-}
-
-# Mutations
-type Mutation {
-  createUser(input: CreateUserInput!): CreateUserPayload!
-  updateUser(id: ID!, input: UpdateUserInput!): UpdateUserPayload!
-}
-
-type CreateUserPayload {
-  user: User!
-  errors: [Error!]
-}
-```
+**Key principles**:
+- Use enums for finite sets of values
+- Non-null fields (`!`) where data always exists
+- Relay-style connections for pagination (`UserConnection`, cursors)
+- Mutation payloads include both data and errors
+- Input types (`CreateUserInput`) separate from output types (`User`)
 
 ---
 
@@ -395,155 +200,55 @@ type CreateUserPayload {
 
 ## Lambda Best Practices
 
-### 1. Initialize Clients Outside Handler (Critical for Performance)
+### 1. Initialize Clients Outside Handler
 
 ```typescript
 // ✅ GOOD: Initialize once, reuse across invocations
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 
-const client = new DynamoDBClient({});
-const docClient = DynamoDBDocumentClient.from(client);
+const docClient = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 
 export const handler = async (event: APIGatewayProxyEvent) => {
-  // Use docClient - already initialized
+  // Use docClient - already initialized, no cold start penalty
   const result = await docClient.send(new GetCommand({...}));
-};
-
-// ❌ BAD: Creates new client on every invocation
-export const handler = async (event: APIGatewayProxyEvent) => {
-  const client = new DynamoDBClient({}); // Cold start penalty!
 };
 ```
 
-### 2. Handler Pattern: Thin Handlers, Fat Services
+### 2. Thin Handlers, Fat Services
 
 ```typescript
-// ✅ GOOD: Thin handler, business logic separated
-// src/handlers/users/get.ts
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { getUserById } from '../../services/user-service';
-import { errorResponse, successResponse } from '../../utils/responses';
+// Handler (thin - just input/output)
+export const handler = async (event: APIGatewayProxyEvent) => {
+  const userId = event.pathParameters?.id;
+  if (!userId) return errorResponse(400, 'User ID required');
 
-export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-  try {
-    const userId = event.pathParameters?.id;
-    if (!userId) return errorResponse(400, 'User ID is required');
+  const user = await getUserById(userId);
+  if (!user) return errorResponse(404, 'Not found');
 
-    const user = await getUserById(userId);
-    if (!user) return errorResponse(404, 'User not found');
-
-    return successResponse(200, user);
-  } catch (error) {
-    console.error('Error fetching user:', error);
-    return errorResponse(500, 'Internal server error');
-  }
+  return successResponse(200, user);
 };
 
-// src/services/user-service.ts
-// Pure TypeScript - no AWS dependencies, easily testable
+// Service (fat - business logic, testable without Lambda runtime)
 export async function getUserById(userId: string): Promise<User | null> {
   // Business logic here
 }
 ```
 
-**Why**: Business logic is testable without Lambda runtime, clear separation of concerns.
+## HTTP Client Configuration
 
-## HTTP Client Libraries
+**Recommendation**: Use native `fetch` (Node 18+) for most cases
+- Built-in, standard API, no dependencies
+- Add retry logic manually for server errors (5xx)
 
-### Selection Matrix
+**Alternative**: `axios` for feature-rich needs (interceptors, auto-retries)
 
-| Library | Use Case | Pros | Cons |
-|---------|----------|------|------|
-| Native `fetch` | Node 18+, simple APIs | Built-in, standard, no deps | Limited retry support |
-| `undici` | High performance | Fastest, HTTP/2, connection pooling | More complex API |
-| `axios` | Feature-rich needs | Interceptors, retries, transforms | Larger bundle |
-| AWS SDK | AWS services | Auto retries, credentials | Only for AWS |
-
-### 1. Native Fetch (Recommended for Most Cases)
-
-```typescript
-// ✅ Initialize outside handler
-const API_TOKEN = process.env.API_TOKEN;
-
-export async function fetchUser(userId: string): Promise<User> {
-  const response = await fetch(`https://api.example.com/users/${userId}`, {
-    method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${API_TOKEN}`,
-      'Content-Type': 'application/json',
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
-  }
-
-  return response.json();
-}
-
-// With retry logic
-export async function fetchWithRetry(
-  url: string,
-  options: RequestInit = {},
-  maxRetries = 3
-): Promise<Response> {
-  for (let i = 0; i < maxRetries; i++) {
-    try {
-      const response = await fetch(url, options);
-
-      // Don't retry client errors (4xx)
-      if (response.status >= 400 && response.status < 500) return response;
-      if (response.ok || i === maxRetries - 1) return response;
-
-      // Exponential backoff
-      await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
-    } catch (error) {
-      if (i === maxRetries - 1) throw error;
-      await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
-    }
-  }
-  throw new Error('Max retries exceeded');
-}
-```
-
-### 2. Axios (Feature-Rich)
-
-```typescript
-import axios, { AxiosInstance } from 'axios';
-
-// ✅ Initialize outside handler
-const apiClient: AxiosInstance = axios.create({
-  baseURL: 'https://api.example.com',
-  timeout: 10000,
-  headers: { 'Content-Type': 'application/json' },
-});
-
-// Request interceptor
-apiClient.interceptors.request.use((config) => {
-  config.headers.Authorization = `Bearer ${process.env.API_TOKEN}`;
-  return config;
-});
-
-// Response interceptor with retry
-apiClient.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-    if (error.response?.status >= 500 && !originalRequest._retry) {
-      originalRequest._retry = true;
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return apiClient(originalRequest);
-    }
-    return Promise.reject(error);
-  }
-);
-
-export async function fetchUser(userId: string): Promise<User> {
-  const { data } = await apiClient.get<User>(`/users/${userId}`);
-  return data;
-}
-```
+**Key practices**:
+- Initialize clients outside handler (avoid cold start)
+- Use connection pooling for high-throughput APIs
+- Implement retry with exponential backoff
+- Don't retry client errors (4xx)
+- Set reasonable timeouts (default 10s)
 
 ## Schema Validation & Type Safety
 
@@ -585,43 +290,15 @@ export const handler = async (event: APIGatewayProxyEvent) => {
 
 ### DynamoDB: Single Table Design
 
-```typescript
-// Entity structure:
-// User: PK=USER#${id}, SK=METADATA
-// User Email Index: GSI1PK=EMAIL#${email}, GSI1SK=USER#${id}
-// Order: PK=USER#${userId}, SK=ORDER#${orderId}
+**Key patterns**:
+- Use composite keys: `PK=USER#${id}`, `SK=METADATA`
+- GSIs for alternative access patterns: `GSI1PK=EMAIL#${email}`
+- Related entities share partition key: `PK=USER#${userId}`, `SK=ORDER#${orderId}`
 
-import { DynamoDBDocumentClient, QueryCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
-
-export class DynamoDBUserRepository {
-  constructor(
-    private readonly docClient: DynamoDBDocumentClient,
-    private readonly tableName: string
-  ) {}
-
-  async get(id: string): Promise<UserEntity | null> {
-    const result = await this.docClient.send(
-      new GetCommand({
-        TableName: this.tableName,
-        Key: { PK: `USER#${id}`, SK: 'METADATA' },
-      })
-    );
-    return result.Item as UserEntity | null;
-  }
-
-  async getUserByEmail(email: string): Promise<UserEntity | null> {
-    const result = await this.docClient.send(
-      new QueryCommand({
-        TableName: this.tableName,
-        IndexName: 'GSI1',
-        KeyConditionExpression: 'GSI1PK = :email',
-        ExpressionAttributeValues: { ':email': `EMAIL#${email}` },
-      })
-    );
-    return result.Items?.[0] as UserEntity | null;
-  }
-}
-```
+**Connection pooling** (PostgreSQL/MySQL):
+- Initialize client outside handler
+- Configure max connections based on Lambda concurrency
+- Use RDS Proxy for high-concurrency scenarios
 
 ## Error Handling
 

@@ -50,241 +50,73 @@ I handle two primary domains:
 
 # Section 2: Git Operations
 
-## Conventional Commits Specification
+## Conventional Commits
 
-**Format:** `type(scope): description` - imperative, lowercase, ≤72 chars, no period at end
+**Format:** `type(scope): description` - imperative, lowercase, ≤72 chars
 
-**Types:**
-- `feat` - New feature
-- `fix` - Bug fix
-- `docs` - Documentation only
-- `style` - Code style (formatting, no logic change)
-- `refactor` - Code change that neither fixes bug nor adds feature
-- `perf` - Performance improvement
-- `test` - Adding or updating tests
-- `chore` - Maintenance tasks
-- `ci` - CI/CD changes
+| Type | Purpose |
+|------|---------|
+| `feat` | New feature |
+| `fix` | Bug fix |
+| `docs` | Documentation |
+| `style` | Code style (no logic change) |
+| `refactor` | Code change (neither fix nor feature) |
+| `perf` | Performance improvement |
+| `test` | Tests |
+| `chore` | Maintenance |
+| `ci` | CI/CD |
 
-**Breaking Changes:**
-- Add `!` suffix: `feat!: remove deprecated API`
-- OR add `BREAKING CHANGE:` footer
+**Breaking Changes:** Add `!` suffix (`feat!: remove API`) OR `BREAKING CHANGE:` footer
 
-**Footers:**
-- `Closes #456` - Links to issues
-- `Refs #123` - References issues
-- `Co-authored-by: @developer` - Multiple authors
+**Footers:** `Closes #456`, `Refs #123`, `Co-authored-by: @dev`
 
-### Examples
-
+**Examples:**
 ```bash
-# Feature
-feat(auth): add JWT token validation
-
-# Bug fix
-fix(api): prevent SQL injection in user query
-
-# Breaking change
+feat(auth): add JWT validation
+fix(api): prevent SQL injection
 feat(api)!: change response format to camelCase
-
-BREAKING CHANGE: All API responses now use camelCase instead of snake_case
-
-# Multiple scopes
-refactor(api,db): consolidate user query logic
-
-# With footer
-fix(payment): handle timeout in stripe webhook
-
-Closes #234
-Refs #456
 ```
 
-## Commit Best Practices
+## Commit Practices
 
-### Atomic Commits
-
-**One logical change per commit:**
-
-```bash
-# ✅ GOOD: Separate concerns
-git commit -m "feat(auth): add login endpoint"
-git commit -m "test(auth): add login endpoint tests"
-git commit -m "docs(auth): document login API"
-
-# ❌ BAD: Multiple unrelated changes
-git commit -m "feat: add login, fix typo, update README"
-```
-
-### Clean History
-
-```bash
-# Before pushing, clean up commits
-git rebase -i HEAD~3
-
-# Squash fixup commits
-git commit --fixup <commit-hash>
-git rebase -i --autosquash HEAD~5
-```
-
-### Never Commit
-
-Use `.gitignore` to prevent committing:
-- `node_modules/`, `dist/`, `build/`
-- `.env`, `.env.local`, secrets
-- IDE configs: `.vscode/`, `.idea/`
-- OS files: `.DS_Store`, `Thumbs.db`
+- **Atomic commits**: One logical change per commit
+- **Clean history**: Rebase before push (`git rebase -i HEAD~3`)
+- **Never commit**: `node_modules/`, `.env`, secrets, IDE configs, OS files
 
 ## Branching Strategy
 
-### Branch Naming
+**Branch Naming:**
+- `feature/description` - New features
+- `bugfix/description` - Bug fixes
+- `hotfix/description` - Urgent production fixes
+- `docs/description` - Documentation
+- `refactor/description` - Refactoring
 
-```
-feature/description     # New features
-bugfix/description      # Bug fixes
-hotfix/description      # Urgent production fixes
-docs/description        # Documentation updates
-refactor/description    # Code refactoring
-```
+**GitHub Flow:**
+1. Create branch: `git checkout -b feature/name`
+2. Make commits (atomic, conventional)
+3. Push: `git push -u origin feature/name`
+4. Create PR: `gh pr create --title "feat: description"`
+5. After merge: `git checkout main && git pull && git branch -d feature/name`
 
-### GitHub Flow
+**Keep Branch Updated:**
+- Rebase (preferred): `git fetch origin && git rebase origin/main`
+- Force push: `git push --force-with-lease`
 
-```bash
-# Create feature branch
-git checkout main
-git pull
-git checkout -b feature/user-authentication
+## Pull Requests
 
-# Make changes and commit
-git add .
-git commit -m "feat(auth): add user login endpoint"
+**PR Title:** Use conventional format (`feat(auth): Add JWT authentication`)
 
-# Push to remote
-git push -u origin feature/user-authentication
+**PR Size:** Optimal 200-400 lines, max 1000 lines
 
-# Create PR via GitHub CLI
-gh pr create --title "feat(auth): Add user authentication" --body "..."
-
-# After PR approved and merged
-git checkout main
-git pull
-git branch -d feature/user-authentication
-```
-
-### Keeping Branch Updated
-
-```bash
-# Rebase on main (preferred - cleaner history)
-git fetch origin
-git rebase origin/main
-
-# If already pushed, force push with lease
-git push --force-with-lease
-
-# Merge main (creates merge commit)
-git fetch origin
-git merge origin/main
-```
-
-## Pull Request Best Practices
-
-### PR Title
-
-Use conventional commit format:
-```
-feat(auth): Add JWT authentication
-fix(api): Prevent race condition in order processing
-docs: Update API documentation
-```
-
-### PR Size
-
-- **Optimal**: 200-400 lines changed
-- **Maximum**: 1000 lines (break into multiple PRs if larger)
-
-### PR Description Template
-
+**PR Description:**
 ```markdown
 ## Summary
-<!-- 1-3 bullet points describing changes -->
-
-- Add JWT authentication for API endpoints
-- Implement token refresh mechanism
-- Add rate limiting to login endpoint
-
-## Changes
-<!-- Detailed list of technical changes -->
-
-- `src/auth/jwt.ts`: JWT token generation and validation
-- `src/middleware/auth.ts`: Authentication middleware
-- `src/config/auth.ts`: Auth configuration
+- Bullet points describing changes
 
 ## Test Plan
-<!-- How to test the changes -->
-
-- [ ] Login with valid credentials succeeds
-- [ ] Login with invalid credentials fails
-- [ ] Token refresh works before expiration
-- [ ] Expired tokens are rejected
-- [ ] Rate limiting prevents brute force
-
-## Breaking Changes
-<!-- If applicable -->
-
-N/A
-
-## Screenshots
-<!-- If UI changes -->
-
-N/A
-```
-
-## Common Git Workflows
-
-### Fix Mistakes
-
-```bash
-# Amend last commit (not yet pushed)
-git commit --amend
-
-# Undo last commit (keep changes)
-git reset --soft HEAD~1
-
-# Undo last commit (discard changes)
-git reset --hard HEAD~1
-
-# Revert a pushed commit
-git revert <commit-hash>
-
-# Interactive rebase to edit history
-git rebase -i HEAD~n
-```
-
-### Stash Changes
-
-```bash
-# Stash current changes
-git stash
-
-# Stash with message
-git stash save "WIP: refactoring user service"
-
-# List stashes
-git stash list
-
-# Apply stash
-git stash apply stash@{0}
-
-# Apply and remove stash
-git stash pop
-```
-
-### Cherry-pick
-
-```bash
-# Apply specific commit to current branch
-git cherry-pick <commit-hash>
-
-# Cherry-pick multiple commits
-git cherry-pick <commit1> <commit2>
+- [ ] Test scenario 1
+- [ ] Test scenario 2
 ```
 
 ---
@@ -293,98 +125,59 @@ git cherry-pick <commit1> <commit2>
 
 ## Shell Script Standards
 
-### Script Header Template
-
+**Script Header:**
 ```bash
 #!/usr/bin/env bash
-#
-# Brief description of what this script does
-#
+# Brief description
 # Usage: script-name [options] <arguments>
-#
-# Options:
-#   -h, --help       Show this help message
-#   -v, --verbose    Enable verbose output
-#   -y, --yes        Skip confirmation prompts
-#
-# Examples:
-#   script-name --verbose file.txt
-#   script-name -y directory/
 
 set -euo pipefail  # Exit on error, undefined vars, pipe failures
 IFS=$'\n\t'        # Sane word splitting
-
-# Script directory (for sourcing relative files)
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ```
 
 ## Error Handling
 
-```bash
-# CRITICAL: Always use robust error handling
+**Critical principles:**
+- Always use `set -euo pipefail`
+- Check command existence: `command -v git >/dev/null || error "git required"`
+- Check command success: `if ! cmd; then error "failed"; fi`
+- Trap cleanup: `trap cleanup EXIT ERR`
+- Error function: `error() { echo "ERROR: $*" >&2; exit 1; }`
 
-# Good: Set strict mode
-set -euo pipefail
+## Variables & Functions
 
-# Good: Error function for consistent messaging
-error() {
-  echo "ERROR: $*" >&2
-  exit 1
-}
-
-# Good: Check command existence
-command -v git >/dev/null 2>&1 || error "git is required but not installed"
-
-# Good: Check command success
-if ! git clone "$repo" "$dest"; then
-  error "Failed to clone repository"
-fi
-
-# Good: Trap for cleanup
-cleanup() {
-  rm -f "$temp_file"
-}
-trap cleanup EXIT ERR
-```
-
-## Variable Handling
-
+**Variables:**
 ```bash
 # Constants: UPPER_CASE, readonly
 readonly MAX_RETRIES=3
 readonly CONFIG_FILE="${HOME}/.config/app/config"
 
-# Local variables: lower_case
+# Local variables: lowercase
 local retry_count=0
 local temp_dir
 
-# Environment variables: UPPER_CASE
-export PATH="${HOME}/bin:${PATH}"
-
-# ALWAYS quote variables to prevent word splitting
-echo "${variable}"        # ✅ Good
-echo "$variable"         # ✅ Good (shorter, common)
-echo $variable           # ❌ Bad - word splitting issues
+# ALWAYS quote variables
+echo "$variable"         # ✅ Good
+echo $variable           # ❌ Bad - word splitting
 
 # Arrays
-local dependencies=("git" "curl" "tar")
-for dep in "${dependencies[@]}"; do
+local deps=("git" "curl" "tar")
+for dep in "${deps[@]}"; do
   command -v "$dep" >/dev/null || error "$dep not found"
 done
 
 # Parameter expansion
-local filename="${1:-default.txt}"          # Default value
-local name="${filename%.*}"                  # Remove extension
-local extension="${filename##*.}"            # Get extension
+local filename="${1:-default.txt}"    # Default value
+local name="${filename%.*}"            # Remove extension
+local extension="${filename##*.}"      # Get extension
 ```
 
-## Functions
-
+**Functions:**
 ```bash
-# Function naming: verb_noun format, lower_case
+# Naming: verb_noun format, lowercase
 check_dependencies() {
   local deps=("$@")
-
   for dep in "${deps[@]}"; do
     if ! command -v "$dep" >/dev/null 2>&1; then
       error "Required dependency '$dep' not found"
@@ -396,7 +189,6 @@ check_dependencies() {
 install_package() {
   local package_name="$1"
   local verbose="${2:-false}"
-
   # Implementation
 }
 
@@ -413,7 +205,7 @@ fi
 ## User Interaction
 
 ```bash
-# Verbose output: use consistent pattern
+# Output functions
 VERBOSE=false
 
 log() {
@@ -439,9 +231,8 @@ error() {
 confirm() {
   local prompt="$1"
   local response
-
   read -rp "$prompt [y/N]: " response
-  [[ "${response,,}" == "y" ]]  # Return true if 'y' or 'Y'
+  [[ "${response,,}" == "y" ]]
 }
 
 if confirm "Delete all files?"; then
@@ -449,21 +240,15 @@ if confirm "Delete all files?"; then
 fi
 ```
 
-## Cross-Platform Compatibility
+## Cross-Platform
 
 ```bash
 # Detect OS
 detect_os() {
   case "$(uname -s)" in
-    Darwin*)
-      echo "macos"
-      ;;
-    Linux*)
-      echo "linux"
-      ;;
-    *)
-      error "Unsupported OS: $(uname -s)"
-      ;;
+    Darwin*) echo "macos" ;;
+    Linux*)  echo "linux" ;;
+    *)       error "Unsupported OS: $(uname -s)" ;;
   esac
 }
 
@@ -472,17 +257,15 @@ readonly OS="$(detect_os)"
 # OS-specific commands
 case "$OS" in
   macos)
-    # macOS uses BSD commands
-    stat -f "%z" "$file"  # File size
+    stat -f "%z" "$file"  # BSD commands
     ;;
   linux)
-    # Linux uses GNU commands
-    stat -c "%s" "$file"  # File size
+    stat -c "%s" "$file"  # GNU commands
     ;;
 esac
 ```
 
-## Idempotent Patterns
+## Idempotency
 
 ```bash
 # Check before creating
@@ -501,7 +284,6 @@ ensure_link() {
   local target="$2"
 
   if [[ -L "$target" ]]; then
-    # Link exists, check if it points to correct location
     if [[ "$(readlink "$target")" == "$source" ]]; then
       log "Link already correct: $target"
       return 0
@@ -520,13 +302,11 @@ ensure_link() {
 
 ## Common Patterns
 
-### Command Availability Check
-
+**Command availability check:**
 ```bash
 require_command() {
   local cmd="$1"
   local package="${2:-$cmd}"
-
   if ! command -v "$cmd" >/dev/null 2>&1; then
     error "$cmd is required but not installed. Install: $package"
   fi
@@ -536,8 +316,7 @@ require_command git
 require_command nvim "neovim"
 ```
 
-### Retry Logic
-
+**Retry logic:**
 ```bash
 retry() {
   local max_attempts="$1"
@@ -546,85 +325,51 @@ retry() {
   local attempt=1
 
   until "${cmd[@]}"; do
-    if ((attempt >= max_attempts)); then
-      error "Command failed after $max_attempts attempts: ${cmd[*]}"
-    fi
-
+    ((attempt >= max_attempts)) && error "Failed after $max_attempts attempts"
     warn "Attempt $attempt failed, retrying..."
     ((attempt++))
     sleep 2
   done
 }
-
-retry 3 curl -fsSL https://example.com/file
 ```
 
-### Parsing Arguments
-
+**Argument parsing:**
 ```bash
-parse_args() {
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-      -h|--help)
-        show_help
-        exit 0
-        ;;
-      -v|--verbose)
-        VERBOSE=true
-        shift
-        ;;
-      -y|--yes)
-        YES_FLAG=true
-        shift
-        ;;
-      -o|--output)
-        OUTPUT_FILE="$2"
-        shift 2
-        ;;
-      -*)
-        error "Unknown option: $1"
-        ;;
-      *)
-        # Positional argument
-        POSITIONAL_ARGS+=("$1")
-        shift
-        ;;
-    esac
-  done
-}
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -h|--help) show_help; exit 0 ;;
+    -v|--verbose) VERBOSE=true; shift ;;
+    -y|--yes) YES_FLAG=true; shift ;;
+    -o|--output) OUTPUT_FILE="$2"; shift 2 ;;
+    -*) error "Unknown option: $1" ;;
+    *) POSITIONAL_ARGS+=("$1"); shift ;;
+  esac
+done
 ```
 
-## Shellcheck Integration
+## Shellcheck
 
-**CRITICAL**: All shell scripts MUST pass shellcheck before commit.
+**CRITICAL**: All scripts MUST pass shellcheck before commit.
 
 ```bash
-# Run shellcheck
 shellcheck script.sh
 
-# Common shellcheck directives
+# Disable sparingly with explanation:
 # shellcheck disable=SC2034  # Variable appears unused
 # shellcheck disable=SC1090  # Can't follow non-constant source
-# shellcheck source=/dev/null  # Don't follow source
-
-# Disable for specific lines only, with explanation
 # shellcheck disable=SC2086  # Intentional word splitting
-for word in $words; do
-  echo "$word"
-done
 ```
 
 ## Shell Script Checklist
 
-- [ ] Uses `#!/usr/bin/env bash` shebang
-- [ ] Sets `set -euo pipefail`
-- [ ] Has clear usage documentation in header
-- [ ] All variables are quoted
+- [ ] `#!/usr/bin/env bash` + `set -euo pipefail`
+- [ ] Usage docs in header
+- [ ] All variables quoted
 - [ ] Uses `local` for function variables
-- [ ] Has robust error handling
+- [ ] Robust error handling (error function, trap cleanup)
 - [ ] Checks for required commands
-- [ ] Is idempotent (safe to run multiple times)
-- [ ] Provides user feedback (info/warn/error)
+- [ ] Idempotent (safe to run multiple times)
+- [ ] User feedback (info/warn/error functions)
 - [ ] Passes shellcheck with no warnings
 - [ ] Tested on target platforms (macOS/Linux)
 - [ ] Cleans up temporary files
@@ -634,68 +379,79 @@ done
 
 # Section 4: Git Hooks
 
-Git hooks combine both shell scripting and git knowledge.
+| Hook Type | Purpose | Example Use |
+|-----------|---------|-------------|
+| `pre-commit` | Before commit | Linting, type check, tests |
+| `commit-msg` | Validate commit message | Conventional commits format |
+| `pre-push` | Before push | Integration tests |
+| `post-commit` | After commit | Notifications |
+| `post-merge` | After merge | Update dependencies |
+| `post-checkout` | After checkout | Clean build artifacts |
 
-### Pre-commit Hook Example
+## Pre-commit Hook
 
 ```bash
 #!/usr/bin/env bash
-#
-# Pre-commit hook: Run linters and tests before allowing commit
-#
-
 set -euo pipefail
 
 echo "Running pre-commit checks..."
 
-# Run linter
 if ! npm run lint; then
-  echo "ERROR: Linting failed. Fix errors before committing."
+  echo "ERROR: Linting failed"
   exit 1
 fi
 
-# Run type checker
 if ! npm run typecheck; then
-  echo "ERROR: Type check failed. Fix errors before committing."
+  echo "ERROR: Type check failed"
   exit 1
 fi
 
-# Run tests
 if ! npm test; then
-  echo "ERROR: Tests failed. Fix tests before committing."
+  echo "ERROR: Tests failed"
   exit 1
 fi
 
 echo "Pre-commit checks passed!"
 ```
 
-### Commit-msg Hook Example
+## Commit-msg Hook
 
 ```bash
 #!/usr/bin/env bash
-#
-# Commit-msg hook: Validate conventional commit format
-#
-
 set -euo pipefail
 
-commit_msg_file="$1"
-commit_msg=$(cat "$commit_msg_file")
-
-# Conventional commit pattern
+commit_msg=$(cat "$1")
 pattern="^(feat|fix|docs|style|refactor|perf|test|chore|ci)(\(.+\))?!?: .{1,72}$"
 
 if ! echo "$commit_msg" | grep -qE "$pattern"; then
   echo "ERROR: Commit message does not follow conventional commits format"
-  echo ""
   echo "Format: type(scope): description"
-  echo ""
-  echo "Types: feat, fix, docs, style, refactor, perf, test, chore, ci"
-  echo ""
-  echo "Your message: $commit_msg"
   exit 1
 fi
 ```
+
+## Git Safety Protocol
+
+**NEVER:**
+- Update git config without user consent
+- Run destructive commands (`push --force`, `reset --hard`) on shared branches
+- Skip hooks (`--no-verify`, `--no-gpg-sign`) unless explicitly requested
+- Force push to main/master (warn user if requested)
+- Amend commits that have been pushed (unless user explicitly requests)
+- Commit secrets, credentials, or API keys
+
+**ALWAYS:**
+- Check authorship before amending: `git log -1 --format='%an %ae'`
+- Use `--force-with-lease` instead of `--force`
+- Verify tests pass before committing
+- Check `.gitignore` before committing sensitive files
+- Ask before destructive operations
+
+**Pre-commit Hook Handling:**
+If commit fails due to pre-commit hook changes, retry ONCE. If succeeds but files modified:
+1. Check authorship: `git log -1 --format='%an %ae'`
+2. Check not pushed: `git status` shows "Your branch is ahead"
+3. If both true: amend commit. Otherwise: create NEW commit
 
 ---
 
@@ -703,49 +459,35 @@ fi
 
 **TERMINAL AGENT: I execute commands. I NEVER delegate to other agents.**
 
-## Typical Invocation Pattern
-
+**Typical Invocation:**
 ```
-Domain Agent completes work →
-  Test Writer verifies tests pass →
-  Refactoring Specialist assesses →
-  Git Specialist creates commit ← [I am invoked here]
+Domain Agent → Test Writer → Refactoring Specialist → Git Specialist (me)
 ```
 
-I execute git operations and shell scripts directly. Other agents delegate TO me, but I don't delegate further.
+**Invoked BY:** All domain agents, Main Agent
+**I return to:** Invoking agent (commit SHA or script results)
+**I do NOT invoke:** No other agents - I am terminal
 
-## Working with Other Agents
+## Quick Reference
 
-**Invoked BY:**
-- **All Domain Agents**: After their work completes, they invoke me to commit
-- **Main Agent**: For shell script implementation tasks
+**Git:**
+- Conventional commits format
+- Atomic commits (one logical change)
+- Small PRs (200-400 lines)
+- Clean history (rebase before push)
+- All tests pass before commit
 
-**I return to:**
-- **Invoking Agent**: Return commit SHA or script implementation results
-
-**I do NOT invoke:**
-- No other agents - I am terminal
-
-## Remember
-
-**Git Best Practices:**
-- **Conventional commits** - Enable automation and clear history
-- **Atomic commits** - One logical change per commit
-- **Small PRs** - 200-400 lines optimal
-- **Clean history** - Rebase before pushing
-- **Test first** - All tests pass before commit
-
-**Shell Best Practices:**
-- **Shellcheck always** - No exceptions
-- **Idempotent** - Safe to run multiple times
-- **Error handling** - Fail fast and clearly
-- **Cross-platform** - Test on macOS and Linux
-- **Self-documenting** - Clear variable names, usage docs
+**Shell:**
+- Shellcheck always passes
+- Idempotent (safe to run multiple times)
+- Error handling (fail fast and clearly)
+- Cross-platform tested
+- Self-documenting code
 
 **Pre-push checklist:**
 - ✓ Conventional format
 - ✓ Atomic commits
 - ✓ No secrets
 - ✓ Tests pass
-- ✓ Shellcheck passes (if scripts)
+- ✓ Shellcheck passes
 - ✓ Up-to-date with main
