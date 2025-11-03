@@ -142,18 +142,18 @@ My primary responsibility is routing tasks to the appropriate specialized agents
 ### Decision Tree: Agent Selection
 
 #### For New Features
-**Pattern:** Architect → Design (API/DB) → TDD cycle (Test → Implement → Verify → Review → Commit) → Repeat
+**Pattern:** Architect → Design (API/DB) → TDD cycle (Test → Implement → Verify → Review → Document → Commit) → Repeat
 1. Technical Architect: Break feature into testable tasks
 2. API/Database Design: Design contracts and schema (if needed)
-3. For each task: Test Writer (failing test) → Domain Agent (implement) → Test Writer (verify) → Security & Performance (if needed) → Code Quality & Refactoring (assess) → Git & Shell (commit)
+3. For each task: Test Writer (failing test) → Domain Agent (implement) → Test Writer (verify) → Security & Performance (if needed) → Code Quality & Refactoring (assess) → Documentation Agent (CHANGELOG + CLAUDE.md) → Git & Shell (commit)
 
 #### For Bug Fixes
-**Pattern:** Reproduce → Fix → Verify → Assess → Commit
-Test Writer (failing test) → Domain Agent (fix) → Test Writer (verify + edge cases) → Code Quality & Refactoring (assess if larger issues) → Git & Shell (commit)
+**Pattern:** Reproduce → Fix → Verify → Assess → Document → Commit
+Test Writer (failing test) → Domain Agent (fix) → Test Writer (verify + edge cases) → Code Quality & Refactoring (assess if larger issues) → Documentation Agent (CHANGELOG + CLAUDE.md) → Git & Shell (commit)
 
 #### For Refactoring
-**Pattern:** Assess → Verify coverage → Refactor → Verify tests unchanged → Review → Commit
-Code Quality & Refactoring (assess) → Test Writer (100% coverage check) → Domain Agent (refactor maintaining API) → Test Writer (tests pass without changes) → Code Quality & Refactoring (review) → Git & Shell (commit)
+**Pattern:** Assess → Verify coverage → Refactor → Verify tests unchanged → Review → Document → Commit
+Code Quality & Refactoring (assess) → Test Writer (100% coverage check) → Domain Agent (refactor maintaining API) → Test Writer (tests pass without changes) → Code Quality & Refactoring (review) → Documentation Agent (CHANGELOG + CLAUDE.md) → Git & Shell (commit)
 
 #### For Code Review
 **Pattern:** Parallel consultation (Code Quality & Refactoring + Test Writer + TypeScript + Security & Performance/Domain) → Synthesize
@@ -163,12 +163,12 @@ Invoke 4 agents in parallel (one message, multiple Task calls), each analyzing d
 **Pattern:** Documentation Agent → Domain Agent (if needed) → Git & Shell
 
 #### For Security Review
-**Pattern:** Audit → Test → Fix → Verify → Commit
-Security & Performance (identify) → Test Writer (security tests) → Domain Agent (fix) → Security & Performance (verify) → Git & Shell (commit)
+**Pattern:** Audit → Test → Fix → Verify → Document → Commit
+Security & Performance (identify) → Test Writer (security tests) → Domain Agent (fix) → Security & Performance (verify) → Documentation Agent (CHANGELOG + CLAUDE.md) → Git & Shell (commit)
 
 #### For Performance Optimization
-**Pattern:** Profile → Benchmark → Optimize → Verify → Regression test → Commit
-Security & Performance (profile) → Test Writer (benchmark) → Domain Agent (optimize) → Security & Performance (verify) → Test Writer (regression test) → Git & Shell (commit)
+**Pattern:** Profile → Benchmark → Optimize → Verify → Regression test → Document → Commit
+Security & Performance (profile) → Test Writer (benchmark) → Domain Agent (optimize) → Security & Performance (verify) → Test Writer (regression test) → Documentation Agent (CHANGELOG + CLAUDE.md) → Git & Shell (commit)
 
 ### Agent Collaboration Patterns
 
@@ -331,8 +331,8 @@ All code changes follow this process:
    - **Domain Agent** implements minimum code to pass
    - **Test Writer** verifies coverage
    - **Code Quality & Refactoring Specialist** assesses and refactors if valuable
-   - **Git & Shell Specialist** commits changes
-4. **Documentation Agent** captures learnings in project CLAUDE.md
+   - **Documentation Agent** updates CHANGELOG.md (required) + project CLAUDE.md (if gotchas discovered)
+   - **Git & Shell Specialist** commits changes (includes documentation updates)
 
 ### Plan Requirements
 
@@ -411,6 +411,48 @@ This includes:
 
 - Vite config issue: `ReferenceError: exports is not defined in ES module scope`
 - Always run tests at end of task to verify no damage to existing functionality
+
+### Documentation Hierarchy & CHANGELOG Policy
+
+**Three-Tier Documentation System:**
+
+1. **CHANGELOG.md** - Primary output for ALL user-facing changes
+   - Features, bug fixes, breaking changes, deprecations
+   - Keep A Changelog format (https://keepachangelog.com)
+   - Semantic versioning (MAJOR.MINOR.PATCH)
+   - Required for every code change
+
+2. **Project CLAUDE.md** - Technical context for AI agents
+   - Architecture decisions and rationale
+   - Gotchas discovered during implementation
+   - Agent workflows and patterns
+   - Development constraints and assumptions
+
+3. **README.md** - Project overview for humans
+   - Getting started guide
+   - Installation instructions
+   - Basic usage examples
+
+**CRITICAL RULE: NEVER create new documentation markdown files without explicit user approval.**
+
+**Prohibited files:**
+- ❌ NEW_FEATURES.md
+- ❌ FIXES_APPLIED.md
+- ❌ IMPLEMENTATION_NOTES.md
+- ❌ ARCHITECTURE.md (use project CLAUDE.md)
+- ❌ PATTERNS.md (use project CLAUDE.md)
+- ❌ Random documentation files
+
+**Enforcement:**
+- Main agent must check if Documentation Agent tries to create new .md files
+- If detected, redirect to update CHANGELOG.md instead
+- Exception: User explicitly requests specific filename and purpose
+
+**Documentation timing:**
+- Documentation happens BEFORE commit, not after
+- Update CHANGELOG.md first (required)
+- Update project CLAUDE.md second (if technical context discovered)
+- Then commit with both documentation updates included
 
 ## VII. Quick Reference
 
