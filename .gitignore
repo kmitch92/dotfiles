@@ -45,10 +45,15 @@ config/.config/gtk-4.0/
 config/.config/ibus/
 config/.config/nautilus/
 config/.config/tiling-assistant/
+config/.config/evolution/
+config/.config/fish/
+config/.config/menus/
+config/.config/uv/
 config/.config/org.gnome.*/
 config/.config/QtProject.conf
 config/.config/mimeapps.list
 config/.config/user-dirs.*
+config/.config/.gsd-keyboard.settings-ported
 
 # Re-ignore Neovim generated files
 config/.config/nvim/lazy-lock.json

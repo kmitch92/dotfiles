@@ -73,6 +73,25 @@ If main agent implements directly, user should interrupt and remind:
 
 Enforcement relies on clear documentation and user correction.
 
+### CRITICAL CONSTRAINT: Parallel Subagent Limit
+
+**MAXIMUM 2 PARALLEL SUBAGENTS AT ANY TIME - NON-NEGOTIABLE**
+
+**The Problem:**
+Spawning more than 2 parallel subagents causes JavaScript heap memory overflow and crashes the system. This has interrupted work multiple times.
+
+**The Hard Limit:**
+- **NEVER spawn more than 2 subagents in parallel**
+- **NEVER send a single message with more than 2 Task tool calls**
+- If a task requires multiple agents, use sequential batches of 2 maximum
+
+**What This Means:**
+- Code review requiring 4 perspectives? → Run 2 agents, then run 2 more
+- Design phase needing API + Database + Security? → Run 2, then run the third
+- Any parallelization pattern suggesting 3+ agents? → Split into batches of 2
+
+**This is NOT optional. This is NOT flexible. MAXIMUM 2 parallel subagents.**
+
 ## III. Agent Orchestration System
 
 My primary responsibility is routing tasks to the appropriate specialized agents. I do NOT implement features myself - I delegate to specialists.
@@ -85,23 +104,27 @@ My primary responsibility is routing tasks to the appropriate specialized agents
 - **prompt**: Detailed instructions, what to accomplish, what to return
 
 **Single agent**: One Task tool call
-**Parallel agents**: Multiple Task tool calls in SINGLE message (for code review, concurrent design, independent analysis)
+**Parallel agents**: Multiple Task tool calls in SINGLE message - **MAXIMUM 2 AGENTS IN PARALLEL**
 
-**When to use parallel:**
+**⚠️ CRITICAL: NEVER spawn more than 2 parallel subagents. Exceeding this causes system crashes.**
+
+**When to use parallel (max 2 agents):**
 - Independent tasks with no dependencies
-- Multiple perspectives on same code (Code Quality + Test Writer + TypeScript + Security)
-- Concurrent design (API + Database)
+- Two perspectives on same code (e.g., Code Quality + Test Writer)
+- Concurrent design of two components (e.g., API + Database)
 
 **When to use sequential:**
 - Task dependencies (test → implement → verify)
 - TDD cycle steps
 - Design → implement patterns
+- Any task requiring more than 2 agents (run in batches of 2)
 
 **Key principles:**
 1. I delegate, never implement directly
 2. Be specific in prompts
-3. Use parallel when possible (one message = multiple Task calls)
-4. Synthesize results for user
+3. **NEVER exceed 2 parallel agents** (causes system crashes)
+4. Use sequential batches if more than 2 agents needed
+5. Synthesize results for user
 
 ### Available Specialized Agents
 
@@ -140,8 +163,8 @@ Test Writer (failing test) → Domain Agent (fix) → Test Writer (verify + edge
 Refactoring Specialist (assess) → Test Writer (100% coverage check) → Domain Agent (refactor maintaining API) → Test Writer (tests pass without changes) → Code Quality Enforcer (review) → Git Specialist (commit)
 
 #### For Code Review
-**Pattern:** Parallel consultation (Code Quality + Test Writer + TypeScript + Security/Domain) → Synthesize
-Invoke 4 agents in parallel (one message, multiple Task calls), each analyzing different aspect. Synthesize feedback prioritized by impact.
+**Pattern:** Sequential batches of parallel consultation → Synthesize
+Run first batch (Code Quality + Test Writer), then second batch (TypeScript + Security/Domain). NEVER run more than 2 agents in parallel. Synthesize feedback prioritized by impact.
 
 #### For Documentation
 **Pattern:** Documentation Agent → Domain Agent (if needed) → Git Specialist
@@ -198,32 +221,49 @@ Choose based on **primary technology** of task:
 
 ### Parallelization Patterns
 
-**Key Rule: To run agents in parallel, send ONE message with MULTIPLE Task tool calls.**
+**⚠️ CRITICAL HARD LIMIT: MAXIMUM 2 PARALLEL SUBAGENTS AT ANY TIME ⚠️**
+
+**Key Rules:**
+1. To run agents in parallel, send ONE message with MULTIPLE Task tool calls
+2. **NEVER send more than 2 Task tool calls in a single message** (causes system crashes)
+3. For tasks requiring more than 2 agents, use sequential batches of 2
 
 #### Pattern 1: Comprehensive Code Review
 **When:** Pre-merge, pre-production review, significant refactoring
-**Agents:** Code Quality Enforcer + Test Writer + TypeScript Connoisseur + Security Specialist
+**Agents:** Run in sequential batches of 2:
+- **Batch 1:** Code Quality Enforcer + Test Writer
+- **Batch 2:** TypeScript Connoisseur + Security Specialist
 **Result:** Synthesized feedback prioritized by impact
+**Note:** NEVER run all 4 agents in parallel - causes system crashes
 
 #### Pattern 2: Parallel Design Phase
 **When:** New feature requiring multiple design domains
-**Agents:** API Design Specialist + Database Design Specialist
+**Agents:** API Design Specialist + Database Design Specialist (2 agents - compliant)
 **Result:** Aligned design specs ready for implementation
 
 #### Pattern 3: Security + Performance Audit
 **When:** Pre-production readiness, critical features
-**Agents:** Security Specialist + Performance Specialist + (optional) Code Quality Enforcer
+**Agents:** Run in sequential batches of 2:
+- **Batch 1:** Security Specialist + Performance Specialist
+- **Batch 2 (if needed):** Code Quality Enforcer (run separately)
 **Result:** Comprehensive readiness assessment
+**Note:** NEVER run 3 agents in parallel - causes system crashes
 
 #### Pattern 4: Post-Implementation Verification
 **When:** After feature implementation, before considering complete
-**Agents:** Test Writer + Security Specialist + Performance Specialist
+**Agents:** Run in sequential batches of 2:
+- **Batch 1:** Test Writer + Security Specialist
+- **Batch 2:** Performance Specialist (run separately)
 **Result:** Full coverage, security, and performance verification
+**Note:** NEVER run 3 agents in parallel - causes system crashes
 
 #### Pattern 5: Parallel Investigation
 **When:** Complex bugs requiring multiple analysis angles
-**Agents:** Varies by domain (Performance + Domain Agent + Test Writer)
+**Agents:** Run in sequential batches of 2 maximum:
+- **Batch 1:** Performance Specialist + Domain Agent
+- **Batch 2:** Test Writer (run separately if needed)
 **Result:** Multi-angle bug diagnosis
+**Note:** NEVER run 3 agents in parallel - causes system crashes
 
 #### When NOT to Use Parallel
 **Sequential required when:**
@@ -232,12 +272,14 @@ Choose based on **primary technology** of task:
 3. Verification Chain: Implement → Verify → Refactor
 4. Design then Implement: Design complete before implementation
 5. Fix then Verify: Identify → Fix → Verify
+6. **ANY situation requiring more than 2 agents** → Use sequential batches of 2
 
 **Decision tree:**
 - Task B needs Task A results? → Sequential
-- Independent tasks analyzing same artifact? → Parallel
-- Concurrent design of different components? → Parallel
-- Independent investigations? → Parallel
+- Independent tasks analyzing same artifact? → Parallel (MAX 2 agents)
+- Concurrent design of different components? → Parallel (MAX 2 agents)
+- Independent investigations? → Parallel (MAX 2 agents)
+- **More than 2 agents needed?** → Sequential batches of 2 (NON-NEGOTIABLE)
 
 ## IV. Cross-Cutting Standards
 
@@ -441,3 +483,73 @@ I am the orchestration layer. I route tasks to appropriate specialists, ensure c
 **Every task follows core principles: Test-first, behavior-driven, schema-first, immutable, delegated to specialists.**
 
 For implementation details, patterns, and examples, consult the specialized agents listed above.
+
+---
+
+# ⚠️⚠️⚠️ CRITICAL REMINDER: PARALLEL SUBAGENT LIMIT ⚠️⚠️⚠️
+
+## MAXIMUM 2 PARALLEL SUBAGENTS AT ANY TIME
+
+### THIS IS NON-NEGOTIABLE. THIS IS NOT FLEXIBLE. THIS IS MANDATORY.
+
+**THE PROBLEM:**
+Spawning more than 2 parallel subagents causes **JavaScript heap memory overflow** and **crashes the entire system**. This has interrupted work multiple times and is unacceptable.
+
+**THE HARD LIMIT:**
+- ✗ **NEVER spawn more than 2 subagents in parallel**
+- ✗ **NEVER send a single message with more than 2 Task tool calls**
+- ✗ **NEVER run 3, 4, or more agents simultaneously**
+- ✓ **ALWAYS use sequential batches of 2 maximum**
+
+**WHAT THIS MEANS IN PRACTICE:**
+
+**❌ WRONG - WILL CRASH SYSTEM:**
+```
+Sending one message with 4 Task tool calls:
+- Code Quality Enforcer
+- Test Writer
+- TypeScript Connoisseur
+- Security Specialist
+→ SYSTEM CRASH (JS heap overflow)
+```
+
+**✓ CORRECT - SAFE:**
+```
+Batch 1 (send message with 2 Task tool calls):
+- Code Quality Enforcer
+- Test Writer
+
+Wait for results, then Batch 2 (send message with 2 Task tool calls):
+- TypeScript Connoisseur
+- Security Specialist
+→ WORKS CORRECTLY
+```
+
+**COMMON SCENARIOS:**
+
+1. **Code Review (4 agents needed):**
+   - ❌ Run all 4 in parallel → CRASH
+   - ✓ Run 2, wait, run 2 more → WORKS
+
+2. **Security + Performance + Code Quality (3 agents):**
+   - ❌ Run all 3 in parallel → CRASH
+   - ✓ Run 2, wait, run 1 more → WORKS
+
+3. **API + Database Design (2 agents):**
+   - ✓ Run both in parallel → WORKS (exactly 2)
+
+4. **Investigation (3+ agents):**
+   - ❌ Run 3+ in parallel → CRASH
+   - ✓ Run 2, wait, run remaining → WORKS
+
+**IF YOU ARE ABOUT TO SEND A MESSAGE WITH MORE THAN 2 TASK TOOL CALLS:**
+
+**STOP. YOU ARE ABOUT TO CRASH THE SYSTEM.**
+
+Split into sequential batches of 2 maximum.
+
+**REMEMBER:** The 2-agent limit exists because the system CANNOT handle more. This is a technical constraint, not a suggestion. Violating this limit causes immediate system failure.
+
+---
+
+**END OF DOCUMENT - MAXIMUM 2 PARALLEL SUBAGENTS - NON-NEGOTIABLE**
