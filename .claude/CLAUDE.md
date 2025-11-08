@@ -336,6 +336,109 @@ Claude Code's permission model doesn't support agent-specific overrides. The sys
 - GitHub issue: anthropics/claude-code#6800 (coygeek's solution)
 - Findings suggest the issue author may have misunderstood how permissions work, or Claude Code's permission model changed since their post
 
+### Agent Consolidation - Reducing Overlap & Preventing Recursion (Implemented: 2025-11-02)
+
+**Goal:**
+Reduce the number of specialized agents by consolidating overlapping responsibilities and prevent recursive subagent spawning that could exhaust JS heap allocation.
+
+**Problem:**
+- **Agent proliferation**: 15 specialized agents with significant overlap in responsibilities
+- **Overlapping domains**: (Backend TypeScript + API Design), (Code Quality + Refactoring), (Git + Bash/Shell), (Security + Performance)
+- **Recursive delegation risk**: Agents spawning other agents, which spawn more agents, creating deep delegation chains
+- **JS heap exhaustion**: Recursive subagent spawning could exceed memory limits
+
+**Analysis Findings:**
+
+**Consolidation Candidates Identified:**
+1. **Backend TypeScript Developer + API Design Specialist** - Both handle API lifecycle, one designs contracts, other implements
+2. **Code Quality Enforcer + Refactoring Specialist** - Both assess code structure and suggest improvements at different stages
+3. **Git Specialist + Bash/Shell Specialist** - Git operations all use bash CLI; shell scripting includes git hooks
+4. **Security Specialist + Performance Specialist** - Cross-cutting concerns with overlapping domain (rate limiting, caching, DoS prevention)
+
+**Delegation Pattern Analysis:**
+- Found multiple agents explicitly spawning other agents (Test Writer → Refactoring → Code Quality → Test Writer = circular risk)
+- Deep chains possible: Main → Backend → Database → Security → Test Writer (4 levels deep)
+- Terminal agents (Git, Documentation) correctly identified as non-delegating
+
+**Solution Applied:**
+
+**New Architecture: 11 Agents (reduced from 15)**
+
+**Consolidated Agents:**
+1. **Backend TypeScript Specialist** (merged: Backend Developer + API Design)
+   - Handles full API lifecycle: contract design → implementation
+   - Tools: Standard + AWS docs
+   - Delegation: MAX ONE LEVEL (can invoke Database Design only)
+
+2. **Code Quality & Refactoring Specialist** (merged: Code Quality + Refactoring)
+   - Two modes: Review Mode (pre-commit) / Refactor Mode (post-green)
+   - Tools: Standard + Sequential Thinking
+   - Delegation: MAX ONE LEVEL (returns to main agent)
+
+3. **Git & Shell Specialist** (merged: Git + Bash/Shell)
+   - All git operations + shell scripting + git hooks
+   - Tools: Standard only (all git via bash)
+   - Delegation: TERMINAL AGENT (never delegates)
+
+4. **Security & Performance Specialist** (merged: Security + Performance)
+   - Security audits + performance optimization + profiling
+   - Tools: Standard + Browser Tools (performance audit, network/console logs)
+   - Delegation: MAX ONE LEVEL (returns to main agent)
+
+**Delegation Policy Implemented:**
+
+**Rule**: Subagents may delegate MAX ONE LEVEL DEEP to prevent recursive loops
+
+**Allowed**:
+- ✅ Main Agent → Test Writer → Code Quality & Refactoring (stops)
+- ✅ Main Agent → Backend Specialist → Database Design (stops)
+- ✅ Main Agent → Technical Architect (stops - returns with plan)
+
+**Prohibited**:
+- ❌ Main Agent → Backend → Database → Another Agent (too deep)
+- ❌ Backend → Database → Security → Test Writer (recursive chain)
+
+**Enforcement**: All agent files include explicit "MAX ONE LEVEL" delegation rules in dedicated sections
+
+**Files Modified:**
+- Created `~/.claude/agents/backend-typescript-specialist.md`
+- Created `~/.claude/agents/code-quality-refactoring-specialist.md`
+- Created `~/.claude/agents/git-shell-specialist.md`
+- Created `~/.claude/agents/security-performance-specialist.md`
+- Deleted `~/.claude/agents/api-design-specialist.md`
+- Deleted `~/.claude/agents/backend-typescript-developer.md`
+- Deleted `~/.claude/agents/code-quality-enforcer.md`
+- Deleted `~/.claude/agents/refactoring-specialist.md`
+- Deleted `~/.claude/agents/git-specialist.md`
+- Deleted `~/.claude/agents/bash-shell-specialist.md`
+- Deleted `~/.claude/agents/security-specialist.md`
+- Deleted `~/.claude/agents/performance-specialist.md`
+- Updated `~/.claude/CLAUDE.md` (agent tables, decision trees, delegation policy)
+- Updated `dotfiles/.claude/CLAUDE.md` (this file)
+
+**Key Benefits:**
+1. **Reduced cognitive overhead** - Fewer agents to choose from, clearer boundaries
+2. **Prevented recursive loops** - MAX ONE LEVEL rule enforced in all agent files
+3. **Memory safety** - No deep delegation chains that could exhaust JS heap
+4. **Preserved functionality** - All capabilities from merged agents retained
+5. **Clear separation** - Each consolidated agent has distinct section headers for merged responsibilities
+
+**Remaining Agents (11 total):**
+- Technical Architect
+- Test Writer
+- TypeScript Connoisseur
+- Code Quality & Refactoring Specialist (NEW)
+- Security & Performance Specialist (NEW)
+- Backend TypeScript Specialist (NEW)
+- Database Design Specialist
+- Git & Shell Specialist (NEW)
+- React Engineer
+- AWS CDK Expert
+- Documentation Agent
+
+**Result:**
+Agent architecture simplified while preserving all functionality. Recursive delegation physically impossible due to MAX ONE LEVEL enforcement. JS heap exhaustion risk eliminated.
+
 ### Neovim Installation - Dev Build Issue (Fixed: 2025-10-28)
 
 **Problem**:

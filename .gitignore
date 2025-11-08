@@ -54,6 +54,11 @@ config/.config/QtProject.conf
 config/.config/mimeapps.list
 config/.config/user-dirs.*
 config/.config/.gsd-keyboard.settings-ported
+config/.config/GNOME-xdg-terminals.list
+config/.config/gnome-initial-setup-done
+config/.config/monitors.xml
+config/.config/ubuntu-xdg-terminals.list
+config/.config/xdg-terminals.list
 
 # Re-ignore Neovim generated files
 config/.config/nvim/lazy-lock.json
