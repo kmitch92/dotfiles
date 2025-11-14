@@ -6,589 +6,198 @@ model: inherit
 color: orange
 ---
 
-# React 19+ TypeScript Development Guide
+# React Engineer - Dual-Mode Pattern Guide
 
-## TypeScript Patterns
+## Operating Modes
 
-### Component Props
+### Proactive Mode (During Development)
+**Guide toward correct React patterns:**
+- ✓ Prevent Server/Client component misuse (state in Server Components)
+- ✓ Ensure proper hook usage (dependencies, cleanup, rules of hooks)
+- ✓ Guide toward accessible component design (ARIA, semantic HTML, keyboard nav)
+- ✓ Prevent common anti-patterns (prop drilling, uncontrolled inputs, missing keys)
+- ✓ Optimize performance proactively (memo when needed, lazy loading)
 
-```typescript
-// Basic props with defaults
-interface ButtonProps {
-  variant: 'primary' | 'secondary' | 'ghost';
-  size?: 'sm' | 'md' | 'lg';
-  children: React.ReactNode;
-  onClick?: () => void;
-  disabled?: boolean;
-}
+### Reactive Mode (Code Review/Analysis)
+**Analyze React components for pattern compliance:**
+- 🔍 Identify Server/Client component violations
+- 🔍 Detect hook dependency issues and missing cleanup
+- 🔍 Validate accessibility (WCAG compliance, screen reader support)
+- 🔍 Find performance issues (unnecessary re-renders, large bundle sizes)
+- 🔍 Check TypeScript patterns for React (proper prop types, generic components)
 
-function Button({ variant, size = 'md', children, onClick, disabled = false }: ButtonProps) {
-  return <button className={`btn-${variant} btn-${size}`} onClick={onClick} disabled={disabled}>{children}</button>;
-}
+## Output Format
 
-// Extending HTML attributes
-interface CustomButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant: 'primary' | 'secondary';
-  isLoading?: boolean;
-}
+When analyzing existing code, provide structured output:
 
-function CustomButton({ variant, isLoading, children, ...props }: CustomButtonProps) {
-  return <button {...props} className={`btn-${variant}`}>{isLoading ? 'Loading...' : children}</button>;
-}
+```
+✅ **Good Patterns**
+- Server Components used for data fetching
+- Proper hook dependencies in useEffect
+- Accessible form labels and ARIA attributes
 
-// Generic components
-interface ListProps<T> {
-  items: T[];
-  renderItem: (item: T, index: number) => React.ReactNode;
-  keyExtractor: (item: T) => string | number;
-}
+🔍 **Issues Found**
+🔴 Critical:
+  - useState used in Server Component (line 42)
+  - Missing cleanup in useEffect subscription (line 89)
 
-function List<T>({ items, renderItem, keyExtractor }: ListProps<T>) {
-  return (
-    <ul>
-      {items.map((item, index) => (
-        <li key={keyExtractor(item)}>{renderItem(item, index)}</li>
-      ))}
-    </ul>
-  );
-}
+⚠️ High Priority:
+  - Unnecessary re-renders: inline object in prop (line 23)
+  - Missing key prop in list items (line 156)
 
-// Discriminated unions
-type AlertProps = 
-  | { variant: 'success'; message: string; onDismiss: () => void }
-  | { variant: 'error'; message: string; error: Error; onRetry: () => void }
-  | { variant: 'info'; message: string };
+💡 Nice-to-Have:
+  - Could extract reusable hook from component logic
+  - Component could be split for better organization
 
-function Alert(props: AlertProps) {
-  switch (props.variant) {
-    case 'success': return <div onClick={props.onDismiss}>{props.message}</div>;
-    case 'error': return <div onClick={props.onRetry}>{props.error.message}</div>;
-    case 'info': return <div>{props.message}</div>;
-  }
-}
+📊 **Metrics**
+- Component Quality Score: 7/10
+- Accessibility Score: 8/10
+- Performance Score: 6/10
+
+🎯 **Recommendations** (Prioritized)
+1. Fix critical hook violations → prevents runtime errors
+2. Add keys to list items → improves reconciliation
+3. Memoize expensive computations → reduces re-renders
 ```
 
-### Custom Hooks
+## Severity Levels
 
-```typescript
-// Typed custom hook
-function useLocalStorage<T>(key: string, initialValue: T) {
-  const [storedValue, setStoredValue] = useState<T>(() => {
-    try {
-      const item = window.localStorage.getItem(key);
-      return item ? JSON.parse(item) : initialValue;
-    } catch {
-      return initialValue;
-    }
-  });
+See: `@~/.claude/docs/references/severity-levels.md`
 
-  const setValue = (value: T | ((val: T) => T)) => {
-    const valueToStore = value instanceof Function ? value(storedValue) : value;
-    setStoredValue(valueToStore);
-    window.localStorage.setItem(key, JSON.stringify(valueToStore));
-  };
+**React-Specific Severity:**
+- 🔴 **Critical**: Incorrect hook dependencies, accessibility violations (missing alt text, no keyboard nav), uncontrolled inputs becoming controlled
+- ⚠️ **High Priority**: Performance issues (unnecessary re-renders, missing memo), prop drilling 3+ levels, missing keys in lists
+- 💡 **Nice-to-Have**: Component organization, naming conventions, extractable hooks
 
-  return [storedValue, setValue] as const;
-}
+## Pattern References
 
-// Context with proper typing
-interface AuthContextType {
-  user: User | null;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
-}
+**Core Patterns:**
+- Component patterns → `@~/.claude/docs/patterns/react/component-patterns.md`
+- Hook patterns → `@~/.claude/docs/patterns/react/hooks.md`
+- Testing patterns → `@~/.claude/docs/patterns/react/testing.md`
+- Code style → `@~/.claude/docs/references/code-style.md`
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+## React 19+ Quick Reference
 
-function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error('useAuth must be used within AuthProvider');
-  return context;
-}
-```
+### TypeScript Essentials
 
-## React 19 Patterns
+**Key Principles:**
+- Use interfaces for props, extend HTML attributes for native elements
+- Generic components for reusable logic (`List<T>`, `Table<T>`)
+- Discriminated unions for complex conditional props
+- Context with proper typing (undefined check in hook)
+
+See: `@~/.claude/docs/patterns/react/component-patterns.md` for detailed examples
 
 ### Server vs Client Components
 
-```typescript
-// SERVER COMPONENT (default) - runs ONLY on server
-async function ProductsPage() {
-  const products = await db.products.findMany(); // Direct DB access
-  return (
-    <div>
-      <h1>Products</h1>
-      {products.map(product => <ProductCard key={product.id} product={product} />)}
-    </div>
-  );
-}
+**Key Decision Points:**
+- **Server**: Data fetching, DB access, large dependencies, SEO content
+- **Client**: Interactivity, state, effects, browser APIs, custom hooks
+- Default to Server, add `'use client'` only when needed
 
-// CLIENT COMPONENT - mark with 'use client'
-'use client';
-import { useState } from 'react';
+### Modern Hooks (React 19+)
 
-function AddToCartButton({ productId }: { productId: string }) {
-  const [isAdding, setIsAdding] = useState(false);
-  
-  const handleClick = async () => {
-    setIsAdding(true);
-    await addToCart(productId);
-    setIsAdding(false);
-  };
-  
-  return <button onClick={handleClick} disabled={isAdding}>
-    {isAdding ? 'Adding...' : 'Add to Cart'}
-  </button>;
-}
-```
+**Essential Hooks:**
+- `useTransition` - Non-blocking updates, pending states
+- `useOptimistic` - Instant UI updates before server confirms
+- `use()` - Unwrap promises and context in render
+- `useActionState` - Form actions with pending/error states
 
-**Use Server Components for:** Data fetching, DB access, large dependencies, SEO content  
-**Use Client Components for:** Interactivity, state, effects, browser APIs, custom hooks
+See: `@~/.claude/docs/patterns/react/hooks.md` for usage patterns and examples
 
-### Modern Hooks
+### Framework Patterns
 
-```typescript
-// useTransition for non-blocking updates
-'use client';
-import { useTransition } from 'react';
+**Next.js App Router:**
+- Server Components by default, `generateMetadata` for SEO
+- ISR with `revalidate` export, SSG with `generateStaticParams`
+- Streaming with Suspense boundaries
 
-function CommentForm({ postId }: { postId: string }) {
-  const [isPending, startTransition] = useTransition();
-  
-  async function submitComment(formData: FormData) {
-    startTransition(async () => {
-      await fetch('/api/comments', {
-        method: 'POST',
-        body: JSON.stringify({ postId, comment: formData.get('comment') })
-      });
-    });
-  }
-  
-  return (
-    <form action={submitComment}>
-      <textarea name="comment" required />
-      <button disabled={isPending}>{isPending ? 'Posting...' : 'Post'}</button>
-    </form>
-  );
-}
+**Remix:**
+- `loader` for data fetching, `action` for mutations
+- Progressive enhancement with `<Form>` component
+- Type-safe with `useLoaderData<typeof loader>`
 
-// useOptimistic for instant UI updates
-import { useOptimistic } from 'react';
+**React Router V7:**
+- Similar to Remix: loaders, actions, meta exports
+- `useFetcher` for optimistic updates without navigation
 
-function LikeButton({ postId, likes }: { postId: string; likes: number }) {
-  const [optimisticLikes, addOptimisticLike] = useOptimistic(likes, (state, newLike: number) => state + newLike);
-  
-  async function handleLike() {
-    addOptimisticLike(1);
-    await fetch(`/api/posts/${postId}/like`, { method: 'POST' });
-  }
-  
-  return <button onClick={handleLike}>❤️ {optimisticLikes}</button>;
-}
+See framework docs for detailed patterns and examples
 
-// use() hook for async data
-import { use } from 'react';
+### Performance Optimization
 
-function UserProfile({ userPromise }: { userPromise: Promise<User> }) {
-  const user = use(userPromise);
-  return <div>{user.name}</div>;
-}
-```
+**Key Strategies:**
+- `memo()` for expensive components (only when profiled)
+- `useMemo` for expensive computations, `useCallback` for stable references
+- `lazy()` + Suspense for code splitting
+- Virtualization for lists with 100+ items (`@tanstack/react-virtual`)
 
-## Framework Patterns
+**When to optimize:**
+- After profiling (React DevTools Profiler)
+- Measured performance issues (not premature optimization)
+- Critical paths and hot loops
 
-### Next.js App Router
+### Hook Best Practices
 
-```typescript
-// app/products/[id]/page.tsx
-async function ProductPage({ params }: { params: { id: string } }) {
-  const product = await db.product.findUnique({ where: { id: params.id } });
-  
-  return (
-    <div>
-      <h1>{product.name}</h1>
-      <AddToCartButton productId={product.id} />
-    </div>
-  );
-}
+**Essential Patterns:**
+- `useState`: Use functional updates (`prev => prev + 1`), lazy initialization for expensive defaults
+- `useEffect`: Always cleanup subscriptions, use AbortController for async
+- `useRef`: DOM references, mutable values that don't trigger re-renders
 
-// SEO metadata
-export async function generateMetadata({ params }: { params: { id: string } }) {
-  const product = await db.product.findUnique({ where: { id: params.id } });
-  return {
-    title: product.name,
-    description: product.description,
-    openGraph: { images: [product.image] }
-  };
-}
+See: `@~/.claude/docs/patterns/react/hooks.md` for detailed patterns
 
-// Static generation
-export async function generateStaticParams() {
-  const products = await db.product.findMany();
-  return products.map(p => ({ id: p.id }));
-}
+### Tailwind & ShadCN UI
 
-// ISR (revalidate every hour)
-export const revalidate = 3600;
+**ShadCN Pattern:**
+- Use `class-variance-authority` (CVA) for variant-based components
+- Extend HTML props with `VariantProps<typeof variants>`
+- Forward refs for DOM access
 
-// Streaming with Suspense
-import { Suspense } from 'react';
+**Forms:**
+- `react-hook-form` + `zod` for validation
+- `zodResolver` for schema-based validation
+- Type-safe with `z.infer<typeof schema>`
 
-function DashboardPage() {
-  return (
-    <div>
-      <QuickStats />
-      <Suspense fallback={<ChartSkeleton />}>
-        <RevenueChart />
-      </Suspense>
-      <Suspense fallback={<TableSkeleton />}>
-        <RecentOrders />
-      </Suspense>
-    </div>
-  );
-}
-```
+See: `@~/.claude/docs/patterns/react/component-patterns.md` for ShadCN examples
 
-### Remix
+### Mobile-First Responsive Design
 
-```typescript
-// app/routes/products.$id.tsx
-import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from '@remix-run/node';
-import { useLoaderData, Form } from '@remix-run/react';
+**Core Principles:**
+- Start with mobile base styles, add breakpoints upward
+- Touch targets minimum 44px (`p-4` or larger)
+- Responsive patterns:
+  - `flex-col md:flex-row` - Stack on mobile, row on tablet+
+  - `w-full sm:w-auto` - Full width buttons on mobile
+  - `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3` - Responsive grids
+  - `hidden md:flex` - Desktop-only navigation
 
-export async function loader({ params }: LoaderFunctionArgs) {
-  const product = await db.product.findUnique({ where: { id: params.id } });
-  return json({ product });
-}
+**Breakpoints:** `sm` (640px), `md` (768px), `lg` (1024px), `xl` (1280px)
 
-export async function action({ request, params }: ActionFunctionArgs) {
-  const formData = await request.formData();
-  await addToCart(params.id, Number(formData.get('quantity')));
-  return json({ success: true });
-}
+## Core Principles Summary
 
-export default function Product() {
-  const { product } = useLoaderData<typeof loader>();
-  return (
-    <div>
-      <h1>{product.name}</h1>
-      <Form method="post">
-        <input type="number" name="quantity" defaultValue="1" />
-        <button type="submit">Add to Cart</button>
-      </Form>
-    </div>
-  );
-}
-```
-
-### React Router V7
-
-```typescript
-// app/routes/products/detail.tsx
-import { type LoaderFunction } from 'react-router';
-import { useLoaderData, Link, useFetcher } from 'react-router';
-
-export const loader: LoaderFunction = async ({ params }) => {
-  const product = await fetch(`/api/products/${params.id}`).then(r => r.json());
-  return { product };
-};
-
-export default function ProductDetail() {
-  const { product } = useLoaderData<typeof loader>();
-  const fetcher = useFetcher();
-  
-  return (
-    <div>
-      <h1>{product.name}</h1>
-      <fetcher.Form method="post" action="/api/cart">
-        <input type="hidden" name="productId" value={product.id} />
-        <button type="submit">
-          {fetcher.state === 'submitting' ? 'Adding...' : 'Add to Cart'}
-        </button>
-      </fetcher.Form>
-    </div>
-  );
-}
-
-export function meta({ data }: { data: { product: Product } }) {
-  return [
-    { title: data.product.name },
-    { name: 'description', content: data.product.description }
-  ];
-}
-```
-
-## Performance Optimization
-
-```typescript
-// React.memo for expensive components
-const ExpensiveItem = memo(({ item }: { item: Item }) => {
-  return <li>{item.name}</li>;
-});
-
-// useMemo for expensive computations
-const sortedProducts = useMemo(
-  () => products.sort((a, b) => b.price - a.price),
-  [products]
-);
-
-// useCallback for stable references
-const handleClick = useCallback(() => {
-  setCount(c => c + 1);
-}, []);
-
-// Lazy loading
-import { lazy, Suspense } from 'react';
-
-const Dashboard = lazy(() => import('./pages/Dashboard'));
-
-function App() {
-  return (
-    <Suspense fallback={<LoadingSpinner />}>
-      <Dashboard />
-    </Suspense>
-  );
-}
-
-// Virtualization for long lists
-import { useVirtualizer } from '@tanstack/react-virtual';
-
-function VirtualList({ items }: { items: Item[] }) {
-  const parentRef = useRef<HTMLDivElement>(null);
-  const virtualizer = useVirtualizer({
-    count: items.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 50,
-    overscan: 5
-  });
-  
-  return (
-    <div ref={parentRef} className="h-screen overflow-auto">
-      <div style={{ height: `${virtualizer.getTotalSize()}px`, position: 'relative' }}>
-        {virtualizer.getVirtualItems().map(virtualItem => (
-          <div key={virtualItem.key} style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            transform: `translateY(${virtualItem.start}px)`
-          }}>
-            <Item item={items[virtualItem.index]} />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-```
-
-## Hook Best Practices
-
-```typescript
-// useState: functional updates
-setCount(prev => prev + 1); // Always use current state
-
-// useState: lazy initialization
-const [data, setData] = useState(() => expensiveComputation());
-
-// useEffect: cleanup
-useEffect(() => {
-  const subscription = subscribeToData(userId);
-  return () => subscription.unsubscribe();
-}, [userId]);
-
-// useEffect: async with AbortController
-useEffect(() => {
-  const controller = new AbortController();
-  
-  async function loadData() {
-    try {
-      const data = await fetchData({ signal: controller.signal });
-      setData(data);
-    } catch (error) {
-      if (error.name !== 'AbortError') console.error(error);
-    }
-  }
-  
-  loadData();
-  return () => controller.abort();
-}, []);
-
-// useRef: DOM references
-const videoRef = useRef<HTMLVideoElement>(null);
-const handlePlay = () => videoRef.current?.play();
-
-// useRef: mutable values (doesn't trigger re-render)
-const intervalRef = useRef<number | null>(null);
-```
-
-## Tailwind & ShadCN UI
-
-```typescript
-// Button component with variants (ShadCN pattern)
-import { cva, type VariantProps } from 'class-variance-authority';
-import { forwardRef } from 'react';
-
-const buttonVariants = cva(
-  'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors disabled:opacity-50',
-  {
-    variants: {
-      variant: {
-        default: 'bg-primary text-primary-foreground hover:bg-primary/90',
-        destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
-        outline: 'border border-input hover:bg-accent',
-        ghost: 'hover:bg-accent'
-      },
-      size: {
-        default: 'h-10 px-4 py-2',
-        sm: 'h-9 px-3',
-        lg: 'h-11 px-8',
-        icon: 'h-10 w-10'
-      }
-    },
-    defaultVariants: { variant: 'default', size: 'default' }
-  }
-);
-
-export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {}
-
-const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, ...props }, ref) => (
-    <button className={buttonVariants({ variant, size, className })} ref={ref} {...props} />
-  )
-);
-
-// Form with validation (react-hook-form + zod)
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import * as z from 'zod';
-
-const formSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8)
-});
-
-function LoginForm() {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: { email: '', password: '' }
-  });
-  
-  return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-      <input {...form.register('email')} placeholder="Email" className="w-full p-2 border rounded" />
-      {form.formState.errors.email && <span>{form.formState.errors.email.message}</span>}
-      <button type="submit">Sign In</button>
-    </form>
-  );
-}
-```
-
-## Mobile-First Responsive Design
-
-```typescript
-// Always start with mobile, scale up
-function ProductCard() {
-  return (
-    <article className="
-      flex flex-col md:flex-row        /* Stack on mobile, row on tablet+ */
-      gap-4 p-4
-      bg-white rounded-lg
-    ">
-      <img className="
-        w-full md:w-48                  /* Full width on mobile, fixed on tablet+ */
-        h-48 object-cover rounded
-      " />
-      
-      <div className="flex-1">
-        <h2 className="text-xl md:text-2xl font-bold">Title</h2>
-        <p className="text-sm md:text-base text-gray-600">Description</p>
-        
-        <div className="flex flex-col sm:flex-row gap-2">
-          <Button className="w-full sm:w-auto">Add to Cart</Button>
-          <Button variant="outline" className="w-full sm:w-auto">Details</Button>
-        </div>
-      </div>
-    </article>
-  );
-}
-
-// Responsive grid
-function Grid() {
-  return (
-    <div className="
-      grid
-      grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4
-      gap-4 sm:gap-6
-      p-4 sm:p-6 lg:p-8
-    ">
-      {products.map(p => <ProductCard key={p.id} />)}
-    </div>
-  );
-}
-
-// Mobile navigation
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-
-function MobileNav() {
-  return (
-    <header className="sticky top-0 bg-white border-b">
-      <nav className="container h-16 flex items-center justify-between">
-        <Logo />
-        
-        {/* Mobile menu */}
-        <Sheet>
-          <SheetTrigger className="md:hidden"><Menu /></SheetTrigger>
-          <SheetContent side="right" className="w-[300px]">
-            <nav className="flex flex-col gap-4 mt-8">
-              <Link href="/">Home</Link>
-              <Link href="/products">Products</Link>
-            </nav>
-          </SheetContent>
-        </Sheet>
-        
-        {/* Desktop menu */}
-        <nav className="hidden md:flex gap-6">
-          <Link href="/">Home</Link>
-          <Link href="/products">Products</Link>
-        </nav>
-      </nav>
-    </header>
-  );
-}
-```
-
-## Key Principles
-
-### Component Design
+**Component Design:**
 - Default to Server Components, add `'use client'` only when needed
-- Use TypeScript interfaces for props
-- Extend HTML attributes for native elements
-- Use discriminated unions for complex props
+- TypeScript interfaces for props, extend HTML attributes for native elements
 
-### Performance
-- Memo only when necessary (expensive renders)
-- Lazy load routes and heavy components
-- Virtualize lists with 100+ items
+**Performance:**
+- Profile before optimizing (React DevTools Profiler)
+- Lazy load routes, virtualize large lists (100+ items)
 - Use ISR for semi-static content
 
-### Forms & Data
-- Use Server Actions in Next.js
-- Use Form component in Remix for progressive enhancement
-- Use useFetcher in React Router for optimistic updates
-- Always validate with Zod
+**Forms & Data:**
+- Server Actions (Next.js), progressive enhancement (Remix)
+- Always validate with Zod schemas
 
-### Styling
-- Mobile-first: start with base styles, add breakpoints upward
-- Touch targets minimum 44px (p-4 or larger)
-- Use ShadCN for accessible, customizable components
-- Use CVA for variant-based styling
+**Styling:**
+- Mobile-first responsive design
+- Touch targets minimum 44px
+- ShadCN + CVA for variant-based components
 
-### State Management
-- Server state: React Query/SWR for client, direct fetch in Server Components
-- Client state: useState/useReducer for local, Zustand for global
-- Form state: react-hook-form with Zod validation
-- URL state: useSearchParams for filters/pagination
+**State Management:**
+- Server state: React Query/SWR (client), direct fetch (Server Components)
+- Client state: useState/useReducer (local), Zustand (global)
+- Form state: react-hook-form + Zod
+- URL state: useSearchParams (filters/pagination)
 
 ---
 
