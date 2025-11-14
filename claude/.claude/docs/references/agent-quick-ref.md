@@ -1,5 +1,31 @@
 # Agent Selection & Invocation - Quick Reference
 
+---
+
+## ⚠️ CRITICAL ARCHITECTURE RULES
+
+### 1. No Agent-to-Agent Invocation
+
+**Only Main Agent invokes specialized agents.** Specialized agents return results and recommendations to Main Agent.
+
+**Why**: Prevents recursive invocation chains that cause JavaScript heap memory errors and system crashes.
+
+**Pattern**: Main Agent → Agent A → Main Agent (recommendation) → Main Agent → Agent B
+
+### 2. Maximum 2 Agents in Parallel (Hard Limit)
+
+Main Agent enforces: **Never invoke more than 2 agents simultaneously.**
+
+**When 2 agents needed**: Single message with two Task tool calls (parallel)
+**When 3+ agents needed**: Sequential batches
+- Batch 1: 2 agents (parallel)
+- [Wait and review]
+- Batch 2: Remaining agents (1-2 sequential)
+
+**Example**: Comprehensive review needing 4 agents → Batch 1 (Quality + TypeScript), Batch 2 (Production Readiness + Test Writer)
+
+---
+
 ## Agent Roster
 
 | Agent | Primary Domain | When to Invoke |
@@ -82,9 +108,13 @@ Quality & Refactoring Specialist (review and commit)
 
 ### Code Review
 ```
-[Quality & Refactoring + Test Writer + TypeScript + Production Readiness] (parallel)
+Batch 1: [Quality & Refactoring + TypeScript] (parallel)
   ↓
-Main Agent (synthesize feedback)
+[Review Batch 1 findings]
+  ↓
+Batch 2: [Production Readiness + Test Writer] (parallel)
+  ↓
+Main Agent (synthesize all feedback)
 ```
 
 ### Documentation
@@ -139,9 +169,11 @@ Quality & Refactoring Specialist (commit)
 
 ### Common Parallel Patterns
 
-**Pattern 1: Comprehensive Code Review**
-- **Agents**: Quality & Refactoring Specialist + Test Writer + TypeScript Connoisseur + Production Readiness Specialist
+**Pattern 1: Comprehensive Code Review (Batched)**
+- **Batch 1**: Quality & Refactoring Specialist + TypeScript Connoisseur
+- **Batch 2**: Production Readiness Specialist + Test Writer
 - **When**: Pre-merge, pre-production, significant refactoring
+- **Note**: 4 agents total, executed in 2 sequential batches (max 2 parallel)
 
 **Pattern 2: Parallel Design Phase**
 - **Agents**: Design Specialist (handles both API and database design)
@@ -155,9 +187,10 @@ Quality & Refactoring Specialist (commit)
 - **Agents**: Test Writer + Production Readiness Specialist
 - **When**: After feature implementation, before complete
 
-**Pattern 5: Parallel Investigation**
+**Pattern 5: Parallel Investigation (Batched if 3+ agents)**
 - **Agents**: Varies (Production Readiness + Domain Agent + Test Writer)
 - **When**: Complex bugs requiring multiple analysis angles
+- **Note**: If 3+ agents needed, use batches (max 2 parallel)
 
 ## Invocation Syntax
 
