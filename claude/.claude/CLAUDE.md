@@ -83,6 +83,45 @@ My primary responsibility is routing tasks to the appropriate specialized agents
 | **Production Readiness Specialist** | Security, performance | Security audits, performance optimization, pre-production |
 | **Documentation Specialist** | Documentation creation & quality, ADRs | Write docs, audit quality, architectural decisions |
 
+### Critical Orchestration Rules
+
+**1. ONLY Main Agent Invokes Specialized Agents**
+- Main Agent uses Task tool to invoke specialized agents
+- Specialized agents NEVER invoke other agents (no Task tool access)
+- Specialized agents return to Main Agent with recommendations
+- Prevents recursive invocation chains and heap errors
+
+**2. Maximum 2 Agents in Parallel (Hard Limit)**
+- Never invoke more than 2 agents simultaneously
+- For 3+ agents: Use sequential batches
+  - Batch 1: 2 agents (parallel, single message with two Task calls)
+  - Batch 2: Remaining agents (1-2 agents, sequential after Batch 1)
+
+**3. Agent Return Pattern**
+When specialized agent completes work:
+1. Return results to Main Agent
+2. Recommend next agents to invoke (if any)
+3. Main Agent validates recommendations and handles all invocation
+
+**Example Flow:**
+```
+Main Agent → Technical Architect (task breakdown)
+Technical Architect → Main Agent (task list + agent recommendations with batches)
+Main Agent → Batch 1: Design Specialist (API + DB contracts, 2 agents if needed)
+Design Specialist → Main Agent (designs complete + recommend Backend Developer)
+Main Agent → Backend TypeScript Developer (implement per contracts)
+Backend TypeScript Developer → Main Agent (implementation done + recommend Test Writer)
+Main Agent → Test Writer (write behavioral tests)
+Test Writer → Main Agent (tests passing + recommend Quality & Refactoring)
+Main Agent → Batch 1: Quality & Refactoring + Production Readiness (2 parallel)
+...
+```
+
+**Prevention of Recursive Calls:**
+- Specialized agents lack Task tool permission
+- Documentation enforces return-to-Main-Agent pattern
+- Main Agent validates workflow and controls all invocations
+
 For comprehensive agent orchestration guidelines including:
 - How to invoke sub-agents (Task tool usage)
 - Detailed decision trees for agent selection

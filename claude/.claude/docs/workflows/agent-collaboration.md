@@ -50,6 +50,70 @@ Task 4:
 - prompt: "Review payment processor for: PII handling, injection risks, authorization checks. Return security findings."
 ```
 
+## Critical Architecture: No Agent-to-Agent Invocation
+
+**ONLY Main Agent invokes specialized agents.** Specialized agents complete their work and return to Main Agent with recommendations.
+
+**Why this architecture:**
+- **Prevents recursive invocation chains**: Agent A cannot invoke Agent B who invokes Agent C (infinite loops)
+- **Avoids heap memory errors**: Prevents JavaScript heap exhaustion from agent call stacks
+- **Maintains clear control flow**: Single orchestrator makes debugging and monitoring easier
+- **Enables proper error handling**: Main Agent can catch and handle agent failures
+
+**Pattern - CORRECT:**
+```
+Main Agent → Agent A (assign task)
+Agent A completes work
+Agent A → Main Agent (results + "Recommend invoking Agent B for [reason]")
+Main Agent evaluates recommendation
+Main Agent → Agent B (assign task based on Agent A results)
+```
+
+**Pattern - WRONG (DO NOT DO):**
+```
+Main Agent → Agent A
+Agent A → Agent B (direct invocation - RECURSIVE)
+Agent B → Agent C (deeper recursion)
+Agent C → Agent D (even deeper)
+[System crashes: JavaScript heap out of memory]
+```
+
+### Hard Limit: Maximum 2 Agents in Parallel
+
+**Enforced by Main Agent only.** Specialized agents cannot control parallel execution.
+
+**When 2 agents needed:**
+- Invoke in parallel (single message with two Task tool calls)
+- Example: Design Specialist + Test Writer for parallel design and test planning
+
+**When 3+ agents needed:**
+- Use sequential batches
+- Batch 1: Invoke 2 agents (parallel)
+- Wait for Batch 1 completion and review results
+- Batch 2: Invoke remaining agents (1-2 agents, sequential)
+- Synthesize all results
+
+**Example - Comprehensive Code Review (4 perspectives needed):**
+```
+Batch 1 (2 agents parallel):
+- Quality & Refactoring Specialist
+- TypeScript Connoisseur
+
+[Wait for Batch 1 completion, review findings]
+
+Batch 2 (2 agents parallel):
+- Production Readiness Specialist (security + performance)
+- Test Writer (coverage verification)
+
+[Synthesize all 4 perspectives]
+```
+
+**Rationale for 2-agent limit:**
+- Prevents resource contention
+- Maintains focus and synthesis quality
+- Reduces cognitive load when integrating feedback
+- Avoids "too many cooks" problem
+
 ## Collaboration Patterns
 
 ### Pattern 1: Sequential Delegation
@@ -94,11 +158,17 @@ Main Agent
 
 **Example: Comprehensive Code Review**
 ```
-Main invokes in parallel:
+Main invokes in batches (max 2 parallel):
+
+Batch 1:
 - Quality & Refactoring Specialist (style, patterns, anti-patterns)
-- Test Writer (coverage, behavior focus, test quality)
 - TypeScript Connoisseur (types, schemas, strict mode)
+
+[Wait for Batch 1, review findings]
+
+Batch 2:
 - Production Readiness Specialist (vulnerabilities, PII handling)
+- Test Writer (coverage, behavior focus, test quality)
 
 Main receives all feedback, synthesizes, presents prioritized list to user.
 ```
@@ -286,8 +356,10 @@ Present prioritized feedback to user
 
 **Example:**
 ```
-Parallel code review:
-[Quality & Refactoring + Test Writer + TypeScript + Production Readiness] → Synthesize
+Batched code review (max 2 parallel):
+Batch 1: [Quality & Refactoring + TypeScript] → Review
+Batch 2: [Production Readiness + Test Writer] → Review
+→ Synthesize all findings
 ```
 
 ### Use Sequential When:
