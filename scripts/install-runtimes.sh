@@ -54,7 +54,7 @@ if command_exists uvx; then
 else
     print_warning "uv not installed"
     print_info "uv is a fast Python package installer and runner"
-    print_info "Required for MCP servers: serena, aws-core, aws-cdk"
+    print_info "Useful for Python development and package management"
 
     if confirm "Install uv?"; then
         if is_macos; then
