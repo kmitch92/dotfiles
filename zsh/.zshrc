@@ -163,3 +163,5 @@ fix-husky-worktree() {
         echo "   Worktrees have a .git file (not directory)"
     fi
 }
+
+. "$HOME/.local/bin/env"

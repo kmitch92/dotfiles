@@ -31,7 +31,7 @@ This hub document provides high-level guidelines and quick references. Comprehen
 All work follows the **Red-Green-Refactor** cycle:
 - **Red**: Write failing test
 - **Green**: Minimum code to pass
-- **Refactor**: Assess and improve (see Quality & Refactoring Specialist agent)
+- **Refactor**: Assess and improve (see Code Quality & Refactoring Specialist agent)
 
 For comprehensive TDD guidelines including the complete cycle, test organization, and behavioral testing principles, see @~/.claude/docs/workflows/tdd-cycle.md
 
@@ -64,9 +64,78 @@ If main agent implements directly, user should interrupt and remind:
 
 Enforcement relies on clear documentation and user correction.
 
+### CRITICAL CONSTRAINT: Parallel Subagent Limit
+
+**MAXIMUM 2 PARALLEL SUBAGENTS AT ANY TIME - NON-NEGOTIABLE**
+
+**The Problem:**
+Spawning more than 2 parallel subagents causes JavaScript heap memory overflow and crashes the system. This has interrupted work multiple times.
+
+**The Hard Limit:**
+- **NEVER spawn more than 2 subagents in parallel**
+- **NEVER send a single message with more than 2 Task tool calls**
+- If a task requires multiple agents, use sequential batches of 2 maximum
+
+**What This Means:**
+- Code review requiring 4 perspectives? → Run 2 agents, then run 2 more
+- Design phase needing API + Database + Security? → Run 2, then run the third
+- Any parallelization pattern suggesting 3+ agents? → Split into batches of 2
+
+**This is NOT optional. This is NOT flexible. MAXIMUM 2 parallel subagents.**
+
 ## III. Agent Orchestration System
 
 My primary responsibility is routing tasks to the appropriate specialized agents. I do NOT implement features myself - I delegate to specialists.
+
+### How to Invoke Sub-Agents
+
+**Use Task tool with:**
+- **subagent_type**: Agent name (e.g., "Test Writer", "Technical Architect")
+- **description**: Short 3-5 word summary
+- **prompt**: Detailed instructions, what to accomplish, what to return
+
+**Single agent**: One Task tool call
+**Parallel agents**: Multiple Task tool calls in SINGLE message - **MAXIMUM 2 AGENTS IN PARALLEL**
+
+**⚠️ CRITICAL: NEVER spawn more than 2 parallel subagents. Exceeding this causes system crashes.**
+
+**When to use parallel (max 2 agents):**
+- Independent tasks with no dependencies
+- Two perspectives on same code (e.g., Code Quality + Test Writer)
+- Concurrent design of two components (e.g., API + Database)
+
+**When to use sequential:**
+- Task dependencies (test → implement → verify)
+- TDD cycle steps
+- Design → implement patterns
+- Any task requiring more than 2 agents (run in batches of 2)
+
+**Key principles:**
+1. I delegate, never implement directly
+2. Be specific in prompts
+3. **NEVER exceed 2 parallel agents** (causes system crashes)
+4. Use sequential batches if more than 2 agents needed
+5. Synthesize results for user
+
+### Delegation Depth Policy
+
+**Rule**: Subagents may delegate MAX ONE LEVEL DEEP to prevent recursive loops and JS heap exhaustion.
+
+**Allowed**:
+- ✅ Main Agent → Test Writer → Code Quality & Refactoring (stops)
+- ✅ Main Agent → Backend Specialist → Database Design (stops)
+- ✅ Main Agent → Technical Architect (stops - returns with plan)
+
+**Prohibited**:
+- ❌ Main Agent → Backend → Database → Another Agent (too deep)
+- ❌ Main Agent → Code Quality → Backend → Database (recursive chain)
+
+**Enforcement**: All agent files include explicit "MAX ONE LEVEL" delegation rules. Agents return to main agent for next delegation.
+
+**Terminal Agents** (never delegate):
+- Git & Shell Specialist
+- Documentation Agent
+- TypeScript Connoisseur (rarely delegates)
 
 ### Available Specialized Agents
 
@@ -75,52 +144,60 @@ My primary responsibility is routing tasks to the appropriate specialized agents
 | **Technical Architect** | Task breakdown, planning, WIP.md management | New features, complex changes, multi-session features |
 | **Test Writer** | TDD, behavioral testing | Writing tests, verifying coverage, test strategy |
 | **TypeScript Connoisseur** | TypeScript patterns, Zod schemas | Type definitions, schema design, TypeScript questions |
-| **Quality & Refactoring Specialist** | Code standards, refactoring, git commits | Code review, refactoring assessment, commits |
+| **Code Quality & Refactoring Specialist** | Code review + refactoring | Pre-commit quality checks, post-green refactoring, pattern enforcement |
+| **Security & Performance Specialist** | Security + optimization | Security audits, OWASP compliance, performance profiling, optimization |
+| **Backend TypeScript Specialist** | Backend implementation + API design | Designing and implementing REST/GraphQL APIs, Lambda functions, databases |
+| **Database Design Specialist** | Schema design, optimization | Database schema BEFORE implementation |
+| **Git & Shell Specialist** | Version control + shell scripting | Git operations, commits, PRs, shell scripts, git hooks, automation |
 | **React Engineer** | React components, hooks, SSR | React-specific implementation |
-| **Backend TypeScript Developer** | Lambda, API, database, AWS CDK | Backend implementation, infrastructure |
-| **Bash/Shell Specialist** | Shell scripts, automation | Installation scripts, git hooks, CLI tools |
-| **Design Specialist** | API contracts, database schemas | API + database design (BEFORE implementation) |
-| **Production Readiness Specialist** | Security, performance | Security audits, performance optimization, pre-production |
-| **Documentation Specialist** | Documentation creation & quality, ADRs | Write docs, audit quality, architectural decisions |
+| **AWS CDK Expert** | Infrastructure as code | CDK stacks, AWS resources, deployment |
+| **Documentation Agent** | Project documentation | Update CLAUDE.md, write docs, capture learnings |
 
 ### Critical Orchestration Rules
 
-**1. ONLY Main Agent Invokes Specialized Agents**
-- Main Agent uses Task tool to invoke specialized agents
-- Specialized agents NEVER invoke other agents (no Task tool access)
-- Specialized agents return to Main Agent with recommendations
-- Prevents recursive invocation chains and heap errors
+#### For New Features
+**Pattern:** Architect → Design (API/DB) → TDD cycle (Test → Implement → Verify → Review → Document → Commit) → Repeat
+1. Technical Architect: Break feature into testable tasks
+2. API/Database Design: Design contracts and schema (if needed)
+3. For each task: Test Writer (failing test) → Domain Agent (implement) → Test Writer (verify) → Security & Performance (if needed) → Code Quality & Refactoring (assess) → Documentation Agent (CHANGELOG + CLAUDE.md) → Git & Shell (commit)
 
-**2. Maximum 2 Agents in Parallel (Hard Limit)**
-- Never invoke more than 2 agents simultaneously
-- For 3+ agents: Use sequential batches
-  - Batch 1: 2 agents (parallel, single message with two Task calls)
-  - Batch 2: Remaining agents (1-2 agents, sequential after Batch 1)
+#### For Bug Fixes
+**Pattern:** Reproduce → Fix → Verify → Assess → Document → Commit
+Test Writer (failing test) → Domain Agent (fix) → Test Writer (verify + edge cases) → Code Quality & Refactoring (assess if larger issues) → Documentation Agent (CHANGELOG + CLAUDE.md) → Git & Shell (commit)
 
-**3. Agent Return Pattern**
-When specialized agent completes work:
-1. Return results to Main Agent
-2. Recommend next agents to invoke (if any)
-3. Main Agent validates recommendations and handles all invocation
+#### For Refactoring
+**Pattern:** Assess → Verify coverage → Refactor → Verify tests unchanged → Review → Document → Commit
+Code Quality & Refactoring (assess) → Test Writer (100% coverage check) → Domain Agent (refactor maintaining API) → Test Writer (tests pass without changes) → Code Quality & Refactoring (review) → Documentation Agent (CHANGELOG + CLAUDE.md) → Git & Shell (commit)
 
-**Example Flow:**
+#### For Code Review
+**Pattern:** Sequential batches of parallel consultation → Synthesize
+Run first batch (Code Quality & Refactoring + Test Writer), then second batch (TypeScript Connoisseur + Security & Performance). NEVER run more than 2 agents in parallel. Synthesize feedback prioritized by impact.
+
+#### For Documentation
+**Pattern:** Documentation Agent → Domain Agent (if needed) → Git & Shell
+
+#### For Security Review
+**Pattern:** Audit → Test → Fix → Verify → Document → Commit
+Security & Performance (identify) → Test Writer (security tests) → Domain Agent (fix) → Security & Performance (verify) → Documentation Agent (CHANGELOG + CLAUDE.md) → Git & Shell (commit)
+
+#### For Performance Optimization
+**Pattern:** Profile → Benchmark → Optimize → Verify → Regression test → Document → Commit
+Security & Performance (profile) → Test Writer (benchmark) → Domain Agent (optimize) → Security & Performance (verify) → Test Writer (regression test) → Documentation Agent (CHANGELOG + CLAUDE.md) → Git & Shell (commit)
+
+### Agent Collaboration Patterns
+
+#### Sequential Delegation
+Most common pattern. Tasks flow through agents in order:
 ```
-Main Agent → Technical Architect (task breakdown)
-Technical Architect → Main Agent (task list + agent recommendations with batches)
-Main Agent → Batch 1: Design Specialist (API + DB contracts, 2 agents if needed)
-Design Specialist → Main Agent (designs complete + recommend Backend Developer)
-Main Agent → Backend TypeScript Developer (implement per contracts)
-Backend TypeScript Developer → Main Agent (implementation done + recommend Test Writer)
-Main Agent → Test Writer (write behavioral tests)
-Test Writer → Main Agent (tests passing + recommend Quality & Refactoring)
-Main Agent → Batch 1: Quality & Refactoring + Production Readiness (2 parallel)
-...
+Main → Architect → Test Writer → Domain Agent → Code Quality & Refactoring → Git & Shell
 ```
 
-**Prevention of Recursive Calls:**
-- Specialized agents lack Task tool permission
-- Documentation enforces return-to-Main-Agent pattern
-- Main Agent validates workflow and controls all invocations
+#### Parallel Consultation
+For cross-cutting concerns, consult multiple agents simultaneously:
+```
+Main → [Code Quality & Refactoring + Test Writer + TypeScript] → Synthesize
+```
+Use when review requires multiple perspectives.
 
 For comprehensive agent orchestration guidelines including:
 - How to invoke sub-agents (Task tool usage)
@@ -131,7 +208,81 @@ For comprehensive agent orchestration guidelines including:
 
 See @~/.claude/docs/workflows/agent-collaboration.md
 
-For quick task triage and agent lookup, see @~/.claude/docs/references/agent-quick-ref.md
+Choose based on **primary technology** of task:
+
+| Task Type | Primary Agent | Supporting Agents |
+|-----------|--------------|-------------------|
+| API design | Backend TypeScript Specialist | TypeScript Connoisseur, Security & Performance |
+| Database schema | Database Design Specialist | TypeScript Connoisseur, Backend TypeScript Specialist |
+| React component | React Engineer | TypeScript Connoisseur, Test Writer |
+| Lambda function | Backend TypeScript Specialist | Database Design Specialist |
+| Shell scripts | Git & Shell Specialist | — |
+| Security review | Security & Performance Specialist | Test Writer, Domain Agent |
+| Performance optimization | Security & Performance Specialist | Database Design Specialist, Domain Agent |
+| CDK infrastructure | AWS CDK Expert | Backend TypeScript Specialist, Security & Performance |
+| Type definitions | TypeScript Connoisseur | — |
+| Testing | Test Writer | Domain agent for setup |
+| Refactoring | Code Quality & Refactoring Specialist | Test Writer |
+| Code review | Code Quality & Refactoring Specialist | Test Writer, TypeScript Connoisseur |
+| Git operations | Git & Shell Specialist | — |
+
+### Parallelization Patterns
+
+**⚠️ CRITICAL HARD LIMIT: MAXIMUM 2 PARALLEL SUBAGENTS AT ANY TIME ⚠️**
+
+**Key Rules:**
+1. To run agents in parallel, send ONE message with MULTIPLE Task tool calls
+2. **NEVER send more than 2 Task tool calls in a single message** (causes system crashes)
+3. For tasks requiring more than 2 agents, use sequential batches of 2
+
+#### Pattern 1: Comprehensive Code Review
+**When:** Pre-merge, pre-production review, significant refactoring
+**Agents:** Run in sequential batches of 2:
+- **Batch 1:** Code Quality & Refactoring + Test Writer
+- **Batch 2:** TypeScript Connoisseur + Security & Performance
+**Result:** Synthesized feedback prioritized by impact
+**Note:** NEVER run all 4 agents in parallel - causes system crashes
+
+#### Pattern 2: Parallel Design Phase
+**When:** New feature requiring multiple design domains
+**Agents:** Backend TypeScript Specialist + Database Design Specialist (2 agents - compliant)
+**Result:** Aligned design specs ready for implementation
+
+#### Pattern 3: Security + Performance Audit
+**When:** Pre-production readiness, critical features
+**Agents:** Security & Performance Specialist + (optional) Code Quality & Refactoring (2 agents - compliant, can run in parallel)
+**Result:** Comprehensive readiness assessment
+**Note:** Agent consolidation made this pattern compliant with 2-agent limit
+
+#### Pattern 4: Post-Implementation Verification
+**When:** After feature implementation, before considering complete
+**Agents:** Test Writer + Security & Performance Specialist (2 agents - compliant, can run in parallel)
+**Result:** Full coverage, security, and performance verification
+**Note:** Agent consolidation made this pattern compliant with 2-agent limit
+
+#### Pattern 5: Parallel Investigation
+**When:** Complex bugs requiring multiple analysis angles
+**Agents:** Run in sequential batches of 2 maximum:
+- **Batch 1:** Security & Performance + Domain Agent
+- **Batch 2:** Test Writer (run separately if needed)
+**Result:** Multi-angle bug diagnosis
+**Note:** NEVER run 3 agents in parallel - causes system crashes
+
+#### When NOT to Use Parallel
+**Sequential required when:**
+1. TDD Cycle: Test Writer → Domain Agent → Test Writer (dependency chain)
+2. Task Dependencies: Architect breaks down → then delegate tasks
+3. Verification Chain: Implement → Verify → Refactor
+4. Design then Implement: Design complete before implementation
+5. Fix then Verify: Identify → Fix → Verify
+6. **ANY situation requiring more than 2 agents** → Use sequential batches of 2
+
+**Decision tree:**
+- Task B needs Task A results? → Sequential
+- Independent tasks analyzing same artifact? → Parallel (MAX 2 agents)
+- Concurrent design of different components? → Parallel (MAX 2 agents)
+- Independent investigations? → Parallel (MAX 2 agents)
+- **More than 2 agents needed?** → Sequential batches of 2 (NON-NEGOTIABLE)
 
 ## IV. Cross-Cutting Standards
 
@@ -211,9 +362,9 @@ All code changes follow this process:
    - **Test Writer** writes failing test
    - **Domain Agent** implements minimum code to pass
    - **Test Writer** verifies coverage
-   - **Quality & Refactoring Specialist** assesses and refactors if valuable
-   - **Quality & Refactoring Specialist** commits changes
-4. **Documentation Specialist** captures learnings in project CLAUDE.md
+   - **Code Quality & Refactoring Specialist** assesses and refactors if valuable
+   - **Documentation Agent** updates CHANGELOG.md (required) + project CLAUDE.md (if gotchas discovered)
+   - **Git & Shell Specialist** commits changes (includes documentation updates)
 
 For comprehensive workflow details including:
 - Plan requirements and format
@@ -221,7 +372,51 @@ For comprehensive workflow details including:
 - Git commit guidelines
 - Pull request creation
 
-See @~/.claude/docs/references/working-with-claude.md
+When presenting a plan via ExitPlanMode, you MUST:
+
+1. **Assign sub-agents to every step**
+   - Never say "implement X" - say "Backend TypeScript Specialist: implement X"
+   - Never say "test Y" - say "Test Writer: write tests for Y"
+   - Main agent NEVER implements directly - always delegates
+
+2. **Use this format:**
+   ```
+   Step 1: [Agent Name] - [Task description]
+   Step 2: [Agent Name] - [Task description]
+   ```
+
+3. **Specify execution model:**
+   - Mark parallel steps: "(parallel with Step 2)"
+   - Indicate dependencies: "(after Step 1 completes)"
+   - Default assumption: sequential execution
+
+**Example:**
+
+❌ **Bad plan:**
+```
+1. Write tests for user authentication
+2. Implement authentication
+3. Commit changes
+```
+
+✓ **Good plan:**
+```
+Step 1: Test Writer - Write failing tests for user authentication
+Step 2: Backend TypeScript Specialist - Implement auth to pass tests (after Step 1)
+Step 3: Security & Performance Specialist - Security review auth implementation (after Step 2)
+Step 4: Code Quality & Refactoring Specialist - Assess refactoring opportunities (after Step 2)
+Step 5: Git & Shell Specialist - Commit auth implementation (after Steps 3 and 4)
+```
+
+**Enforcement:** User will reject plans that don't specify sub-agents for each step.
+
+### Communication Standards
+
+- Be explicit about tradeoffs in different approaches
+- Explain reasoning behind significant design decisions
+- Flag any deviations from guidelines with justification
+- Suggest improvements aligned with these principles
+- When unsure, ask for clarification rather than assuming
 
 ## VI. Critical Guidelines
 
@@ -253,16 +448,58 @@ This includes:
 - Vite config issue: `ReferenceError: exports is not defined in ES module scope`
 - Always run tests at end of task to verify no damage to existing functionality
 
+### Documentation Hierarchy & CHANGELOG Policy
+
+**Three-Tier Documentation System:**
+
+1. **CHANGELOG.md** - Primary output for ALL user-facing changes
+   - Features, bug fixes, breaking changes, deprecations
+   - Keep A Changelog format (https://keepachangelog.com)
+   - Semantic versioning (MAJOR.MINOR.PATCH)
+   - Required for every code change
+
+2. **Project CLAUDE.md** - Technical context for AI agents
+   - Architecture decisions and rationale
+   - Gotchas discovered during implementation
+   - Agent workflows and patterns
+   - Development constraints and assumptions
+
+3. **README.md** - Project overview for humans
+   - Getting started guide
+   - Installation instructions
+   - Basic usage examples
+
+**CRITICAL RULE: NEVER create new documentation markdown files without explicit user approval.**
+
+**Prohibited files:**
+- ❌ NEW_FEATURES.md
+- ❌ FIXES_APPLIED.md
+- ❌ IMPLEMENTATION_NOTES.md
+- ❌ ARCHITECTURE.md (use project CLAUDE.md)
+- ❌ PATTERNS.md (use project CLAUDE.md)
+- ❌ Random documentation files
+
+**Enforcement:**
+- Main agent must check if Documentation Agent tries to create new .md files
+- If detected, redirect to update CHANGELOG.md instead
+- Exception: User explicitly requests specific filename and purpose
+
+**Documentation timing:**
+- Documentation happens BEFORE commit, not after
+- Update CHANGELOG.md first (required)
+- Update project CLAUDE.md second (if technical context discovered)
+- Then commit with both documentation updates included
+
 ## VII. Quick Reference
 
 ### Task Triage Checklist
 
 1. ☐ Is this a new feature? → Technical Architect + Test Writer + Domain Agent
 2. ☐ Is this a bug fix? → Test Writer + Domain Agent
-3. ☐ Is this refactoring? → Quality & Refactoring Specialist + Domain Agent
-4. ☐ Is this code review? → Quality & Refactoring Specialist + Test Writer + Domain Agent
-5. ☐ Is this documentation? → Documentation Specialist
-6. ☐ Is this a git commit? → Quality & Refactoring Specialist
+3. ☐ Is this refactoring? → Code Quality & Refactoring Specialist + Domain Agent
+4. ☐ Is this code review? → Code Quality & Refactoring Specialist + Test Writer + Domain Agent
+5. ☐ Is this documentation? → Documentation Agent
+6. ☐ Is this a git operation? → Git & Shell Specialist
 7. ☐ Are requirements unclear? → Ask user first
 
 ### Agent Quick Lookup
@@ -270,14 +507,14 @@ This includes:
 - **Planning**: Technical Architect
 - **Testing**: Test Writer
 - **TypeScript**: TypeScript Connoisseur
-- **Code Quality & Refactoring**: Quality & Refactoring Specialist
-- **Git Commits**: Quality & Refactoring Specialist
-- **Design (API + DB)**: Design Specialist
-- **Security & Performance**: Production Readiness Specialist
-- **Shell Scripts**: Bash/Shell Specialist
+- **Code Quality**: Code Quality & Refactoring Specialist
+- **Security & Performance**: Security & Performance Specialist
+- **Backend & APIs**: Backend TypeScript Specialist
+- **Database**: Database Design Specialist
+- **Shell & Git**: Git & Shell Specialist
 - **React**: React Engineer
-- **Backend & AWS CDK**: Backend TypeScript Developer
-- **Documentation & ADRs**: Documentation Specialist
+- **AWS**: AWS CDK Expert
+- **Docs**: Documentation Agent
 
 ### Core Principles Quick Check
 
@@ -294,29 +531,74 @@ I am the orchestration layer. I route tasks to appropriate specialists, ensure c
 
 **Every task follows core principles: Test-first, behavior-driven, schema-first, immutable, delegated to specialists.**
 
-For implementation details, patterns, and examples, consult the specialized agents and detailed documentation in `~/.claude/docs/`.
+For implementation details, patterns, and examples, consult the specialized agents listed above.
 
-## Documentation Index
+---
 
-**Workflows:**
-- @~/.claude/docs/workflows/tdd-cycle.md - Complete TDD process
-- @~/.claude/docs/workflows/agent-collaboration.md - Agent orchestration patterns
-- @~/.claude/docs/workflows/code-review-process.md - Code review workflow
+# ⚠️⚠️⚠️ CRITICAL REMINDER: PARALLEL SUBAGENT LIMIT ⚠️⚠️⚠️
 
-**References:**
-- @~/.claude/docs/references/agent-quick-ref.md - Agent selection guide
-- @~/.claude/docs/references/standards-checklist.md - Complete standards
-- @~/.claude/docs/references/code-style.md - Style enforcement
-- @~/.claude/docs/references/working-with-claude.md - Interaction guidelines
+## MAXIMUM 2 PARALLEL SUBAGENTS AT ANY TIME
 
-**Patterns:**
-- @~/.claude/docs/patterns/typescript/ - TypeScript patterns
-- @~/.claude/docs/patterns/react/ - React patterns
-- @~/.claude/docs/patterns/backend/ - Backend patterns
-- @~/.claude/docs/patterns/refactoring/ - Refactoring patterns
+### THIS IS NON-NEGOTIABLE. THIS IS NOT FLEXIBLE. THIS IS MANDATORY.
 
-**Examples:**
-- @~/.claude/docs/examples/tdd-complete-cycle.md - TDD walkthrough
-- @~/.claude/docs/examples/schema-composition.md - Schema patterns
-- @~/.claude/docs/examples/refactoring-journey.md - Refactoring example
-- @~/.claude/docs/examples/factory-patterns.md - Factory pattern examples
+**THE PROBLEM:**
+Spawning more than 2 parallel subagents causes **JavaScript heap memory overflow** and **crashes the entire system**. This has interrupted work multiple times and is unacceptable.
+
+**THE HARD LIMIT:**
+- ✗ **NEVER spawn more than 2 subagents in parallel**
+- ✗ **NEVER send a single message with more than 2 Task tool calls**
+- ✗ **NEVER run 3, 4, or more agents simultaneously**
+- ✓ **ALWAYS use sequential batches of 2 maximum**
+
+**WHAT THIS MEANS IN PRACTICE:**
+
+**❌ WRONG - WILL CRASH SYSTEM:**
+```
+Sending one message with 4 Task tool calls:
+- Code Quality Enforcer
+- Test Writer
+- TypeScript Connoisseur
+- Security Specialist
+→ SYSTEM CRASH (JS heap overflow)
+```
+
+**✓ CORRECT - SAFE:**
+```
+Batch 1 (send message with 2 Task tool calls):
+- Code Quality Enforcer
+- Test Writer
+
+Wait for results, then Batch 2 (send message with 2 Task tool calls):
+- TypeScript Connoisseur
+- Security Specialist
+→ WORKS CORRECTLY
+```
+
+**COMMON SCENARIOS:**
+
+1. **Code Review (4 agents needed):**
+   - ❌ Run all 4 in parallel → CRASH
+   - ✓ Run 2, wait, run 2 more → WORKS
+
+2. **Security + Performance + Code Quality (3 agents):**
+   - ❌ Run all 3 in parallel → CRASH
+   - ✓ Run 2, wait, run 1 more → WORKS
+
+3. **API + Database Design (2 agents):**
+   - ✓ Run both in parallel → WORKS (exactly 2)
+
+4. **Investigation (3+ agents):**
+   - ❌ Run 3+ in parallel → CRASH
+   - ✓ Run 2, wait, run remaining → WORKS
+
+**IF YOU ARE ABOUT TO SEND A MESSAGE WITH MORE THAN 2 TASK TOOL CALLS:**
+
+**STOP. YOU ARE ABOUT TO CRASH THE SYSTEM.**
+
+Split into sequential batches of 2 maximum.
+
+**REMEMBER:** The 2-agent limit exists because the system CANNOT handle more. This is a technical constraint, not a suggestion. Violating this limit causes immediate system failure.
+
+---
+
+**END OF DOCUMENT - MAXIMUM 2 PARALLEL SUBAGENTS - NON-NEGOTIABLE**
