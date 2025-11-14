@@ -31,7 +31,7 @@ This hub document provides high-level guidelines and quick references. Comprehen
 All work follows the **Red-Green-Refactor** cycle:
 - **Red**: Write failing test
 - **Green**: Minimum code to pass
-- **Refactor**: Assess and improve (see Refactoring Specialist agent)
+- **Refactor**: Assess and improve (see Quality & Refactoring Specialist agent)
 
 For comprehensive TDD guidelines including the complete cycle, test organization, and behavioral testing principles, see @~/.claude/docs/workflows/tdd-cycle.md
 
@@ -72,21 +72,16 @@ My primary responsibility is routing tasks to the appropriate specialized agents
 
 | Agent | Primary Domain | When to Invoke |
 |-------|---------------|----------------|
-| **Technical Architect** | Task breakdown, planning | New features, complex changes, unclear requirements |
+| **Technical Architect** | Task breakdown, planning, WIP.md management | New features, complex changes, multi-session features |
 | **Test Writer** | TDD, behavioral testing | Writing tests, verifying coverage, test strategy |
 | **TypeScript Connoisseur** | TypeScript patterns, Zod schemas | Type definitions, schema design, TypeScript questions |
-| **Code Quality Enforcer** | Code style, patterns, anti-patterns | Code review, style questions, refactoring assessment |
-| **Refactoring Specialist** | Post-green refactoring | After tests pass, code improvement, abstraction |
-| **Security Specialist** | Security review, vulnerabilities | Auth, sensitive data, before production, code review |
-| **API Design Specialist** | API contracts, REST/GraphQL | Designing endpoints BEFORE implementation |
-| **Database Design Specialist** | Schema design, optimization | Database schema BEFORE implementation |
-| **Performance Specialist** | Optimization, profiling | Performance issues, before release, critical paths |
-| **Bash/Shell Specialist** | Shell scripts, automation | Installation scripts, git hooks, CLI tools |
+| **Quality & Refactoring Specialist** | Code standards, refactoring, git commits | Code review, refactoring assessment, commits |
 | **React Engineer** | React components, hooks, SSR | React-specific implementation |
-| **Backend TypeScript Developer** | Lambda, API, database patterns | Backend implementation, AWS services |
-| **AWS CDK Expert** | Infrastructure as code | CDK stacks, AWS resources, deployment |
-| **Git Specialist** | Version control, commits, PRs | Git operations, commit messages, branching |
-| **Documentation Agent** | Project documentation | Update CLAUDE.md, write docs, capture learnings |
+| **Backend TypeScript Developer** | Lambda, API, database, AWS CDK | Backend implementation, infrastructure |
+| **Bash/Shell Specialist** | Shell scripts, automation | Installation scripts, git hooks, CLI tools |
+| **Design Specialist** | API contracts, database schemas | API + database design (BEFORE implementation) |
+| **Production Readiness Specialist** | Security, performance | Security audits, performance optimization, pre-production |
+| **Documentation Specialist** | Documentation creation & quality, ADRs | Write docs, audit quality, architectural decisions |
 
 For comprehensive agent orchestration guidelines including:
 - How to invoke sub-agents (Task tool usage)
@@ -177,9 +172,9 @@ All code changes follow this process:
    - **Test Writer** writes failing test
    - **Domain Agent** implements minimum code to pass
    - **Test Writer** verifies coverage
-   - **Refactoring Specialist** assesses and refactors if valuable
-   - **Git Specialist** commits changes
-4. **Documentation Agent** captures learnings in project CLAUDE.md
+   - **Quality & Refactoring Specialist** assesses and refactors if valuable
+   - **Quality & Refactoring Specialist** commits changes
+4. **Documentation Specialist** captures learnings in project CLAUDE.md
 
 For comprehensive workflow details including:
 - Plan requirements and format
@@ -225,10 +220,10 @@ This includes:
 
 1. ☐ Is this a new feature? → Technical Architect + Test Writer + Domain Agent
 2. ☐ Is this a bug fix? → Test Writer + Domain Agent
-3. ☐ Is this refactoring? → Refactoring Specialist + Domain Agent
-4. ☐ Is this code review? → Code Quality Enforcer + Test Writer + Domain Agent
-5. ☐ Is this documentation? → Documentation Agent
-6. ☐ Is this a git operation? → Git Specialist
+3. ☐ Is this refactoring? → Quality & Refactoring Specialist + Domain Agent
+4. ☐ Is this code review? → Quality & Refactoring Specialist + Test Writer + Domain Agent
+5. ☐ Is this documentation? → Documentation Specialist
+6. ☐ Is this a git commit? → Quality & Refactoring Specialist
 7. ☐ Are requirements unclear? → Ask user first
 
 ### Agent Quick Lookup
@@ -236,18 +231,14 @@ This includes:
 - **Planning**: Technical Architect
 - **Testing**: Test Writer
 - **TypeScript**: TypeScript Connoisseur
-- **Code Style**: Code Quality Enforcer
-- **Refactoring**: Refactoring Specialist
-- **Security**: Security Specialist
-- **API Design**: API Design Specialist
-- **Database**: Database Design Specialist
-- **Performance**: Performance Specialist
+- **Code Quality & Refactoring**: Quality & Refactoring Specialist
+- **Git Commits**: Quality & Refactoring Specialist
+- **Design (API + DB)**: Design Specialist
+- **Security & Performance**: Production Readiness Specialist
 - **Shell Scripts**: Bash/Shell Specialist
 - **React**: React Engineer
-- **Backend**: Backend TypeScript Developer
-- **AWS**: AWS CDK Expert
-- **Git**: Git Specialist
-- **Docs**: Documentation Agent
+- **Backend & AWS CDK**: Backend TypeScript Developer
+- **Documentation & ADRs**: Documentation Specialist
 
 ### Core Principles Quick Check
 
