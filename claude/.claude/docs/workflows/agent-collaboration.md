@@ -30,7 +30,7 @@ Use Task tool with:
 [SINGLE message with FOUR Task tool calls]
 
 Task 1:
-- subagent_type: "Code Quality Enforcer"
+- subagent_type: "Quality & Refactoring Specialist"
 - description: "Review code quality"
 - prompt: "Review src/payment/processor.ts for: immutability violations, nested conditionals, unclear naming, functional patterns. Return prioritized feedback."
 
@@ -45,7 +45,7 @@ Task 3:
 - prompt: "Review types in src/payment/. Check: strict mode compliance, no 'any', proper schema usage. Return type improvements."
 
 Task 4:
-- subagent_type: "Security Specialist"
+- subagent_type: "Production Readiness Specialist"
 - description: "Security review"
 - prompt: "Review payment processor for: PII handling, injection risks, authorization checks. Return security findings."
 ```
@@ -74,9 +74,9 @@ Step 3: Test Writer writes failing tests for Task 1
 Step 4: Main verifies tests fail
 Step 5: Backend Developer implements to pass tests
 Step 6: Main verifies tests pass
-Step 7: Refactoring Specialist assesses code quality
+Step 7: Quality & Refactoring Specialist assesses code quality
 Step 8: Main coordinates any refactoring
-Step 9: Git Specialist commits changes
+Step 9: Quality & Refactoring Specialist commits changes
 Step 10: Repeat for remaining tasks
 ```
 
@@ -95,10 +95,10 @@ Main Agent
 **Example: Comprehensive Code Review**
 ```
 Main invokes in parallel:
-- Code Quality Enforcer (style, patterns, anti-patterns)
+- Quality & Refactoring Specialist (style, patterns, anti-patterns)
 - Test Writer (coverage, behavior focus, test quality)
 - TypeScript Connoisseur (types, schemas, strict mode)
-- Security Specialist (vulnerabilities, PII handling)
+- Production Readiness Specialist (vulnerabilities, PII handling)
 
 Main receives all feedback, synthesizes, presents prioritized list to user.
 ```
@@ -120,11 +120,11 @@ Main Agent
 
 **Example: API Design with Security Review**
 ```
-Step 1: API Design Specialist creates initial design
+Step 1: Design Specialist creates initial design
 Step 2: Main reviews design document
-Step 3: Security Specialist reviews for security concerns
+Step 3: Production Readiness Specialist reviews for security concerns
 Step 4: Main identifies required changes
-Step 5: API Design Specialist refines design
+Step 5: Design Specialist refines design
 Step 6: Main confirms design meets all requirements
 ```
 
@@ -151,19 +151,19 @@ For each task (sequential):
   ↓
   Test Writer: Verify tests pass and coverage
   ↓
-  Refactoring Specialist: Assess refactoring (REFACTOR)
+  Quality & Refactoring Specialist: Assess refactoring (REFACTOR)
   ↓
   Domain Agent: Execute refactoring if recommended
   ↓
   Test Writer: Verify tests still pass
   ↓
-  [Security/Performance review if needed - parallel]
+  [Production Readiness review if needed - parallel]
   ↓
-  Git Specialist: Commit
+  Quality & Refactoring Specialist: Commit
   ↓
 Next task or Done
   ↓
-Documentation Agent: Capture learnings in project CLAUDE.md
+Documentation Specialist: Capture learnings in project CLAUDE.md
 ```
 
 ### When User Reports Bug
@@ -181,15 +181,15 @@ Domain Agent: Fix bug (GREEN)
   ↓
 Test Writer: Verify test passes + add edge case tests
   ↓
-Refactoring Specialist: Assess if bug indicates larger issue
+Quality & Refactoring Specialist: Assess if bug indicates larger issue
   ↓
 If larger issue identified:
   Domain Agent: Address root cause
   Test Writer: Verify all tests pass
   ↓
-Git Specialist: Commit fix
+Quality & Refactoring Specialist: Commit fix
   ↓
-Documentation Agent: Document root cause and fix
+Documentation Specialist: Document root cause and fix
 ```
 
 ### When User Requests Refactoring
@@ -197,7 +197,7 @@ Documentation Agent: Document root cause and fix
 ```
 User: "Refactor [code]"
   ↓
-Refactoring Specialist: Assess current state
+Quality & Refactoring Specialist: Assess current state
   ↓
 Test Writer: Verify 100% test coverage exists
   ↓
@@ -213,8 +213,8 @@ Tests modified?
   YES → STOP - Not true refactoring (behavior changed)
   NO → Continue
   ↓
-Code Quality Enforcer: Review refactored code (parallel)
-Performance Specialist: Verify no regressions (parallel)
+Quality & Refactoring Specialist: Review refactored code (parallel)
+Production Readiness Specialist: Verify no regressions (parallel)
   ↓
 Main synthesizes feedback
   ↓
@@ -222,9 +222,9 @@ Issues found?
   YES → Domain Agent: Address issues, repeat verification
   NO → Continue
   ↓
-Git Specialist: Commit
+Quality & Refactoring Specialist: Commit
   ↓
-Documentation Agent: Document refactoring rationale
+Documentation Specialist: Document refactoring rationale
 ```
 
 ### When User Requests Code Review
@@ -232,20 +232,15 @@ Documentation Agent: Document refactoring rationale
 ```
 User: "Review [code/PR]"
   ↓
-Security sensitive? (auth, PII, payments)
-  YES → Include Security Specialist in parallel review
-  NO → Standard review
-  ↓
-Performance critical? (API endpoints, data processing)
-  YES → Include Performance Specialist in parallel review
+Security or performance critical? (auth, PII, payments, API endpoints, data processing)
+  YES → Include Production Readiness Specialist in parallel review
   NO → Standard review
   ↓
 Main invokes in parallel:
-- Code Quality Enforcer
+- Quality & Refactoring Specialist
 - Test Writer
 - TypeScript Connoisseur
-- [Security Specialist if needed]
-- [Performance Specialist if needed]
+- [Production Readiness Specialist if needed]
   ↓
 Main receives all feedback
   ↓
@@ -265,9 +260,8 @@ Present prioritized feedback to user
 | Technology | Primary Agent | When to Invoke |
 |------------|--------------|----------------|
 | React components | React Engineer | Component implementation, hooks, SSR, client state |
-| API endpoints | Backend TypeScript Developer | Lambda functions, Express routes, API logic |
-| Database schema | Database Design Specialist | Schema design, migrations, queries, optimization |
-| AWS infrastructure | AWS CDK Expert | CDK stacks, AWS services, deployment pipelines |
+| API endpoints | Backend TypeScript Developer | Lambda functions, Express routes, API logic, AWS CDK stacks |
+| Database schema | Design Specialist | Schema design, migrations, queries, optimization |
 | Shell scripts | Bash/Shell Specialist | Installation scripts, git hooks, CLI automation |
 | Type definitions | TypeScript Connoisseur | Complex types, generics, schema design |
 | Tests | Test Writer | All testing activities, coverage verification |
@@ -276,13 +270,10 @@ Present prioritized feedback to user
 
 | Concern | Agent | When to Invoke |
 |---------|-------|----------------|
-| Security | Security Specialist | Auth, PII, payments, user input, before production |
-| Performance | Performance Specialist | Slow operations, high-traffic endpoints, optimization |
-| Code quality | Code Quality Enforcer | Style review, pattern violations, maintainability |
-| Refactoring | Refactoring Specialist | After GREEN phase (mandatory), before considering task complete |
-| API design | API Design Specialist | Before implementing endpoints, contract-first design |
-| Documentation | Documentation Agent | After feature completion, capture learnings |
-| Git operations | Git Specialist | All commits, branching, PR creation |
+| Security & Performance | Production Readiness Specialist | Auth, PII, payments, user input, slow operations, high-traffic endpoints, before production |
+| Code quality & Refactoring | Quality & Refactoring Specialist | After GREEN phase (mandatory), style review, pattern violations, maintainability, all commits, branching, PR creation |
+| API & Database design | Design Specialist | Before implementing endpoints, contract-first design, schema design |
+| Documentation | Documentation Specialist | After feature completion, capture learnings |
 
 ## Parallelization Decision Matrix
 
@@ -296,7 +287,7 @@ Present prioritized feedback to user
 **Example:**
 ```
 Parallel code review:
-[Code Quality + Test Writer + TypeScript + Security] → Synthesize
+[Quality & Refactoring + Test Writer + TypeScript + Production Readiness] → Synthesize
 ```
 
 ### Use Sequential When:
@@ -309,7 +300,7 @@ Parallel code review:
 **Example:**
 ```
 Sequential TDD:
-Test Writer (red) → Domain Agent (green) → Test Writer (verify) → Refactoring Specialist (assess)
+Test Writer (red) → Domain Agent (green) → Test Writer (verify) → Quality & Refactoring Specialist (assess)
 ```
 
 **Decision Rule:**
@@ -336,26 +327,24 @@ Step 1: Technical Architect - Break feature into testable tasks
 Step 2: Main Agent - Review task breakdown, confirm with user
 
 DESIGN PHASE (if needed)
-Step 3a: API Design Specialist - Design API contracts (parallel)
-Step 3b: Database Design Specialist - Design schema (parallel)
+Step 3: Design Specialist - Design API contracts and schema (can be parallel if needed)
 Step 4: Main Agent - Ensure designs align
 
 IMPLEMENTATION PHASE (repeat for each task)
 Step 5: Test Writer - Write failing tests (RED)
 Step 6: Domain Agent - Implement minimum code (GREEN)
 Step 7: Test Writer - Verify tests pass
-Step 8: Refactoring Specialist - Assess refactoring opportunities (REFACTOR)
+Step 8: Quality & Refactoring Specialist - Assess refactoring opportunities (REFACTOR)
 Step 9: Domain Agent - Execute refactoring if recommended
 Step 10: Test Writer - Verify tests still pass
 
-QUALITY GATES (parallel)
-Step 11a: Security Specialist - Security review (if auth/PII/payments)
-Step 11b: Performance Specialist - Performance check (if critical path)
+QUALITY GATES (parallel if needed)
+Step 11: Production Readiness Specialist - Security and performance review (if auth/PII/payments/critical path)
 Step 12: Main Agent - Synthesize feedback, coordinate fixes if needed
 
 FINALIZATION
-Step 13: Git Specialist - Commit with conventional message
-Step 14: Documentation Agent - Capture learnings in project CLAUDE.md
+Step 13: Quality & Refactoring Specialist - Commit with conventional message
+Step 14: Documentation Specialist - Capture learnings in project CLAUDE.md
 ```
 
 ### Workflow: Bug Fix
@@ -380,12 +369,12 @@ VERIFICATION
 Step 3: Test Writer - Verify test passes + add edge case tests
 
 ROOT CAUSE ANALYSIS
-Step 4: Refactoring Specialist - Assess if bug indicates larger issue
+Step 4: Quality & Refactoring Specialist - Assess if bug indicates larger issue
 Step 5: Domain Agent - Address root cause if needed (after Step 4)
 
 FINALIZATION
-Step 6: Git Specialist - Commit fix with conventional message
-Step 7: Documentation Agent - Document bug, root cause, fix
+Step 6: Quality & Refactoring Specialist - Commit fix with conventional message
+Step 7: Documentation Specialist - Document bug, root cause, fix
 ```
 
 ### Workflow: Refactoring
@@ -402,7 +391,7 @@ Step 7: Documentation Agent - Document bug, root cause, fix
 
 ```
 ASSESSMENT
-Step 1: Refactoring Specialist - Assess current code, identify opportunities
+Step 1: Quality & Refactoring Specialist - Assess current code, identify opportunities
 
 COVERAGE VERIFICATION
 Step 2: Test Writer - Verify 100% test coverage exists
@@ -414,14 +403,14 @@ Step 4: Domain Agent - Refactor maintaining public API
 VERIFICATION
 Step 5: Test Writer - Verify tests pass WITHOUT modification
 
-REVIEW (parallel)
-Step 6a: Code Quality Enforcer - Review refactored code
-Step 6b: Performance Specialist - Verify no performance regressions
-Step 7: Main Agent - Synthesize feedback
+REVIEW (parallel if needed)
+Step 6: Quality & Refactoring Specialist - Review refactored code
+Step 7: Production Readiness Specialist - Verify no performance regressions (if performance-critical code)
+Step 8: Main Agent - Synthesize feedback
 
 FINALIZATION
-Step 8: Git Specialist - Commit refactoring
-Step 9: Documentation Agent - Document refactoring rationale
+Step 9: Quality & Refactoring Specialist - Commit refactoring
+Step 10: Documentation Specialist - Document refactoring rationale
 ```
 
 ### Workflow: Pre-Production Review
@@ -436,10 +425,9 @@ Step 9: Documentation Agent - Document refactoring rationale
 
 ```
 COMPREHENSIVE AUDIT (parallel)
-Step 1a: Security Specialist - Security audit
-Step 1b: Performance Specialist - Performance audit
-Step 1c: Code Quality Enforcer - Code quality review
-Step 1d: Test Writer - Coverage and test quality verification
+Step 1a: Production Readiness Specialist - Security and performance audit
+Step 1b: Quality & Refactoring Specialist - Code quality review
+Step 1c: Test Writer - Coverage and test quality verification
 
 SYNTHESIS
 Step 2: Main Agent - Synthesize findings, prioritize by severity
@@ -447,12 +435,12 @@ Step 3: Main Agent - Present findings to user
 
 ISSUE RESOLUTION (if needed)
 Step 4: Domain Agent - Address critical/high priority issues
-Step 5: [Security/Performance/Test Writer] - Verify fixes (parallel)
+Step 5: [Production Readiness/Test Writer] - Verify fixes (parallel)
 
 FINAL VERIFICATION
 Step 6: Test Writer - Run full test suite
-Step 7: Git Specialist - Commit fixes if any
-Step 8: Documentation Agent - Document readiness assessment
+Step 7: Quality & Refactoring Specialist - Commit fixes if any
+Step 8: Documentation Specialist - Document readiness assessment
 ```
 
 ## Agent Handoff Patterns
@@ -472,7 +460,7 @@ Minimum code to make tests pass. No premature abstraction.
 Return implementation file path when complete."
 ```
 
-### Pattern: Domain Agent → Refactoring Specialist
+### Pattern: Domain Agent → Quality & Refactoring Specialist
 
 **Domain Agent completes GREEN phase:**
 ```
@@ -480,18 +468,18 @@ Domain Agent: "Payment validation implemented.
 All tests passing. Implementation in src/payment/payment-processor.ts.
 Simple conditional logic, no abstractions yet."
 
-Main Agent → Refactoring Specialist: "Assess refactoring opportunities for payment processor.
+Main Agent → Quality & Refactoring Specialist: "Assess refactoring opportunities for payment processor.
 Code: src/payment/payment-processor.ts
 Tests: src/payment/payment-processor.test.ts
 Check for: duplication, complex conditionals, unclear naming.
 Return: recommendations or confirmation code is clean."
 ```
 
-### Pattern: Refactoring Specialist → Test Writer
+### Pattern: Quality & Refactoring Specialist → Test Writer
 
-**Refactoring Specialist identifies no changes needed:**
+**Quality & Refactoring Specialist identifies no changes needed:**
 ```
-Refactoring Specialist: "Code is clean. Single responsibility, clear logic, no duplication.
+Quality & Refactoring Specialist: "Code is clean. Single responsibility, clear logic, no duplication.
 No refactoring needed. Ready for commit."
 
 Main Agent → Test Writer: "Verify final test run before commit.
@@ -503,10 +491,10 @@ Return test results and coverage."
 
 **Parallel review completion:**
 ```
-Code Quality Enforcer: "Found: 2 immutability violations, 1 nested conditional. Priority: High."
+Quality & Refactoring Specialist: "Found: 2 immutability violations, 1 nested conditional. Priority: High."
 Test Writer: "Coverage: 95%. Missing: error boundary tests. Priority: Critical."
 TypeScript Connoisseur: "Found: 1 'any' type, 2 unneeded assertions. Priority: High."
-Security Specialist: "Found: Unvalidated user input in /api/payment. Priority: Critical."
+Production Readiness Specialist: "Found: Unvalidated user input in /api/payment. Priority: Critical."
 
 Main Agent synthesizes:
 "Critical issues (fix first):
