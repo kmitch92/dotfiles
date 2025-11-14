@@ -26,11 +26,11 @@ Code review is not a single-agent activity. Comprehensive review requires securi
 
 **Scope:** Authentication, authorization, PII, payments, user input, API endpoints, data processing, high-traffic paths
 
-**Agents Invoked (parallel):**
-- Quality & Refactoring Specialist
-- Test Writer
-- TypeScript Connoisseur
-- Production Readiness Specialist ← ADDED
+**Agents Invoked (sequential batches, max 2 parallel):**
+- **Batch 1** (parallel): Quality & Refactoring Specialist + TypeScript Connoisseur
+- **Batch 2** (parallel): Production Readiness Specialist + Test Writer
+
+**Note**: Maximum 2 agents in parallel (hard limit). For comprehensive reviews requiring 3+ agents, use sequential batches.
 
 **Use when:**
 - Auth flows
@@ -46,11 +46,11 @@ Code review is not a single-agent activity. Comprehensive review requires securi
 
 **Scope:** Comprehensive readiness assessment
 
-**Agents Invoked (parallel):**
-- Quality & Refactoring Specialist
-- Test Writer
-- TypeScript Connoisseur
-- Production Readiness Specialist
+**Agents Invoked (sequential batches, max 2 parallel):**
+- **Batch 1** (parallel): Quality & Refactoring Specialist + TypeScript Connoisseur
+- **Batch 2** (parallel): Production Readiness Specialist + Test Writer
+
+**Note**: Maximum 2 agents in parallel (hard limit). For comprehensive reviews requiring 3+ agents, use sequential batches.
 
 **Use when:**
 - Before production deployment
@@ -76,13 +76,13 @@ Data transformation at scale? → Include Production Readiness Specialist
 Otherwise → Standard review
 ```
 
-### Step 2: Parallel Agent Invocation
+### Step 2: Agent Invocation (Sequential Batches)
 
-Main Agent invokes ALL relevant agents in SINGLE message (multiple Task calls).
+**Maximum 2 agents in parallel (hard limit).** For 3+ agents, use sequential batches.
 
-**Standard Review Example:**
+**Standard Review Example (3 agents - uses batches):**
 ```
-[SINGLE message with THREE Task tool calls]
+BATCH 1: [SINGLE message with TWO Task tool calls]
 
 Task 1:
 - subagent_type: "Quality & Refactoring Specialist"
@@ -90,14 +90,31 @@ Task 1:
 - prompt: "Review [files] for: immutability violations, nested conditionals, unclear naming, functional patterns, anti-patterns. Return prioritized feedback by severity."
 
 Task 2:
-- subagent_type: "Test Writer"
-- description: "Test coverage review"
-- prompt: "Review tests for [files]. Check: all behaviors tested, no implementation details, real schemas used, coverage gaps. Return missing test cases and coverage metrics."
-
-Task 3:
 - subagent_type: "TypeScript Connoisseur"
 - description: "Type safety review"
 - prompt: "Review types in [files]. Check: strict mode compliance, no 'any', proper schema usage, type assertions justified. Return type improvements needed."
+
+[Wait for Batch 1 completion, review findings]
+
+BATCH 2: [SINGLE message with ONE Task tool call]
+
+Task 3:
+- subagent_type: "Test Writer"
+- description: "Test coverage review"
+- prompt: "Review tests for [files]. Check: all behaviors tested, no implementation details, real schemas used, coverage gaps. Return missing test cases and coverage metrics."
+```
+
+**Security/Performance Review Example (4 agents - uses batches):**
+```
+BATCH 1: [SINGLE message with TWO Task tool calls]
+- Quality & Refactoring Specialist
+- TypeScript Connoisseur
+
+[Wait for Batch 1 completion, review findings]
+
+BATCH 2: [SINGLE message with TWO Task tool calls]
+- Production Readiness Specialist
+- Test Writer
 ```
 
 ### Step 3: Synthesize Feedback
@@ -341,21 +358,26 @@ Step 1: Analyze code scope
 - Files: src/payment/processor.ts, src/payment/validator.ts
 - Scope: Payment logic (security-sensitive)
 
-Step 2: Invoke agents in parallel (security review type)
-[SINGLE message, FOUR Task calls]
+Step 2: Invoke agents in batches (max 2 parallel)
+BATCH 1: [SINGLE message, TWO Task calls]
 - Quality & Refactoring Specialist
-- Test Writer
 - TypeScript Connoisseur
+
+Step 3: Receive Batch 1 feedback, review findings
+
+Step 4: Invoke Batch 2
+BATCH 2: [SINGLE message, TWO Task calls]
 - Production Readiness Specialist
+- Test Writer
 
-Step 3: Receive feedback from all agents
+Step 5: Receive Batch 2 feedback
 
-Step 4: Synthesize findings
+Step 6: Synthesize all findings
 - Group by severity
 - Identify dependencies
 - Remove duplicates
 
-Step 5: Present prioritized feedback to user
+Step 7: Present prioritized feedback to user
 ```
 
 ### Workflow: Pre-Production Review
@@ -369,21 +391,26 @@ Step 1: Analyze scope
 - Security: Payment handling, PII
 - Performance: API calls, database queries
 
-Step 2: Invoke all agents in parallel (comprehensive review)
-[SINGLE message, FOUR Task calls]
+Step 2: Invoke agents in batches (max 2 parallel)
+BATCH 1: [SINGLE message, TWO Task calls]
 - Quality & Refactoring Specialist
-- Test Writer
 - TypeScript Connoisseur
+
+Step 3: Receive Batch 1 feedback, review findings
+
+Step 4: Invoke Batch 2 (comprehensive review)
+BATCH 2: [SINGLE message, TWO Task calls]
 - Production Readiness Specialist
+- Test Writer
 
-Step 3: Receive feedback from all agents
+Step 5: Receive Batch 2 feedback
 
-Step 4: Synthesize findings with production focus
+Step 6: Synthesize all findings with production focus
 - Critical items MUST be fixed
 - High value items strongly recommended
 - Nice to have items documented for later
 
-Step 5: Present readiness assessment
+Step 7: Present readiness assessment
 - Ready to deploy (no critical issues)
 - Blocked (critical issues must be fixed first)
 - Ready with caveats (critical fixed, high value tracked)
