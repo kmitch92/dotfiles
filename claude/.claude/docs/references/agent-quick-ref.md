@@ -7,35 +7,30 @@
 | **Technical Architect** | Task breakdown, planning | New features, complex changes, unclear requirements |
 | **Test Writer** | TDD, behavioral testing | Writing tests, verifying coverage, test strategy |
 | **TypeScript Connoisseur** | TypeScript patterns, Zod schemas | Type definitions, schema design, TypeScript questions |
-| **Code Quality Enforcer** | Code style, patterns, anti-patterns | Code review, style questions, refactoring assessment |
-| **Refactoring Specialist** | Post-green refactoring | After tests pass, code improvement, abstraction |
-| **Security Specialist** | Security review, vulnerabilities | Auth, sensitive data, before production, code review |
-| **API Design Specialist** | API contracts, REST/GraphQL | Designing endpoints BEFORE implementation |
-| **Database Design Specialist** | Schema design, optimization | Database schema BEFORE implementation |
-| **Performance Specialist** | Optimization, profiling | Performance issues, before release, critical paths |
+| **Quality & Refactoring Specialist** | Code review, refactoring, git operations | Code review, post-green refactoring, git commits/PRs |
+| **Production Readiness Specialist** | Security, performance, production prep | Security review, performance optimization, pre-production audit |
+| **Design Specialist** | API & database design | Designing endpoints, schemas, contracts BEFORE implementation |
 | **Bash/Shell Specialist** | Shell scripts, automation | Installation scripts, git hooks, CLI tools |
 | **React Engineer** | React components, hooks, SSR | React-specific implementation |
-| **Backend TypeScript Developer** | Lambda, API, database patterns | Backend implementation, AWS services |
-| **AWS CDK Expert** | Infrastructure as code | CDK stacks, AWS resources, deployment |
-| **Git Specialist** | Version control, commits, PRs | Git operations, commit messages, branching |
-| **Documentation Agent** | Project documentation | Update CLAUDE.md, write docs, capture learnings |
+| **Backend TypeScript Developer** | Lambda, API, database, AWS/CDK | Backend implementation, AWS services, infrastructure as code |
+| **Documentation Specialist** | Project documentation | Update CLAUDE.md, write docs, capture learnings |
 
 ## Domain Agent Selection by Task Type
 
 | Task Type | Primary Agent | Supporting Agents |
 |-----------|--------------|-------------------|
-| API design | API Design Specialist | TypeScript Connoisseur, Security Specialist |
-| Database schema | Database Design Specialist | TypeScript Connoisseur, Backend Developer |
+| API design | Design Specialist | TypeScript Connoisseur, Production Readiness Specialist |
+| Database schema | Design Specialist | TypeScript Connoisseur, Backend Developer |
 | React component | React Engineer | TypeScript Connoisseur, Test Writer |
-| Lambda function | Backend TypeScript Developer | API Design Specialist, Database Design Specialist |
+| Lambda function | Backend TypeScript Developer | Design Specialist |
 | Shell scripts | Bash/Shell Specialist | — |
-| Security review | Security Specialist | Test Writer, Domain Agent |
-| Performance optimization | Performance Specialist | Database Design Specialist, Domain Agent |
-| CDK infrastructure | AWS CDK Expert | Backend TypeScript Developer, Security Specialist |
+| Security review | Production Readiness Specialist | Test Writer, Domain Agent |
+| Performance optimization | Production Readiness Specialist | Design Specialist, Domain Agent |
+| CDK infrastructure | Backend TypeScript Developer | Production Readiness Specialist |
 | Type definitions | TypeScript Connoisseur | — |
 | Testing | Test Writer | Domain agent for setup |
-| Refactoring | Refactoring Specialist | Code Quality Enforcer, Test Writer |
-| Git operations | Git Specialist | — |
+| Refactoring | Quality & Refactoring Specialist | Test Writer |
+| Git operations | Quality & Refactoring Specialist | — |
 
 ## Decision Tree
 
@@ -43,7 +38,7 @@
 ```
 Technical Architect (breakdown)
   ↓
-API/DB Design Specialists (if needed, parallel)
+Design Specialist (API/DB if needed)
   ↓
 FOR EACH TASK:
   Test Writer (failing test)
@@ -52,11 +47,11 @@ FOR EACH TASK:
     ↓
   Test Writer (verify)
     ↓
-  Security/Performance (if needed, parallel)
+  Production Readiness Specialist (if needed, security/performance)
     ↓
-  Refactoring Specialist (assess)
+  Quality & Refactoring Specialist (assess and refactor)
     ↓
-  Git Specialist (commit)
+  Quality & Refactoring Specialist (commit)
 ```
 
 ### Bug Fix
@@ -67,14 +62,14 @@ Domain Agent (fix)
   ↓
 Test Writer (verify + edge cases)
   ↓
-Refactoring Specialist (assess if larger issues)
+Quality & Refactoring Specialist (assess if larger issues)
   ↓
-Git Specialist (commit)
+Quality & Refactoring Specialist (commit)
 ```
 
 ### Refactoring
 ```
-Refactoring Specialist (assess)
+Quality & Refactoring Specialist (assess)
   ↓
 Test Writer (verify 100% coverage)
   ↓
@@ -82,49 +77,47 @@ Domain Agent (refactor maintaining API)
   ↓
 Test Writer (tests pass unchanged)
   ↓
-Code Quality Enforcer (review)
-  ↓
-Git Specialist (commit)
+Quality & Refactoring Specialist (review and commit)
 ```
 
 ### Code Review
 ```
-[Code Quality + Test Writer + TypeScript + Security] (parallel)
+[Quality & Refactoring + Test Writer + TypeScript + Production Readiness] (parallel)
   ↓
 Main Agent (synthesize feedback)
 ```
 
 ### Documentation
 ```
-Documentation Agent → Domain Agent (if needed) → Git Specialist
+Documentation Specialist → Domain Agent (if needed) → Quality & Refactoring Specialist
 ```
 
 ### Security Review
 ```
-Security Specialist (identify)
+Production Readiness Specialist (identify)
   ↓
 Test Writer (security tests)
   ↓
 Domain Agent (fix)
   ↓
-Security Specialist (verify)
+Production Readiness Specialist (verify)
   ↓
-Git Specialist (commit)
+Quality & Refactoring Specialist (commit)
 ```
 
 ### Performance Optimization
 ```
-Performance Specialist (profile)
+Production Readiness Specialist (profile)
   ↓
 Test Writer (benchmark)
   ↓
 Domain Agent (optimize)
   ↓
-Performance Specialist (verify)
+Production Readiness Specialist (verify)
   ↓
 Test Writer (regression test)
   ↓
-Git Specialist (commit)
+Quality & Refactoring Specialist (commit)
 ```
 
 ## Parallelization Quick Guide
@@ -147,23 +140,23 @@ Git Specialist (commit)
 ### Common Parallel Patterns
 
 **Pattern 1: Comprehensive Code Review**
-- **Agents**: Code Quality Enforcer + Test Writer + TypeScript Connoisseur + Security Specialist
+- **Agents**: Quality & Refactoring Specialist + Test Writer + TypeScript Connoisseur + Production Readiness Specialist
 - **When**: Pre-merge, pre-production, significant refactoring
 
 **Pattern 2: Parallel Design Phase**
-- **Agents**: API Design Specialist + Database Design Specialist
-- **When**: New feature requiring multiple design domains
+- **Agents**: Design Specialist (handles both API and database design)
+- **When**: New feature requiring design work (note: Design Specialist handles both API and DB)
 
 **Pattern 3: Security + Performance Audit**
-- **Agents**: Security Specialist + Performance Specialist
+- **Agents**: Production Readiness Specialist (handles both security and performance)
 - **When**: Pre-production readiness, critical features
 
 **Pattern 4: Post-Implementation Verification**
-- **Agents**: Test Writer + Security Specialist + Performance Specialist
+- **Agents**: Test Writer + Production Readiness Specialist
 - **When**: After feature implementation, before complete
 
 **Pattern 5: Parallel Investigation**
-- **Agents**: Varies (Performance + Domain Agent + Test Writer)
+- **Agents**: Varies (Production Readiness + Domain Agent + Test Writer)
 - **When**: Complex bugs requiring multiple analysis angles
 
 ## Invocation Syntax
@@ -194,12 +187,12 @@ Git Specialist (commit)
 
 **Sequential Delegation** (most common):
 ```
-Main → Architect → Test Writer → Domain Agent → Refactoring → Git
+Main → Architect → Test Writer → Domain Agent → Quality & Refactoring (assess and commit)
 ```
 
 **Parallel Consultation** (cross-cutting concerns):
 ```
-Main → [Code Quality + Test Writer + TypeScript] → Synthesize
+Main → [Quality & Refactoring + Test Writer + TypeScript] → Synthesize
 ```
 
 **Iterative Refinement** (complex tasks):
