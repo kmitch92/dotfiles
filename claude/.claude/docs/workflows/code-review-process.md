@@ -13,7 +13,7 @@ Code review is not a single-agent activity. Comprehensive review requires securi
 **Scope:** General code quality, patterns, maintainability
 
 **Agents Invoked (parallel):**
-- Code Quality Enforcer
+- Quality & Refactoring Specialist
 - Test Writer
 - TypeScript Connoisseur
 
@@ -22,33 +22,21 @@ Code review is not a single-agent activity. Comprehensive review requires securi
 - Refactoring assessment
 - General code health check
 
-### Security-Sensitive Code Review
+### Security or Performance-Sensitive Code Review
 
-**Scope:** Authentication, authorization, PII, payments, user input
+**Scope:** Authentication, authorization, PII, payments, user input, API endpoints, data processing, high-traffic paths
 
 **Agents Invoked (parallel):**
-- Code Quality Enforcer
+- Quality & Refactoring Specialist
 - Test Writer
 - TypeScript Connoisseur
-- Security Specialist ← ADDED
+- Production Readiness Specialist ← ADDED
 
 **Use when:**
 - Auth flows
 - Payment processing
 - Data handling (PII, credentials)
 - User input processing
-
-### Performance-Critical Code Review
-
-**Scope:** API endpoints, data processing, high-traffic paths
-
-**Agents Invoked (parallel):**
-- Code Quality Enforcer
-- Test Writer
-- TypeScript Connoisseur
-- Performance Specialist ← ADDED
-
-**Use when:**
 - API endpoints with SLA requirements
 - Database queries
 - Data transformation pipelines
@@ -59,11 +47,10 @@ Code review is not a single-agent activity. Comprehensive review requires securi
 **Scope:** Comprehensive readiness assessment
 
 **Agents Invoked (parallel):**
-- Code Quality Enforcer
+- Quality & Refactoring Specialist
 - Test Writer
 - TypeScript Connoisseur
-- Security Specialist
-- Performance Specialist
+- Production Readiness Specialist
 
 **Use when:**
 - Before production deployment
@@ -79,13 +66,12 @@ Main Agent analyzes code to determine review type:
 
 **Decision criteria:**
 ```
-Contains auth/authorization logic? → Security review
-Handles PII/credentials/payments? → Security review
-Processes user input? → Security review
-
-API endpoint with SLA? → Performance review
-Database operations? → Performance review
-Data transformation at scale? → Performance review
+Contains auth/authorization logic? → Include Production Readiness Specialist
+Handles PII/credentials/payments? → Include Production Readiness Specialist
+Processes user input? → Include Production Readiness Specialist
+API endpoint with SLA? → Include Production Readiness Specialist
+Database operations? → Include Production Readiness Specialist
+Data transformation at scale? → Include Production Readiness Specialist
 
 Otherwise → Standard review
 ```
@@ -99,7 +85,7 @@ Main Agent invokes ALL relevant agents in SINGLE message (multiple Task calls).
 [SINGLE message with THREE Task tool calls]
 
 Task 1:
-- subagent_type: "Code Quality Enforcer"
+- subagent_type: "Quality & Refactoring Specialist"
 - description: "Code quality review"
 - prompt: "Review [files] for: immutability violations, nested conditionals, unclear naming, functional patterns, anti-patterns. Return prioritized feedback by severity."
 
@@ -128,12 +114,13 @@ Main Agent receives all agent responses and synthesizes into prioritized list.
 
 🔴 **CRITICAL** - Must fix before merge/deploy
 - Security vulnerabilities
+- Performance issues causing user-facing problems
 - Data loss risks
 - Breaking changes without migration path
 - Broken functionality
 
 ⚠️ **HIGH VALUE** - Fix now (high impact, clear improvement)
-- Performance issues affecting UX
+- Moderate performance issues affecting UX
 - Maintainability problems (duplication, unclear abstractions)
 - Missing test coverage for critical paths
 - Type safety issues causing runtime risks
@@ -159,7 +146,7 @@ Main Agent presents synthesized findings to user with clear priority indicators.
 Code Review: [Feature/PR Name]
 
 🔴 CRITICAL (must fix before merge):
-1. [Security Specialist] Unvalidated user input in /api/payment endpoint
+1. [Production Readiness] Unvalidated user input in /api/payment endpoint
    - Impact: SQL injection risk
    - Location: src/api/payment.ts:45
    - Fix: Use parameterized queries with PaymentSchema validation
@@ -170,7 +157,7 @@ Code Review: [Feature/PR Name]
    - Fix: Add tests for payment failure, network timeout, invalid data scenarios
 
 ⚠️ HIGH VALUE (fix now):
-3. [Code Quality] Immutability violation in cart reducer
+3. [Quality & Refactoring] Immutability violation in cart reducer
    - Impact: Unpredictable state updates, debugging difficulty
    - Location: src/cart/reducer.ts:23-28
    - Fix: Use spread operator instead of array.push()
@@ -181,19 +168,19 @@ Code Review: [Feature/PR Name]
    - Fix: Define PaymentResponse type and use strict typing
 
 💡 NICE TO HAVE (consider):
-5. [Performance] Could memoize expensive calculation in ProductList
+5. [Production Readiness] Could memoize expensive calculation in ProductList
    - Impact: Minor render optimization
    - Location: src/products/ProductList.tsx:34
    - Note: Only worthwhile if profiling shows performance issue
 
 ✅ SKIP (not recommended):
-6. [Code Quality] Suggested extracting 3-line function
+6. [Quality & Refactoring] Suggested extracting 3-line function
    - Reason: Over-abstraction. Function is only used once and logic is clear inline.
 ```
 
 ## Agent Responsibilities
 
-### Code Quality Enforcer
+### Quality & Refactoring Specialist
 
 **Reviews for:**
 - Immutability violations (mutation of data)
@@ -201,10 +188,12 @@ Code Review: [Feature/PR Name]
 - Functional patterns (pure functions, composition)
 - Naming clarity (intention-revealing names)
 - Anti-patterns (God objects, feature envy)
+- Git operations (commit messages, branching strategy)
+- Refactoring opportunities
 
 **Output format:**
 ```
-Category: [Immutability/Conditionals/Naming/Patterns/Anti-patterns]
+Category: [Immutability/Conditionals/Naming/Patterns/Anti-patterns/Refactoring]
 Severity: [Critical/High/Medium/Low]
 Location: [file:line]
 Issue: [clear description]
@@ -247,43 +236,32 @@ Issue: [type safety problem]
 Fix: [how to properly type]
 ```
 
-### Security Specialist
+### Production Readiness Specialist
 
 **Reviews for:**
-- Input validation (all user input validated)
-- Injection risks (SQL, XSS, command injection)
-- Authentication/Authorization (proper checks in place)
-- PII handling (encryption, access controls)
-- Secret management (no hardcoded secrets)
+- **Security concerns:**
+  - Input validation (all user input validated)
+  - Injection risks (SQL, XSS, command injection)
+  - Authentication/Authorization (proper checks in place)
+  - PII handling (encryption, access controls)
+  - Secret management (no hardcoded secrets)
+- **Performance concerns:**
+  - Database query optimization (N+1 queries, missing indexes)
+  - Algorithmic complexity (O(n²) where O(n) possible)
+  - Memory usage (unnecessary data loading, leaks)
+  - Network calls (unnecessary requests, missing caching)
+  - Render performance (unnecessary re-renders, missing memoization)
 
 **Output format:**
 ```
-Category: [Input Validation/Injection/Auth/PII/Secrets]
+Category: [Security|Performance]
+Subcategory: [Input Validation/Injection/Auth/PII/Secrets/Database/Algorithm/Memory/Network/Rendering]
 Severity: [Critical/High/Medium/Low]
 Location: [file:line]
-Issue: [security vulnerability]
-Impact: [what could happen]
-Fix: [remediation steps]
-```
-
-### Performance Specialist
-
-**Reviews for:**
-- Database query optimization (N+1 queries, missing indexes)
-- Algorithmic complexity (O(n²) where O(n) possible)
-- Memory usage (unnecessary data loading, leaks)
-- Network calls (unnecessary requests, missing caching)
-- Render performance (unnecessary re-renders, missing memoization)
-
-**Output format:**
-```
-Category: [Database/Algorithm/Memory/Network/Rendering]
-Severity: [Critical/High/Medium/Low]
-Location: [file:line]
-Issue: [performance problem]
-Impact: [user-facing consequence]
-Fix: [optimization approach]
-Benchmark: [current vs expected performance]
+Issue: [security vulnerability or performance problem]
+Impact: [what could happen or user-facing consequence]
+Fix: [remediation steps or optimization approach]
+Benchmark: [current vs expected performance] (performance issues only)
 ```
 
 ## Synthesis Guidelines
@@ -291,19 +269,20 @@ Benchmark: [current vs expected performance]
 ### Prioritization Framework
 
 **Critical Severity Assignment:**
-- Security vulnerability (any severity from Security Specialist)
+- Security vulnerability (any severity from Production Readiness Specialist)
+- Performance issue causing user-facing problems (>500ms delay, blocking operations)
 - Data loss risk
 - Production outage risk
 - Broken core functionality
 
 **High Value Assignment:**
-- Performance issue affecting user experience (>100ms delay)
+- Moderate performance issue affecting user experience (>100ms delay)
 - Code Quality issue preventing future changes
 - Test coverage gaps for critical paths
 - Type safety issues risking runtime errors
 
 **Nice to Have Assignment:**
-- Performance optimization with small impact (<50ms)
+- Minor performance optimization (<50ms improvement)
 - Additional edge case tests for unlikely scenarios
 - Type narrowing that improves DX but doesn't prevent bugs
 - Style improvements with clear benefit
@@ -317,7 +296,7 @@ Benchmark: [current vs expected performance]
 ### Dependency Identification
 
 **Common dependencies:**
-1. Security fixes before performance optimization (security always first)
+1. Security fixes before any other changes (security always first)
 2. Test coverage before refactoring (safety net required)
 3. Type safety before optimization (need correct types for safe changes)
 4. Fix broken functionality before adding features
@@ -325,11 +304,11 @@ Benchmark: [current vs expected performance]
 **Example:**
 ```
 🔴 CRITICAL:
-1. [Security] Fix SQL injection in /api/users (FIX FIRST)
+1. [Production Readiness - Security] Fix SQL injection in /api/users (FIX FIRST)
 2. [Test Writer] Add tests for user query logic (DEPENDS ON #1 - need secure implementation to test)
 
 ⚠️ HIGH VALUE:
-3. [Performance] Optimize user query with indexing (DEPENDS ON #1,#2 - optimize after secure and tested)
+3. [Production Readiness - Performance] Optimize user query with indexing (DEPENDS ON #1,#2 - optimize after secure and tested)
 ```
 
 ### Avoiding Duplication
@@ -338,14 +317,14 @@ Multiple agents may identify the same issue from different perspectives.
 
 **Example of duplication:**
 ```
-[Code Quality] Mutation of array in cart reducer (src/cart/reducer.ts:23)
+[Quality & Refactoring] Mutation of array in cart reducer (src/cart/reducer.ts:23)
 [TypeScript] Return type of reducer is incorrect due to mutation (src/cart/reducer.ts:23)
 ```
 
 **Synthesized (deduplicated):**
 ```
 Immutability violation in cart reducer (src/cart/reducer.ts:23)
-- Code Quality: Mutation makes state updates unpredictable
+- Quality & Refactoring: Mutation makes state updates unpredictable
 - TypeScript: Mutation causes type system to miss errors
 Fix: Use spread operator to return new array
 ```
@@ -364,10 +343,10 @@ Step 1: Analyze code scope
 
 Step 2: Invoke agents in parallel (security review type)
 [SINGLE message, FOUR Task calls]
-- Code Quality Enforcer
+- Quality & Refactoring Specialist
 - Test Writer
 - TypeScript Connoisseur
-- Security Specialist
+- Production Readiness Specialist
 
 Step 3: Receive feedback from all agents
 
@@ -391,12 +370,11 @@ Step 1: Analyze scope
 - Performance: API calls, database queries
 
 Step 2: Invoke all agents in parallel (comprehensive review)
-[SINGLE message, FIVE Task calls]
-- Code Quality Enforcer
+[SINGLE message, FOUR Task calls]
+- Quality & Refactoring Specialist
 - Test Writer
 - TypeScript Connoisseur
-- Security Specialist
-- Performance Specialist
+- Production Readiness Specialist
 
 Step 3: Receive feedback from all agents
 
@@ -419,11 +397,11 @@ USER: "Fixed critical issues, re-review"
 MAIN AGENT:
 Step 1: Identify which agents reviewed affected code
 - Changed files: src/api/payment.ts
-- Original reviewers: Security Specialist, TypeScript Connoisseur
+- Original reviewers: Production Readiness Specialist, TypeScript Connoisseur
 
 Step 2: Invoke ONLY affected domain agents in parallel
 [SINGLE message, TWO Task calls]
-- Security Specialist (verify fixes)
+- Production Readiness Specialist (verify fixes)
 - TypeScript Connoisseur (verify type improvements)
 
 Step 3: Receive verification feedback
@@ -441,23 +419,22 @@ Step 5: Present updated status
 ### Pre-Merge Gate
 
 **Criteria:**
-- [ ] 🔴 Zero critical issues (security, data loss, breaks)
+- [ ] 🔴 Zero critical issues (security, performance, data loss, breaks)
 - [ ] ⚠️ High value issues addressed or tracked in backlog with justification
 - [ ] Test Writer confirms: 100% behavior coverage, no implementation detail tests
 - [ ] All tests passing
 - [ ] TypeScript: No compiler errors, strict mode compliant
 
 **Enforcement:**
-Main Agent must verify all criteria before allowing Git Specialist to merge.
+Main Agent must verify all criteria before allowing Quality & Refactoring Specialist to merge.
 
 ### Pre-Production Gate
 
 **Criteria:**
 - [ ] All Pre-Merge Gate criteria met
-- [ ] Security Specialist approval for security-sensitive features
-- [ ] Performance Specialist confirms: No critical performance issues, benchmarks met
-- [ ] Code Quality Enforcer approval: No critical maintainability issues
-- [ ] Documentation Agent: All learnings captured in project CLAUDE.md
+- [ ] Production Readiness Specialist approval for security and performance-sensitive features
+- [ ] Quality & Refactoring Specialist approval: No critical maintainability issues
+- [ ] Documentation Specialist: All learnings captured in project CLAUDE.md
 
 **Enforcement:**
 Main Agent must verify all criteria before deployment proceeds.
@@ -468,39 +445,39 @@ Main Agent must verify all criteria before deployment proceeds.
 
 **Agent response:**
 ```
-[Security Specialist] CRITICAL: Unvalidated user input in /api/payment
+[Production Readiness Specialist - Security] CRITICAL: Unvalidated user input in /api/payment
 ```
 
 **Main Agent action:**
 1. Mark as 🔴 CRITICAL in synthesized feedback
 2. Block merge/deploy until fixed
-3. After fix: Re-invoke Security Specialist to verify
+3. After fix: Re-invoke Production Readiness Specialist to verify
 4. Ensure Test Writer adds security tests
 
 ### Scenario: Conflicting Feedback
 
 **Agent responses:**
 ```
-[Code Quality] Extract this repeated code into shared function
-[Refactoring Specialist] Duplication is acceptable here - patterns differ semantically
+[Quality & Refactoring Specialist] Extract this repeated code into shared function
+[Quality & Refactoring Specialist] (Later assessment) Duplication is acceptable here - patterns differ semantically
 ```
 
 **Main Agent action:**
-1. Recognize conflict
+1. Recognize conflict or seek clarification from Quality & Refactoring Specialist
 2. Analyze context (are patterns truly the same semantically?)
-3. Make judgment call:
-   - If semantic duplication → follow Code Quality
-   - If semantic difference → follow Refactoring Specialist
+3. Make judgment call based on agent's refined assessment:
+   - If semantic duplication → extract shared function
+   - If semantic difference → keep duplication
 4. Explain reasoning in synthesized feedback
 
 ### Scenario: All Agents Approve
 
 **Agent responses:**
 ```
-[Code Quality] No issues found. Clean code.
+[Quality & Refactoring] No issues found. Clean code.
 [Test Writer] 100% coverage. All behaviors tested. No implementation detail tests.
 [TypeScript] Strict mode compliant. Proper types used. No issues.
-[Security] No security issues found.
+[Production Readiness] No security or performance issues found.
 ```
 
 **Main Agent action:**
@@ -511,7 +488,7 @@ All quality gates passed:
 - Code quality: Clean, maintainable code
 - Test coverage: 100% behavior coverage
 - Type safety: Strict mode compliant
-- Security: No vulnerabilities identified
+- Security & Performance: No issues identified
 
 Ready to merge.
 ```
