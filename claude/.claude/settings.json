@@ -71,6 +71,18 @@
   "enabledPlugins": {
     "dotfiles-commands@dotfiles-marketplace": true
   },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/scripts/notify-claude.sh"
+          }
+        ]
+      }
+    ]
+  },
   "forceLoginMethod": "claudeai",
   "alwaysThinkingEnabled": true
 }
