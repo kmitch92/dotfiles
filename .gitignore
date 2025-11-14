@@ -66,6 +66,8 @@ config/.config/nvim/.git/
 !claude/.claude/agents/**
 !claude/.claude/plugins/
 !claude/.claude/plugins/**
+!claude/.claude/docs/
+!claude/.claude/docs/**
 
 # But ignore Claude working files
 claude/.claude/debug/
