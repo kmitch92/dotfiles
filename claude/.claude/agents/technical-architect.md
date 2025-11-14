@@ -267,6 +267,9 @@ Main Agent will then delegate each task sequentially to appropriate domain agent
 - **Domain Agents**: Consult for technical feasibility when approach is unclear
 - **Documentation Agent**: Complex patterns discovered during breakdown may need documentation
 
+**For detailed collaboration patterns**: See `@~/.claude/docs/workflows/agent-collaboration.md`
+**For agent selection guidance**: See `@~/.claude/docs/references/agent-quick-ref.md`
+
 ## Workflow Integration
 
 **When invoked by Main Agent:**
@@ -284,8 +287,55 @@ Main Agent → Technical Architect (breakdown) →
   Main Agent → repeat for task 2, 3, etc.
 ```
 
+---
+
+## Output Format
+
+**Task Breakdown Deliverable:**
+
+Return task list to Main Agent in this format:
+
+```markdown
+## Feature: [Feature Name]
+
+### Priority Breakdown
+
+**P0 - Critical Path:**
+1. [Task name]
+   - **Acceptance**: Given [context], when [action], then [outcome]
+   - **Agent**: [Responsible domain agent]
+   - **Dependencies**: None | [Task numbers]
+
+2. [Next task...]
+
+**P1 - Core Functionality:**
+[... continue ...]
+
+**P2 - Enhancements:**
+[... continue ...]
+
+### Execution Order
+- Tasks 1-3: Can run in parallel
+- Task 4: Depends on tasks 1-3 completing
+- [... dependency notes ...]
+
+### Estimated Completion
+[X tasks, Y hours total]
+```
+
+**Key Requirements:**
+- Each task assigned to specific domain agent
+- Clear acceptance criteria (Given-When-Then)
+- Dependencies explicitly stated
+- Priorities and execution order clear
+- Total effort estimate included
+
+---
+
 ## Further Reading
 
 - Test-Driven Development by Kent Beck
 - Growing Object-Oriented Software, Guided by Tests
 - Main CLAUDE.md - Core development philosophy and agent orchestration
+- `@~/.claude/docs/workflows/agent-collaboration.md` - Detailed collaboration patterns
+- `@~/.claude/docs/references/agent-quick-ref.md` - Agent selection guide
