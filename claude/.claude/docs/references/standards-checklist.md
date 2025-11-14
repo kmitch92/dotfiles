@@ -50,10 +50,10 @@
 ## Pre-Merge Checklist
 
 ### Code Review
-- [ ] Code Quality Enforcer review completed
+- [ ] Quality & Refactoring Specialist review completed
 - [ ] Test Writer verified coverage
 - [ ] TypeScript Connoisseur reviewed types
-- [ ] Security Specialist reviewed (if auth/data/permissions)
+- [ ] Production Readiness Specialist reviewed (if auth/data/permissions/performance)
 - [ ] All feedback addressed
 
 ### Testing
@@ -78,7 +78,7 @@
 ## Pre-Production Checklist
 
 ### Security
-- [ ] Security Specialist full audit completed
+- [ ] Production Readiness Specialist security audit completed
 - [ ] No secrets in code
 - [ ] Authentication/authorization tested
 - [ ] Input validation at all boundaries
@@ -87,7 +87,7 @@
 - [ ] CSRF protection verified (if applicable)
 
 ### Performance
-- [ ] Performance Specialist review completed
+- [ ] Production Readiness Specialist performance review completed
 - [ ] No N+1 queries
 - [ ] Database indexes optimized
 - [ ] Response times measured
@@ -102,7 +102,7 @@
 - [ ] Monitoring/logging in place
 
 ### Infrastructure
-- [ ] AWS CDK Expert reviewed infrastructure
+- [ ] Backend TypeScript Developer reviewed infrastructure
 - [ ] IAM permissions principle of least privilege
 - [ ] Resources tagged appropriately
 - [ ] Cost optimization reviewed

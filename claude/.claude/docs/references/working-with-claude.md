@@ -197,17 +197,17 @@ After completing work:
 - Edge cases covered
 - 100% coverage side effect
 
-**Refactoring Specialist** → Assess and refactor
+**Quality & Refactoring Specialist** → Assess and refactor
 - Identify improvements
 - Refactor if valuable
 - Maintain test pass
 
-**Git Specialist** → Commit changes
+**Quality & Refactoring Specialist** → Commit changes
 - Conventional commit format
 - Explain "why" not "what"
 - Reference tickets
 
-**4. Documentation (Documentation Agent)**
+**4. Documentation (Documentation Specialist)**
 - Update project CLAUDE.md
 - Capture learnings
 - Document decisions
@@ -231,9 +231,9 @@ After completing work:
 ```
 Step 1: Test Writer - Write failing tests for user authentication
 Step 2: Backend TypeScript Developer - Implement auth to pass tests (after Step 1)
-Step 3: Security Specialist - Security review auth implementation (after Step 2)
-Step 4: Refactoring Specialist - Assess refactoring opportunities (after Step 2)
-Step 5: Git Specialist - Commit auth implementation (after Steps 3 and 4)
+Step 3: Production Readiness Specialist - Security review auth implementation (after Step 2)
+Step 4: Quality & Refactoring Specialist - Assess refactoring opportunities (after Step 2)
+Step 5: Quality & Refactoring Specialist - Commit auth implementation (after Steps 3 and 4)
 ```
 
 **2. Use Consistent Format**
@@ -475,10 +475,9 @@ Main Agent:
    - Test Writer (failing test)
    - Backend Developer (implement)
    - Test Writer (verify)
-   - Security Specialist (review)
-   - Refactoring Specialist (assess)
-   - Git Specialist (commit)
-4. Documentation Agent (update CLAUDE.md)
+   - Production Readiness Specialist (review)
+   - Quality & Refactoring Specialist (assess and commit)
+4. Documentation Specialist (update CLAUDE.md)
 ```
 
 ### Fixing Bug
@@ -492,8 +491,7 @@ Main Agent:
 2. Test Writer (write failing test that reproduces bug)
 3. Backend Developer (fix bug)
 4. Test Writer (verify fix, add edge cases)
-5. Refactoring Specialist (assess if larger issues)
-6. Git Specialist (commit)
+5. Quality & Refactoring Specialist (assess if larger issues and commit)
 ```
 
 ### Code Review
@@ -504,10 +502,10 @@ User: "Review this code"
 
 Main Agent:
 1. Delegate to multiple agents in parallel:
-   - Code Quality Enforcer (style, patterns)
+   - Quality & Refactoring Specialist (style, patterns)
    - Test Writer (test coverage)
    - TypeScript Connoisseur (types)
-   - Security Specialist (security)
+   - Production Readiness Specialist (security, performance)
 2. Synthesize feedback by severity
 3. Present prioritized recommendations
 ```
