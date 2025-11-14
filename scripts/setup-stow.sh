@@ -27,9 +27,8 @@ PACKAGES=()
 for dir in */; do
     package="${dir%/}"
 
-    # Skip hidden directories, scripts, mcp, and README
-    # mcp/ is managed separately by setup-mcp.sh (template substitution, not symlinks)
-    if [[ "$package" != .* ]] && [[ "$package" != "scripts" ]] && [[ "$package" != "mcp" ]] && [[ "$package" != "README"* ]]; then
+    # Skip hidden directories, scripts, and README
+    if [[ "$package" != .* ]] && [[ "$package" != "scripts" ]] && [[ "$package" != "README"* ]]; then
         PACKAGES+=("$package")
     fi
 done
