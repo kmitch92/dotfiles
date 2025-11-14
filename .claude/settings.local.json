@@ -27,7 +27,8 @@
       "WebFetch(domain:github.com)",
       "Bash(awk:*)",
       "Bash(stat:*)",
-      "Bash(npx:*)"
+      "Bash(npx:*)",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ],
     "deny": [],
     "ask": []
