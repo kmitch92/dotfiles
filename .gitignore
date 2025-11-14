@@ -12,9 +12,6 @@
 # Ignore everything in config directory
 config/.config/*
 
-# Ignore everything in claude working directory
-claude/.claude/*
-
 # Ignore everything in .local (if stowed)
 .local/*
 
@@ -68,27 +65,6 @@ config/.config/nvim/plugin/
 config/.config/nvim/.git/
 
 # -----------------------------------------------------------------------------
-# WHITELIST: Claude Configuration (selective)
-# -----------------------------------------------------------------------------
-!claude/.claude/CLAUDE.md
-!claude/.claude/settings.json
-!claude/.claude/agents/
-!claude/.claude/agents/**
-!claude/.claude/plugins/
-!claude/.claude/plugins/**
-!claude/.claude/docs/
-!claude/.claude/docs/**
-
-# But ignore Claude working files
-claude/.claude/debug/
-claude/.claude/history.jsonl
-claude/.claude/shell-snapshots/
-claude/.claude/statsig/
-claude/.claude/todos/
-claude/.claude/settings.local.json
-claude/.claude/*.log
-
-# -----------------------------------------------------------------------------
 # WHITELIST: Root Configuration Files
 # -----------------------------------------------------------------------------
 # Scripts directory (whitelist everything)
@@ -102,11 +78,6 @@ claude/.claude/*.log
 # Tmux configuration
 !tmux/
 !tmux/**
-
-# MCP configuration
-!mcp/
-!mcp/**
-!.env.mcp
 
 # Core dotfiles
 !.zshrc
@@ -132,11 +103,6 @@ claude/.claude/*.log
 !CHANGELOG.md
 !LICENSE
 
-# Claude project files
-!.claude/
-!.claude/CLAUDE.md
-!.claude/settings.json
-
 # -----------------------------------------------------------------------------
 # ALWAYS IGNORE: System & Generated Files
 # -----------------------------------------------------------------------------
@@ -147,7 +113,6 @@ claude/.claude/*.log
 .install_status
 
 # Environment files with secrets
-.env.mcp.local
 *.local
 
 # Backups
