@@ -5,8 +5,8 @@ completed|Terminal Emulators
 completed|Development Runtimes
 completed|Development Tools
 completed|Docker
-completed|Claude Code
+skipped|Claude Code
 completed|Shell Tools
 completed|Shell Configuration
 completed|Dotfiles Stow
-completed|MCP Configuration
+skipped|MCP Configuration
