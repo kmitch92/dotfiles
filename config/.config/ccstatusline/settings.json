@@ -8,14 +8,14 @@
         "color": "white"
       },
       {
-        "id": "2",
-        "type": "git-changes",
-        "color": "brightGreen"
-      },
-      {
         "id": "3",
         "type": "git-worktree",
         "color": "brightYellow"
+      },
+      {
+        "id": "2",
+        "type": "session-cost",
+        "color": "brightGreen"
       },
       {
         "id": "5",
@@ -31,23 +31,6 @@
         "id": "7",
         "type": "session-clock",
         "color": "brightYellow"
-      }
-    ],
-    [
-      {
-        "id": "fd38ef02-e40d-4050-bc1f-5e3e5203746a",
-        "type": "output-style",
-        "color": "brightRed"
-      },
-      {
-        "id": "49dc8c5f-f6dc-4cfc-8c6e-4a8d81735e44",
-        "type": "current-working-dir",
-        "color": "brightRed"
-      },
-      {
-        "id": "16bf9340-173a-4a30-93f1-596d2bca3b91",
-        "type": "session-cost",
-        "backgroundColor": "bgBlue"
       }
     ],
     []
