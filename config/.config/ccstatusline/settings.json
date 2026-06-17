@@ -19,17 +19,12 @@
       },
       {
         "id": "5",
-        "type": "context-percentage-usable",
+        "type": "context-percentage",
         "color": "white"
       },
       {
-        "id": "6",
-        "type": "context-length",
-        "color": "brightGreen"
-      },
-      {
         "id": "7",
-        "type": "session-clock",
+        "type": "session-cost",
         "color": "brightYellow"
       }
     ],
@@ -44,7 +39,7 @@
   "powerline": {
     "enabled": true,
     "separators": [
-      ""
+      ""
     ],
     "separatorInvertBackground": [
       false
