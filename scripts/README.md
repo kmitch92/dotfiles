@@ -19,7 +19,6 @@ scripts/
 ├── install-packages.sh         # System packages (stow, git, curl, etc.)
 ├── install-runtimes.sh         # Python, Node, npm
 ├── install-shell-tools.sh      # Oh My Zsh, plugins
-├── install-claude-code.sh      # Claude Code CLI
 ├── install-terminals.sh        # Terminal emulators
 ├── setup-shell.sh              # Shell configuration
 └── setup-stow.sh               # GNU Stow dotfile linking
@@ -53,7 +52,7 @@ Examples:
 ### What Stays Shared?
 
 Scripts remain in the root `scripts/` directory when they:
-- Work the same on all platforms (e.g., Claude Code installation)
+- Work the same on all platforms
 - Only need simple OS detection (e.g., install-homebrew.sh only runs on macOS)
 - Don't use OS-specific commands
 
