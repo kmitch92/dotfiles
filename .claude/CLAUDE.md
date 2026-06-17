@@ -671,7 +671,7 @@ If you manually install fonts to `~/Library/Fonts/` (macOS) or `~/.local/share/f
 ## Tmux Configuration
 
 ### Overview
-Tmux configuration with Catppuccin Mocha theme, vim-like keybindings, and smart automatic window naming.
+Tmux configuration with Gruvbox Dark Hard theme, vim-like keybindings, and smart automatic window naming.
 
 ### Window Naming
 
@@ -744,7 +744,7 @@ set-option -g automatic-rename-format '#(~/.config/tmux/scripts/tmux-window-name
 - **Resize panes**: `Prefix + H/J/K/L` (capital letters)
 - **Copy mode**: Vim-like (`v` to select, `y` to yank)
 - **Mouse support**: Enabled for pane selection and resizing
-- **Catppuccin Mocha theme**: Purple accents, dark background
+- **Gruvbox Dark Hard theme**: Warm orange/amber accents, dark background #1d2021
 - **Status bar**: Shows session name, user, date/time, hostname
 
 ## MCP Server Configuration
