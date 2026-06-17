@@ -6,34 +6,36 @@
 # Get editor completions based on the config schema
 "$schema" = 'https://starship.rs/config-schema.json'
 
-# Catppuccin Mocha Palette
-palette = "catppuccin_mocha"
+# Gruvbox Dark Hard Palette
+palette = "gruvbox"
 
-# Format of the prompt
+# Format of the prompt (Gruvbox Powerline, single-line)
 format = """
-[╭─](mauve)\
+[](fg:surface)\
 $username\
-$hostname\
+[](fg:surface bg:blue)\
 $directory\
+[](fg:blue bg:orange)\
 $git_branch\
 $git_status\
+[](fg:orange bg:surface)\
 $nodejs\
 $python\
 $rust\
 $golang\
-$aws\
-$docker_context\
-$kubernetes\
+[](fg:surface bg:yellow)\
+$cmd_duration\
+[](fg:yellow)\
 $line_break\
-[╰─](mauve)$character"""
+$character"""
 
 # Right-side format (status bar elements)
-right_format = """$cmd_duration\
+right_format = """$custom\
 $time\
 $battery"""
 
 # Continuation prompt
-continuation_prompt = "[∙](mauve) "
+continuation_prompt = "[∙](orange) "
 
 # General settings
 add_newline = true
@@ -49,33 +51,34 @@ error_symbol = "[✗](bold red)"
 vicmd_symbol = "[V](bold yellow)"
 
 [username]
-style_user = "bold blue"
-style_root = "bold red"
-format = "[$user]($style) "
+style_user = "fg:fg bg:surface"
+style_root = "fg:red bg:surface"
+format = "[ $user ]($style)"
 disabled = false
-show_always = false
+show_always = true
 
 [hostname]
 ssh_only = true
-format = "on [$hostname](bold yellow) "
+format = "[ $hostname ](fg:fg bg:surface)"
 disabled = false
 
 [directory]
-format = "in [$path]($style)[$read_only]($read_only_style) "
-style = "bold cyan"
+format = "[ $path ]($style)[$read_only]($read_only_style)"
+style = "fg:bg bg:blue"
+read_only_style = "fg:bg bg:blue"
 truncation_length = 3
 truncate_to_repo = true
 read_only = " 🔒"
 home_symbol = "~"
 
 [git_branch]
-format = "on [$symbol$branch(:$remote_branch)]($style) "
+format = "[ $symbol$branch(:$remote_branch) ]($style)"
 symbol = " "
-style = "bold purple"
+style = "fg:bg bg:orange"
 
 [git_status]
-format = '([\[$all_status$ahead_behind\]]($style) )'
-style = "bold red"
+format = '[ $all_status$ahead_behind ]($style)'
+style = "fg:bg bg:orange"
 conflicted = "⚔️ "
 ahead = "⇡${count}"
 behind = "⇣${count}"
@@ -88,24 +91,24 @@ renamed = "»${count}"
 deleted = "✘${count}"
 
 [nodejs]
-format = "via [$symbol($version )]($style)"
+format = "[ $symbol($version) ]($style)"
 symbol = " "
-style = "bold green"
+style = "fg:green bg:surface"
 
 [python]
-format = "via [$symbol$pyenv_prefix($version )]($style)"
+format = "[ $symbol$pyenv_prefix($version) ]($style)"
 symbol = " "
-style = "bold yellow"
+style = "fg:yellow bg:surface"
 
 [rust]
-format = "via [$symbol($version )]($style)"
+format = "[ $symbol($version) ]($style)"
 symbol = "🦀 "
-style = "bold red"
+style = "fg:red bg:surface"
 
 [golang]
-format = "via [$symbol($version )]($style)"
+format = "[ $symbol($version) ]($style)"
 symbol = " "
-style = "bold cyan"
+style = "fg:aqua bg:surface"
 
 [aws]
 format = 'on [$symbol($profile )(\($region\) )]($style)'
@@ -124,13 +127,13 @@ disabled = false
 
 [cmd_duration]
 min_time = 500
-format = "took [$duration](bold yellow) "
+format = "[  $duration ](fg:bg bg:yellow)"
 show_milliseconds = false
 
 [time]
 disabled = false
-format = "[$time]($style) "
-style = "bold white"
+format = "[ $time ]($style)"
+style = "fg:fg bg:surface"
 time_format = "%H:%M:%S"
 
 [battery]
@@ -176,33 +179,33 @@ symbol = "ﯣ "
 format = "via [$symbol$workspace]($style) "
 
 # ============================================================================
-# Catppuccin Mocha Color Palette
+# Gruvbox Dark Hard Color Palette
 # ============================================================================
 
-[palettes.catppuccin_mocha]
-rosewater = "#f5e0dc"
-flamingo = "#f2cdcd"
-pink = "#f5c2e7"
-mauve = "#cba6f7"
-red = "#f38ba8"
-maroon = "#eba0ac"
-peach = "#fab387"
-yellow = "#f9e2af"
-green = "#a6e3a1"
-teal = "#94e2d5"
-sky = "#89dceb"
-sapphire = "#74c7ec"
-blue = "#89b4fa"
-lavender = "#b4befe"
-text = "#cdd6f4"
-subtext1 = "#bac2de"
-subtext0 = "#a6adc8"
-overlay2 = "#9399b2"
-overlay1 = "#7f849c"
-overlay0 = "#6c7086"
-surface2 = "#585b70"
-surface1 = "#45475a"
-surface0 = "#313244"
-base = "#1e1e2e"
-mantle = "#181825"
-crust = "#11111b"
+[palettes.gruvbox]
+bg = "#1d2021"
+fg = "#ebdbb2"
+red = "#fb4934"
+green = "#b8bb26"
+yellow = "#fabd2f"
+blue = "#458588"
+purple = "#d3869b"
+magenta = "#d3869b"
+aqua = "#8ec07c"
+cyan = "#8ec07c"
+orange = "#fe8019"
+gray = "#928374"
+surface = "#3c3836"
+overlay = "#504945"
+
+# ============================================================================
+# dbz-marketplace badges (personal mode + AWS account)
+# Defined in /Users/kiel.mitchell/Development/dbz-marketplace/cli/dmp.zsh
+# ============================================================================
+
+[custom.dmp]
+description = "DBZ marketplace personal-mode + AWS account badges"
+command = 'source /Users/kiel.mitchell/Development/dbz-marketplace/cli/dmp.zsh && _dmp_emit_badges'
+shell = ['zsh', '-f']
+when = 'case "$PWD" in *dbz-marketplace*) true ;; *) false ;; esac'
+format = '$output '
