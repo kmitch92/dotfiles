@@ -59,6 +59,12 @@ if [[ "$OSTYPE" == "linux-gnu"* ]] && [[ -f "$HOME/snap/code/209/.local/share/..
     . "$HOME/snap/code/209/.local/share/../bin/env"
 fi
 
+# ============================================================================
+# Aliases
+# ============================================================================
+# kvim - launch the kickstart.nvim trial config (isolated from LazyVim `nvim`)
+alias kvim='NVIM_APPNAME=nvim-kickstart nvim'
+
 export VOLTA_HOME="$HOME/.volta"
 export PATH="$VOLTA_HOME/bin:$PATH"
 
