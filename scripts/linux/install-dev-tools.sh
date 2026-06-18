@@ -13,8 +13,8 @@ TOOLS_TO_INSTALL=()
 # Essential Tools
 # =============================================================================
 
-# Neovim - LazyVim requires >= 0.10.0 (we install from stable channel)
-NVIM_REQUIRED_VERSION="0.10.0"
+# Neovim - LazyVim main-branch treesitter requires >= 0.12 (needs the vim.list API)
+NVIM_REQUIRED_VERSION="0.12.0"
 NVIM_NEEDS_UPGRADE=false
 
 check_nvim_version() {
@@ -202,11 +202,12 @@ install_neovim_appimage() {
         sudo rm -f /usr/bin/nvim.dev.backup
     fi
 
-    # Download latest stable Neovim AppImage (not nightly/dev builds)
-    # Use v0.11.4 as the stable version (GitHub no longer has a 'stable' tag)
-    print_info "Downloading stable Neovim AppImage (v0.11.4)..."
+    # Download a specific stable Neovim AppImage (not nightly/dev builds)
+    # Pin v0.12.3 (GitHub no longer has a 'stable' tag); 0.12+ required for
+    # nvim-treesitter main branch (vim.list API) used by LazyVim
+    print_info "Downloading stable Neovim AppImage (v0.12.3)..."
     local tmp_dir=$(mktemp -d)
-    local download_url="https://github.com/neovim/neovim/releases/download/v0.11.4/$appimage_name"
+    local download_url="https://github.com/neovim/neovim/releases/download/v0.12.3/$appimage_name"
 
     cd "$tmp_dir"
 
