@@ -126,6 +126,44 @@ else
     print_warning "npm not found (usually comes with Node.js)"
 fi
 
+# =============================================================================
+# tree-sitter CLI Installation (parser compiler for nvim-treesitter)
+# =============================================================================
+# nvim-treesitter's main branch compiles parsers via the `tree-sitter` CLI
+# (not `cc`). Without it, :TSUpdate / parser installs fail with:
+#   "no such file or directory (cmd): 'tree-sitter'"
+echo ""
+print_info "Checking tree-sitter CLI (parser compiler for nvim-treesitter)..."
+
+if command_exists tree-sitter; then
+    TREE_SITTER_VERSION=$(tree-sitter --version 2>&1 | awk '{print $2}')
+    print_success "tree-sitter found: $TREE_SITTER_VERSION"
+else
+    print_warning "tree-sitter CLI not installed"
+    print_info "Required by nvim-treesitter (main branch) to compile parsers"
+
+    if confirm "Install tree-sitter CLI?"; then
+        if is_macos; then
+            # NOTE: the formula is 'tree-sitter-cli', NOT 'tree-sitter'
+            # ('tree-sitter' installs only the library, not the CLI binary)
+            print_info "Installing tree-sitter CLI via Homebrew..."
+            brew install tree-sitter-cli
+        elif is_linux; then
+            # npm/Node is installed earlier in this script, so it's available
+            print_info "Installing tree-sitter CLI via npm..."
+            npm install -g tree-sitter-cli
+        fi
+
+        # Verify installation
+        if command_exists tree-sitter; then
+            TREE_SITTER_VERSION=$(tree-sitter --version 2>&1 | awk '{print $2}')
+            print_success "tree-sitter installed: $TREE_SITTER_VERSION"
+        else
+            print_warning "tree-sitter installation may require shell restart"
+        fi
+    fi
+fi
+
 # Optional: nvm for Node version management
 if ! command_exists nvm; then
     echo ""
