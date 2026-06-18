@@ -5,6 +5,38 @@ This is a comprehensive dotfiles repository that provides automated setup for de
 
 ## Critical Issues Fixed
 
+### Neovim Treesitter / noice.nvim "Invalid node type tab" Error on Save (Fixed: 2026-06-18)
+
+**Problem**:
+- On `:w`/`:wq`, a noice.nvim error box flashed: `runtime/lua/vim/treesitter/query.lua:373: Query error at 113:4. Invalid node type "tab"`.
+- The file saved correctly — the error was purely cosmetic, from noice rendering the "written" message.
+
+**Root Cause**:
+- noice.nvim highlights Neovim messages (the `vim` filetype) using treesitter.
+- A `:Lazy update` had advanced nvim-treesitter to a `main`-branch commit (4916d6592ede8c07973490d9322f187e07dfefac) whose query files (queries/vim/highlights.scm line 113) reference a new grammar node `"tab"`.
+- The installed compiled parser (`~/.local/share/nvim/site/parser/vim.so`, built 24-Oct-2025) was an older grammar that lacked the `tab` node → treesitter query error.
+- Deeper incompatibility: that nvim-treesitter `main` commit calls `vim.list.unique`, an API that does NOT exist in Neovim 0.11.4. The `main` branch requires Neovim 0.12+. LazyVim's own treesitter spec guards this: `commit = vim.fn.has("nvim-0.12") == 0 and "7caec274fd19c12b55902a5b795100d21531391f" or nil` — pinning the last 0.11-compatible commit when on nvim < 0.12 — but the repo's lazy-lock.json had recorded the newer incompatible commit.
+
+**Solution Applied**:
+1. Neovim upgraded 0.11.4 → 0.12.3 (occurred as a side effect of `brew install tree-sitter`, which pulled neovim as a dependency; on 0.12 the `vim.list` API exists so the modern nvim-treesitter main branch is natively supported).
+2. Installed the tree-sitter CLI: `brew install tree-sitter-cli` (v0.26.9). The nvim-treesitter `main` branch compiles parsers via the `tree-sitter` CLI, not `cc`; without it, parser compilation fails with `no such file or directory (cmd): 'tree-sitter'`. NOTE: `brew install tree-sitter` installs only the library — the CLI is the separate `tree-sitter-cli` formula.
+3. Recompiled all 25 installed treesitter parsers against the current plugin (`require('nvim-treesitter.install').install(<all>, {force=true})`), so parser binaries match the query files.
+4. Verified: edit + `:wq` on a .lua file exits cleanly with no error box and content saved.
+5. Hardened the repo so fresh installs don't recur: bumped the Linux Neovim pin to v0.12.3 (NVIM_REQUIRED_VERSION 0.10.0 → 0.12.0) in `scripts/linux/install-dev-tools.sh`, and added tree-sitter CLI installation to `scripts/install-runtimes.sh` (macOS `brew install tree-sitter-cli`, Linux `npm install -g tree-sitter-cli`).
+
+**Files Modified**:
+- System: Neovim 0.11.4 → 0.12.3 (Homebrew); installed tree-sitter-cli 0.26.9; recompiled `~/.local/share/nvim/site/parser/*.so`
+- `scripts/linux/install-dev-tools.sh` (Neovim version pin 0.11.4 → 0.12.3, required version 0.10.0 → 0.12.0)
+- `scripts/install-runtimes.sh` (added tree-sitter CLI install block)
+- `.claude/CLAUDE.md` (this entry)
+
+**Key Lessons**:
+1. **nvim-treesitter `main` requires Neovim 0.12+ and the `tree-sitter` CLI** - Both the CLI and a compatible nvim version are hard requirements for building parsers from `main`.
+2. **`:Lazy update` can bypass LazyVim's version-guard pins** - lazy-lock.json records the newer incompatible commit. When on stable Neovim, verify nvim-treesitter stays on the commit LazyVim pins for your nvim version.
+3. **"Invalid node type X" means parser is older than query files** - Fix by recompiling parsers (`:TSUpdate`), not by editing queries.
+4. **`tree-sitter` vs `tree-sitter-cli` are separate Homebrew formulae** - `brew install tree-sitter` installs only the library; `brew install tree-sitter-cli` provides the `tree-sitter` binary that nvim-treesitter invokes.
+5. **A noice error box on save does not mean the save failed** - It is noice rendering a message-highlighting error; the file write succeeds regardless.
+
 ### Playwright MCP Package Migration (Fixed: 2025-10-30)
 
 **Problem**:
