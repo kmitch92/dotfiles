@@ -1,0 +1,9 @@
+# ~/.zshrc.local — machine-local zsh overrides (NOT tracked in git)
+#
+# Copy this file to ~/.zshrc.local on machines that need extra, non-public
+# sourcing (e.g. work CLIs). It is sourced at the end of ~/.zshrc if present.
+#
+#   cp ~/dotfiles/zsh/.zshrc.local.template ~/.zshrc.local
+#
+# Example (work machine):
+# source "$HOME/Development/dbz-marketplace/cli/dmp.zsh"
