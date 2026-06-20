@@ -1055,6 +1055,32 @@ Examples:
 - `mcp__sequential-thinking__sequentialthinking`
 - `mcp__browser-tools__runAccessibilityAudit`
 
+### Machine-Local Zsh Overrides (Added: 2026-06-20)
+
+**Problem**:
+`zsh/.zshrc` contained a hardcoded work-machine path (`/Users/kiel.mitchell/.../dmp.zsh`). This leaked a private filesystem path into the public repo and errored on every non-work machine (file not found on Linux, different macOS username).
+
+**Solution Applied**:
+Removed the hardcoded `source` call. `zsh/.zshrc` now ends with:
+```bash
+[ -f "$HOME/.zshrc.local" ] && source "$HOME/.zshrc.local"
+```
+Machine-specific sourcing (work tools, private paths, host-only env vars) goes in `~/.zshrc.local`, which is untracked. A tracked template `zsh/.zshrc.local.template` documents the pattern and provides a starting point.
+
+**Convention**:
+Mirrors the `.env.mcp.local` secrets pattern — the public repo stays generic; machine-local customisation lives in gitignored `.local` files. `.gitignore` now includes `.zshrc.local`.
+
+**Usage on a new machine**:
+```bash
+cp ~/dotfiles/zsh/.zshrc.local.template ~/.zshrc.local
+# Edit ~/.zshrc.local and add machine-specific source calls / env vars
+```
+
+**Files Modified**:
+- `zsh/.zshrc` (removed hardcoded path, added conditional local source)
+- `zsh/.zshrc.local.template` (new tracked template)
+- `.gitignore` (added `.zshrc.local`)
+
 ## Future Improvements
 - [ ] Add version pinning option (e.g., install specific Neovim version)
 - [ ] Add automated testing for install scripts
