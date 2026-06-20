@@ -11,10 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **zoxide** integration in `.zshrc`: `z` for frecency-based directory jumping, `zi` for interactive fzf pick; fzf key-bindings and completion also enabled; `zsh-interactive-cd` retained alongside
 - **Telescope** Neovim plugin: find files (`<leader><space>` / `<leader>ff`), live grep (`<leader>/`), buffer list (`<leader>,`); depends on `fd` (added as Homebrew dependency)
 - **neo-tree** Neovim file explorer: toggle with `<leader>e`, follows the current file automatically
+- **`zsh/.zshrc.local.template`**: tracked template documenting the machine-local zsh override convention; copy to `~/.zshrc.local` and add machine-specific sourcing there
 
 ### Changed
 - **Theme**: Replaced Catppuccin Mocha with **Gruvbox Dark Hard** (`bg #1d2021`) across all 5 terminal emulators (Alacritty, Ghostty, Kitty, WezTerm, iTerm2), tmux status bar, Starship prompt, and Neovim colorscheme (`gruvbox.nvim`, hard contrast)
 - **Starship prompt**: Converted from two-line Catppuccin layout to single-line Gruvbox powerline style
+- **`zsh/.zshrc`**: removed hardcoded work-machine path; now conditionally sources `~/.zshrc.local` if present, keeping machine-specific config out of the public repo
 
 ### Removed
 - `example.lua` no-op plugin stub from Neovim config
