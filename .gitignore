@@ -174,3 +174,6 @@ __pycache__/
 # To check what's being tracked: git ls-files
 # To check what's being ignored: git status --ignored
 # To stop tracking a file: git rm --cached <file>
+
+# Machine-local zsh overrides (work paths, secrets)
+.zshrc.local
