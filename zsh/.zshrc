@@ -71,6 +71,19 @@ if command -v starship &> /dev/null; then
 fi
 
 # ============================================================================
+# zoxide + fzf - smarter navigation
+# ============================================================================
+# zoxide - smarter cd (z <dir> to jump, zi for fzf interactive pick)
+if command -v zoxide &>/dev/null; then
+  eval "$(zoxide init zsh)"
+fi
+
+# fzf key bindings and fuzzy completion (Ctrl-T files, Ctrl-R history, Alt-C cd)
+if command -v fzf &>/dev/null; then
+  source <(fzf --zsh) 2>/dev/null || true
+fi
+
+# ============================================================================
 # tmux Auto-Start
 # ============================================================================
 # Automatically start tmux for interactive shells
@@ -164,4 +177,10 @@ fix-husky-worktree() {
     fi
 }
 
-. "$HOME/.local/bin/env"
+export PATH="$HOME/.local/bin:$PATH"
+
+#. "$HOME/.local/bin/env"
+
+
+source "/Users/kiel.mitchell/Development/dbz-marketplace/cli/dmp.zsh"
+

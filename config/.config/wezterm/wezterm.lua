@@ -75,8 +75,8 @@ wezterm.on('update-right-status', function(window, pane)
   table.insert(elements, time)
   
   window:set_right_status(wezterm.format({
-    { Foreground = { Color = '#cdd6f4' } },
-    { Background = { Color = '#313244' } },
+    { Foreground = { Color = '#ebdbb2' } },
+    { Background = { Color = '#3c3836' } },
     { Text = ' ' .. table.concat(elements, ' │ ') .. ' ' },
   }))
 end)
@@ -101,63 +101,63 @@ config.front_end = "WebGpu"
 -- Shell
 config.default_prog = { '/bin/zsh', '-l' }
 
--- Catppuccin Mocha Color Scheme
+-- Gruvbox Dark Hard Color Scheme
 config.colors = {
-  foreground = '#cdd6f4',
-  background = '#1e1e2e',
-  cursor_bg = '#f5e0dc',
-  cursor_border = '#f5e0dc',
-  cursor_fg = '#1e1e2e',
-  selection_bg = '#585b70',
-  selection_fg = '#cdd6f4',
-  
+  foreground = '#ebdbb2',
+  background = '#1d2021',
+  cursor_bg = '#ebdbb2',
+  cursor_border = '#ebdbb2',
+  cursor_fg = '#1d2021',
+  selection_bg = '#504945',
+  selection_fg = '#ebdbb2',
+
   ansi = {
-    '#45475a', -- black
-    '#f38ba8', -- red
-    '#a6e3a1', -- green
-    '#f9e2af', -- yellow
-    '#89b4fa', -- blue
-    '#f5c2e7', -- magenta
-    '#94e2d5', -- cyan
-    '#bac2de', -- white
+    '#282828', -- black
+    '#cc241d', -- red
+    '#98971a', -- green
+    '#d79921', -- yellow
+    '#458588', -- blue
+    '#b16286', -- magenta
+    '#689d6a', -- cyan
+    '#a89984', -- white
   },
-  
+
   brights = {
-    '#585b70', -- bright black
-    '#f38ba8', -- bright red
-    '#a6e3a1', -- bright green
-    '#f9e2af', -- bright yellow
-    '#89b4fa', -- bright blue
-    '#f5c2e7', -- bright magenta
-    '#94e2d5', -- bright cyan
-    '#a6adc8', -- bright white
+    '#928374', -- bright black
+    '#fb4934', -- bright red
+    '#b8bb26', -- bright green
+    '#fabd2f', -- bright yellow
+    '#83a598', -- bright blue
+    '#d3869b', -- bright magenta
+    '#8ec07c', -- bright cyan
+    '#ebdbb2', -- bright white
   },
-  
+
   tab_bar = {
-    background = '#1e1e2e',
+    background = '#1d2021',
     active_tab = {
-      bg_color = '#cba6f7',
-      fg_color = '#11111b',
+      bg_color = '#fe8019',
+      fg_color = '#1d2021',
       intensity = 'Normal',
       underline = 'None',
       italic = false,
       strikethrough = false,
     },
     inactive_tab = {
-      bg_color = '#181825',
-      fg_color = '#cdd6f4',
+      bg_color = '#282828',
+      fg_color = '#a89984',
     },
     inactive_tab_hover = {
-      bg_color = '#313244',
-      fg_color = '#cdd6f4',
+      bg_color = '#3c3836',
+      fg_color = '#ebdbb2',
     },
     new_tab = {
-      bg_color = '#181825',
-      fg_color = '#cdd6f4',
+      bg_color = '#282828',
+      fg_color = '#a89984',
     },
     new_tab_hover = {
-      bg_color = '#313244',
-      fg_color = '#cdd6f4',
+      bg_color = '#3c3836',
+      fg_color = '#ebdbb2',
     },
   },
 }
