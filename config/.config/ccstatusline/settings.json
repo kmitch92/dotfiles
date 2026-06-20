@@ -8,14 +8,14 @@
         "color": "white"
       },
       {
-        "id": "2",
-        "type": "git-changes",
-        "color": "brightGreen"
-      },
-      {
         "id": "3",
         "type": "git-worktree",
         "color": "brightYellow"
+      },
+      {
+        "id": "2",
+        "type": "session-cost",
+        "color": "brightGreen"
       },
       {
         "id": "5",
