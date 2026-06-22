@@ -157,6 +157,9 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 
+# Serena MCP tool per-project artifacts
+.serena/
+
 # -----------------------------------------------------------------------------
 # NOTE: System-Generated Config Directories
 # -----------------------------------------------------------------------------
