@@ -100,10 +100,8 @@ dotfiles/
 │       ├── kitty/
 │       ├── wezterm/
 │       └── ghostty/
-├── claude/                 # Claude Code
-│   └── .claude/
-└── mcp/                    # MCP servers
-    └── .config/mcp/
+└── claude/                 # Claude Code
+    └── .claude/
 ```
 
 **Why the change?** GNU Stow cannot handle multiple packages trying to create symlinks
