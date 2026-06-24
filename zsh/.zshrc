@@ -191,4 +191,3 @@ export PATH="$HOME/.local/bin:$PATH"
 # Machine-local overrides (work paths, secrets) — not tracked in git.
 # Create ~/.zshrc.local on machines that need extra sourcing (see zsh/.zshrc.local.template).
 [ -f "$HOME/.zshrc.local" ] && source "$HOME/.zshrc.local"
-
