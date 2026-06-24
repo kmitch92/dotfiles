@@ -101,7 +101,6 @@ Everything needed for modern development work:
 
 ### Claude Code
 - **Claude Code CLI** - Agentic coding assistant
-- **MCP servers** (optional) - Filesystem and Git extensions
 
 ### Shell Configuration
 - **Zsh** - Modern shell
@@ -141,10 +140,8 @@ dotfiles/
 │       ├── kitty/
 │       ├── wezterm/
 │       └── ghostty/
-├── claude/                 # Claude Code configuration
-│   └── .claude/
-└── mcp/                    # MCP server configs
-    └── .config/mcp/
+└── claude/                 # Claude Code configuration
+    └── .claude/
 ```
 
 **Note:** All `.config` subdirectories are consolidated in the `config/` package to avoid
