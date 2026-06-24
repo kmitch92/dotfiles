@@ -52,8 +52,7 @@ dotfiles/
 │       ├── kitty/
 │       ├── wezterm/
 │       └── ghostty/
-├── claude/      # Claude Code
-└── mcp/         # MCP servers
+└── claude/      # Claude Code
 ```
 
 ## Next Steps
