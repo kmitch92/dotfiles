@@ -133,6 +133,7 @@ config/.config/nvim/.git/
 # Backups
 backups/
 *.backup
+*.backup.*
 *.bak
 *~
 
