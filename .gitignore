@@ -57,6 +57,18 @@ config/.config/monitors.xml
 config/.config/ubuntu-xdg-terminals.list
 config/.config/xdg-terminals.list
 
+# Re-ignore generated / app-state config dirs (added 2026-06-29)
+config/.config/enchant/
+config/.config/eog/
+config/.config/falkon/
+config/.config/gh/
+config/.config/gnome-initial-setup/
+config/.config/libreoffice/
+config/.config/liv-ai-scripts/
+config/.config/systemd/
+config/.config/ubuntu-insights/
+config/.config/vlc/
+
 # Re-ignore Neovim generated files
 config/.config/nvim/lazy-lock.json
 config/.config/nvim/.luarc.json
@@ -114,6 +126,9 @@ config/.config/nvim/.git/
 
 # Environment files with secrets
 *.local
+
+# Root-level claude/ runtime dir (NOT the tracked .claude/ project config)
+/claude/
 
 # Backups
 backups/
