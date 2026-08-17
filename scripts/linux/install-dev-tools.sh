@@ -123,6 +123,24 @@ else
     fi
 fi
 
+# lazygit (terminal UI for git) - not reliably packaged in apt, installed from
+# a pinned GitHub release tarball below
+if ! command_exists lazygit; then
+    print_warning "lazygit not installed (terminal UI for git)"
+    TOOLS_TO_INSTALL+=("lazygit")
+else
+    print_success "lazygit found: $(which lazygit)"
+fi
+
+# difftastic (structural diff) - binary is 'difft'; not reliably packaged in apt,
+# installed from a pinned GitHub release tarball below
+if ! command_exists difft; then
+    print_warning "difftastic not installed (syntax-aware structural diff)"
+    TOOLS_TO_INSTALL+=("difftastic")
+else
+    print_success "difftastic found: $(which difft)"
+fi
+
 # =============================================================================
 # Install Tools
 # =============================================================================
@@ -251,6 +269,141 @@ install_neovim_appimage() {
     fi
 }
 
+# =============================================================================
+# GitHub Release Tarball Installation (lazygit, difftastic)
+# =============================================================================
+# Neither tool is reliably packaged across Ubuntu/Debian releases, so both are
+# installed from pinned GitHub release tarballs.
+#
+# Versions are pinned to a specific tag deliberately: /releases/latest/download/
+# can resolve to a pre-release, a dev build, or a renamed asset - see the
+# "GitHub Release Tags" gotcha in .claude/CLAUDE.md (the Neovim dev-build
+# incident). Bump the pins here when upgrading.
+
+# Downloads a .tar.gz that contains a single binary at the archive root and
+# installs that binary to /usr/bin.
+# Usage: install_binary_from_tarball <label> <binary_name> <download_url>
+install_binary_from_tarball() {
+    local label="$1"
+    local binary="$2"
+    local url="$3"
+
+    # Fetch, extract and install inside a subshell so the cleanup trap is scoped
+    # to it. Bash traps are global: a RETURN trap set directly in this function
+    # would stay armed after the function returns and re-fire on every later
+    # function return in install.sh, with $tmp_dir out of scope. The `exit`
+    # calls below leave only the subshell - they never abort the sourced
+    # installer, which is why `return` is used at function level instead.
+    if ! (
+        if ! tmp_dir=$(mktemp -d); then
+            print_error "Failed to create temporary directory for $label"
+            exit 1
+        fi
+        trap 'rm -rf "$tmp_dir"' EXIT
+
+        tarball="$tmp_dir/$(basename "$url")"
+
+        print_info "Downloading $label..."
+        if ! curl -fsSL -o "$tarball" "$url"; then
+            print_error "Failed to download $label from $url"
+            exit 1
+        fi
+
+        # A GitHub error page is a few hundred bytes; a real binary tarball is MBs
+        file_size=$(wc -c < "$tarball" 2>/dev/null || echo "0")
+        if [ "$file_size" -lt 500000 ]; then
+            print_error "Downloaded $label archive is invalid or too small ($file_size bytes)"
+            print_info "This usually means the download URL returned an error page"
+            exit 1
+        fi
+
+        if ! tar -xzf "$tarball" -C "$tmp_dir" "$binary"; then
+            print_error "Failed to extract '$binary' from the $label archive"
+            exit 1
+        fi
+
+        print_info "Installing to /usr/bin/$binary..."
+        if ! sudo install -m 755 "$tmp_dir/$binary" "/usr/bin/$binary"; then
+            print_error "Failed to install $binary to /usr/bin"
+            exit 1
+        fi
+    ); then
+        return 1
+    fi
+
+    # Drop any cached PATH lookup so verification sees the new binary
+    hash -r 2>/dev/null || true
+
+    if command_exists "$binary" && "$binary" --version >/dev/null 2>&1; then
+        print_success "$label installed: $("$binary" --version | head -n1)"
+        return 0
+    fi
+
+    print_error "$label installation failed - /usr/bin/$binary is not working"
+    return 1
+}
+
+install_lazygit_release() {
+    # Pinned release tag (lazygit tags ARE prefixed with 'v')
+    local LAZYGIT_VERSION="0.64.1"
+
+    local arch
+    arch=$(uname -m)
+    local asset_arch=""
+
+    # lazygit asset naming: lazygit_<version>_linux_<x86_64|arm64>.tar.gz
+    case "$arch" in
+        x86_64)
+            asset_arch="x86_64"
+            ;;
+        aarch64|arm64)
+            asset_arch="arm64"
+            ;;
+        *)
+            print_error "Unsupported architecture for lazygit: $arch"
+            print_info "lazygit release tarballs are published for x86_64 and arm64 only"
+            return 1
+            ;;
+    esac
+
+    print_info "Detected architecture: $arch"
+
+    local url="https://github.com/jesseduffield/lazygit/releases/download/v${LAZYGIT_VERSION}/lazygit_${LAZYGIT_VERSION}_linux_${asset_arch}.tar.gz"
+
+    install_binary_from_tarball "lazygit v$LAZYGIT_VERSION" "lazygit" "$url"
+}
+
+install_difftastic_release() {
+    # Pinned release tag - difftastic tags have NO 'v' prefix (e.g. "0.70.0")
+    local DIFFTASTIC_VERSION="0.70.0"
+
+    local arch
+    arch=$(uname -m)
+    local asset_target=""
+
+    # difftastic asset naming uses Rust target triples, NOT lazygit's short arch
+    # names: difft-<target-triple>.tar.gz
+    case "$arch" in
+        x86_64)
+            asset_target="x86_64-unknown-linux-gnu"
+            ;;
+        aarch64|arm64)
+            asset_target="aarch64-unknown-linux-gnu"
+            ;;
+        *)
+            print_error "Unsupported architecture for difftastic: $arch"
+            print_info "difftastic release tarballs are published for x86_64 and aarch64 only"
+            return 1
+            ;;
+    esac
+
+    print_info "Detected architecture: $arch"
+
+    local url="https://github.com/Wilfred/difftastic/releases/download/${DIFFTASTIC_VERSION}/difft-${asset_target}.tar.gz"
+
+    install_binary_from_tarball "difftastic $DIFFTASTIC_VERSION" "difft" "$url"
+}
+
 # Handle Neovim upgrade if needed
 if $NVIM_NEEDS_UPGRADE; then
     echo ""
@@ -300,6 +453,15 @@ if [ ${#TOOLS_TO_INSTALL[@]} -gt 0 ]; then
                     sudo ln -sf $(which fdfind) /usr/local/bin/fd
                 fi
                 ;;
+            "lazygit")
+                # Pinned GitHub release tarball (not in apt on most releases).
+                # Guarded so a failed download doesn't abort the whole installer.
+                install_lazygit_release || print_warning "lazygit installation failed - continuing"
+                ;;
+            "difftastic")
+                # Pinned GitHub release tarball; installs the 'difft' binary
+                install_difftastic_release || print_warning "difftastic installation failed - continuing"
+                ;;
             "eza")
                 # eza might not be in default repos, try cargo or manual install
                 if command_exists cargo; then
@@ -331,6 +493,9 @@ for tool in "${TOOLS_TO_INSTALL[@]}"; do
             ;;
         "ripgrep")
             cmd="rg"
+            ;;
+        "difftastic")
+            cmd="difft"
             ;;
         "eza")
             # Could be either eza or exa
