@@ -81,6 +81,22 @@ else
     fi
 fi
 
+# lazygit (terminal UI for git)
+if ! command_exists lazygit; then
+    print_warning "lazygit not installed (terminal UI for git)"
+    TOOLS_TO_INSTALL+=("lazygit")
+else
+    print_success "lazygit found: $(which lazygit)"
+fi
+
+# difftastic (structural diff) - Homebrew formula is 'difftastic', binary is 'difft'
+if ! command_exists difft; then
+    print_warning "difftastic not installed (syntax-aware structural diff)"
+    TOOLS_TO_INSTALL+=("difftastic")
+else
+    print_success "difftastic found: $(which difft)"
+fi
+
 # =============================================================================
 # Install Tools via Homebrew
 # =============================================================================
@@ -122,6 +138,9 @@ for tool in "${TOOLS_TO_INSTALL[@]}"; do
             ;;
         "ripgrep")
             cmd="rg"
+            ;;
+        "difftastic")
+            cmd="difft"
             ;;
         "eza")
             # Could be either eza or exa
