@@ -1,0 +1,59 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/jesseduffield/lazygit/master/schema/config.json
+# =============================================================================
+# lazygit configuration
+# =============================================================================
+# Overrides only - upstream defaults are intentionally not duplicated here.
+# Reference: https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md
+#
+# macOS gotcha: lazygit's default config path on macOS is
+#   ~/Library/Application Support/lazygit/config.yml
+# NOT this file. zsh/.zshrc points LG_CONFIG_FILE at this path so the stowed
+# config is used without exporting XDG_CONFIG_HOME globally. On Linux this is
+# already the default location and is read directly.
+
+gui:
+  # Icons are off because this repo installs plain JetBrains Mono + Powerline
+  # fonts, not a Nerd Font (see the Font Management section in .claude/CLAUDE.md).
+  # After installing a Nerd Font, set this to "3" for file/branch icons.
+  nerdFontsVersion: ""
+  showRandomTip: false
+  # Gruvbox Dark Hard accents, matching the tmux and starship themes
+  theme:
+    activeBorderColor:
+      - "#fe8019"
+      - bold
+    inactiveBorderColor:
+      - "#665c54"
+    selectedLineBgColor:
+      - "#3c3836"
+
+git:
+  # NOTE: `git.paging` does not exist in lazygit v0.64.x - custom pagers were
+  # replaced by `git.diffRenderers`, an ordered list cycled with the `|` key.
+  #
+  # The first entry is active at startup, so difftastic is the default renderer
+  # here by deliberate choice. Tradeoff: this does NOT degrade silently - if
+  # `difft` is not on PATH the diff view errors instead of falling back, and the
+  # recovery is to press `|` to cycle to the `rawGit` entry below. Both
+  # scripts/macos/install-dev-tools.sh and scripts/linux/install-dev-tools.sh
+  # install `difft`, so any machine provisioned by this repo has it.
+  #
+  # This is lazygit-only. config/.config/git/config still leaves git's global
+  # `diff.external` unset, so plain `git diff` remains a unified diff.
+  diffRenderers:
+    - type: extDiff
+      name: difftastic
+      command: difft --color=always --context={{diffContext}}
+    - type: rawGit
+      name: default
+
+os:
+  # Makes `e` open the selected file in nvim at the current line (handy from the
+  # staging panel). Preset also drives lazygit's edit/editAtLine commands, so
+  # they need no manual wiring. This repo installs Neovim/LazyVim.
+  editPreset: "nvim"
+
+update:
+  # lazygit is installed by the dotfiles scripts (brew on macOS, pinned GitHub
+  # release tarball on Linux) - no self-update prompts
+  method: never
