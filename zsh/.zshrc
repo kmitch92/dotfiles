@@ -142,7 +142,7 @@ export NVM_DIR="$HOME/.nvm"
 # Git Worktree Helpers - Auto-fix Husky
 # ============================================================================
 
-# Wrapper for git worktree add that automatically creates Husky symlink
+# Wrapper for git worktree add that also links Husky into the new worktree
 # Usage: gwa <path> <branch>
 # Example: gwa worktrees/feat-new-feature feat-new-feature
 gwa() {
@@ -152,59 +152,80 @@ gwa() {
         return 1
     fi
 
-    # Run git worktree add with all arguments
-    git worktree add "$@"
+    # Run git worktree add with all arguments, propagating git's exit status so
+    # callers (workt, scripts) can tell a failed add from a successful one.
+    git worktree add "$@" || return $?
 
-    # If successful, create symlink (post-checkout hook should handle this, but just in case)
-    if [ $? -eq 0 ]; then
-        local worktree_path="$1"
+    echo "✅ Worktree created: $1"
 
-        # Find the main repo root (where .git directory is)
-        local main_repo=$(git rev-parse --git-common-dir | sed 's|/.git$||')
+    # The post-checkout hook should link Husky, but do it here too. The
+    # relative-path logic lives in exactly ONE place - the helper script below -
+    # shared with fix-husky-worktree() and tmux-worktree-session.sh.
+    local husky_link="$HOME/.config/tmux/scripts/git-husky-worktree-link.sh"
 
-        # Calculate relative path from worktree to main repo .husky
-        local relative_husky=$(python3 -c "import os.path; print(os.path.relpath('$main_repo/.husky', '$worktree_path'))" 2>/dev/null)
-
-        # Fallback to simple relative path if Python fails
-        if [ -z "$relative_husky" ]; then
-            relative_husky="../../.husky"
-        fi
-
-        # Create symlink if it doesn't exist
-        if [ ! -e "$worktree_path/.husky" ]; then
-            ln -sf "$relative_husky" "$worktree_path/.husky"
-            echo "✅ Worktree created with Husky symlink"
-        else
-            echo "✅ Worktree created (Husky already configured)"
-        fi
+    if [ ! -x "$husky_link" ]; then
+        echo "⚠️  Husky link skipped - not found or not executable: $husky_link"
+        echo "   Run 'stow config' from ~/dotfiles to deploy it"
+        return 0
     fi
+
+    # --force replaces the real .husky that git worktree add just checked out
+    "$husky_link" --force "$1"
 }
 
-# Fix existing worktree Husky symlink
-# Usage: fix-husky-worktree (run from within worktree directory)
+# Fix the Husky symlink in an existing worktree
+# Usage: fix-husky-worktree [worktree-path]   (defaults to the current directory)
 fix-husky-worktree() {
-    # Check if we're in a worktree (worktrees have .git file, not directory)
-    if [ -f .git ]; then
-        local main_repo=$(git rev-parse --git-common-dir | sed 's|/.git/worktrees/.*$||')
-        local current_dir=$(pwd)
-        local relative_husky=$(python3 -c "import os.path; print(os.path.relpath('$main_repo/.husky', '$current_dir'))" 2>/dev/null)
+    local husky_link="$HOME/.config/tmux/scripts/git-husky-worktree-link.sh"
 
-        # Fallback to simple relative path if Python fails
-        if [ -z "$relative_husky" ]; then
-            relative_husky="../../.husky"
-        fi
-
-        # Remove existing .husky if not a symlink
-        if [ -e .husky ] && [ ! -L .husky ]; then
-            rm -rf .husky
-        fi
-
-        ln -sf "$relative_husky" .husky
-        echo "✅ Husky symlink fixed: .husky -> $relative_husky"
-    else
-        echo "❌ Not in a worktree (or already in main repo)"
-        echo "   Worktrees have a .git file (not directory)"
+    if [ ! -x "$husky_link" ]; then
+        echo "❌ Not found or not executable: $husky_link"
+        echo "   Run 'stow config' from ~/dotfiles to deploy it"
+        return 1
     fi
+
+    # --force replaces a real .husky directory left behind by an earlier install
+    "$husky_link" --force "${1:-$PWD}"
+}
+
+# ============================================================================
+# Tmux Work Layout
+# ============================================================================
+
+# Build a 3-pane dev layout (lazygit / shell on the left, claude on the right)
+# rooted at a directory. Re-running from the same directory reuses the window.
+# Usage: work [path]
+# Example: work            # current directory
+#          work ~/dotfiles
+work() {
+    local script="$HOME/.config/tmux/scripts/tmux-work-session.sh"
+
+    if [ ! -x "$script" ]; then
+        echo "❌ Not found or not executable: $script"
+        echo "   Run 'stow config' from ~/dotfiles to deploy it"
+        return 1
+    fi
+
+    "$script" "${1:-$PWD}"
+}
+
+# Create a git worktree for a branch, then open the work layout inside it.
+# The worktree lands at <main-repo-root>/worktrees/<branch>, with '/' flattened
+# to '-' for the DIRECTORY name only - the branch keeps its real name.
+# Prompts when the branch already exists locally or only on origin.
+# Usage: workt [branch]
+# Example: workt feat/login   # branch feat/login in worktrees/feat-login
+#          workt              # prompts for the branch name
+workt() {
+    local script="$HOME/.config/tmux/scripts/tmux-worktree-session.sh"
+
+    if [ ! -x "$script" ]; then
+        echo "❌ Not found or not executable: $script"
+        echo "   Run 'stow config' from ~/dotfiles to deploy it"
+        return 1
+    fi
+
+    "$script" "$@"
 }
 
 export PATH="$HOME/.local/bin:$PATH"
