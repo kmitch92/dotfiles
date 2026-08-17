@@ -64,6 +64,10 @@ config/.config/nvim/.stylua.toml
 config/.config/nvim/plugin/
 config/.config/nvim/.git/
 
+# Re-ignore Zed generated/runtime files
+# LMDB data.mdb/lock.mdb prompt-library database, not configuration
+config/.config/zed/prompts/
+
 # -----------------------------------------------------------------------------
 # WHITELIST: Root Configuration Files
 # -----------------------------------------------------------------------------
