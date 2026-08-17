@@ -1,0 +1,50 @@
+# =============================================================================
+# Global Git Configuration (XDG)
+# =============================================================================
+# Git reads this file automatically as the second user-level config
+# ($XDG_CONFIG_HOME/git/config, defaulting to ~/.config/git/config). The
+# sibling `ignore` file in this directory is likewise picked up as the global
+# excludes file with no `core.excludesfile` entry needed - verified with
+# `git check-ignore -v`.
+#
+# Machine-specific settings (user.name, user.email, credential helpers, signing
+# keys) deliberately live in ~/.gitconfig, which is untracked and takes
+# precedence over this file. This repo is public: keep identities out of it.
+
+# -----------------------------------------------------------------------------
+# difftastic - optional structural diff (binary is `difft`)
+# -----------------------------------------------------------------------------
+# `[diff] external = difft` is deliberately NOT set globally. A global external
+# diff replaces git's unified-diff output everywhere, breaking anything that
+# parses `git diff` - patch pipelines, review tooling, editors and coding
+# agents. difftastic is opt-in per invocation instead.
+#
+# Everything below degrades gracefully when `difft` is absent: plain `git diff`,
+# `git show` and `git log -p` behave exactly as they do without this file. The
+# difftool and aliases are only consulted when explicitly invoked.
+
+[diff]
+	# Applies to `git difftool` only - has no effect on `git diff`
+	tool = difftastic
+
+[difftool]
+	# Launch the tool straight away instead of confirming per file
+	prompt = false
+
+[difftool "difftastic"]
+	# difftastic's 7-arg external-diff form: passing $MERGED first makes difft
+	# print the real path in its header instead of a temp filename
+	cmd = difft "$MERGED" "$LOCAL" "abcdef1" "100644" "$REMOTE" "abcdef2" "100644"
+
+[pager]
+	# Page difftool output that runs longer than a screen
+	difftool = true
+
+[alias]
+	# Opt-in difftastic views (no-ops unless `difft` is on PATH):
+	#   git dft          - structural diff of the working tree
+	#   git dfs <ref>    - structural diff of one commit
+	#   git dfl          - structural diff per commit in the log
+	dft = -c diff.external=difft diff
+	dfs = -c diff.external=difft show --ext-diff
+	dfl = -c diff.external=difft log -p --ext-diff
