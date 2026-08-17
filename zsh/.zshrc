@@ -90,6 +90,30 @@ if command -v fzf &>/dev/null; then
 fi
 
 # ============================================================================
+# Git Diff Tooling (lazygit + difftastic)
+# ============================================================================
+# On macOS lazygit reads ~/Library/Application Support/lazygit/config.yml by
+# default, so the stowed ~/.config/lazygit/config.yml would be ignored.
+# LG_CONFIG_FILE points lazygit at the stowed config instead of exporting
+# XDG_CONFIG_HOME, which would silently relocate the config lookup of every
+# other XDG-aware tool on the machine. Redundant but harmless on Linux, where
+# ~/.config/lazygit is already the default. lazygit keeps its state files in the
+# platform default dir either way, which is correct - state is not dotfiles.
+if [ -f "$HOME/.config/lazygit/config.yml" ]; then
+  export LG_CONFIG_FILE="$HOME/.config/lazygit/config.yml"
+fi
+
+# difftastic: render diffs inline (single column). Upstream's default,
+# side-by-side, wants ~160 columns; in a half-width tmux pane it degrades badly
+# - long TypeScript lines wrap and the column alignment breaks. Inline spends
+# the whole pane width on one column instead.
+# Accepted values: side-by-side | side-by-side-show-both | inline | json
+# This is inherited by lazygit's extDiff child process too, which is why the
+# renderer command in config/.config/lazygit/config.yml carries no --display
+# flag - one place to change the mode, not two.
+export DFT_DISPLAY="inline"
+
+# ============================================================================
 # tmux Auto-Start
 # ============================================================================
 # Automatically start tmux for interactive shells
