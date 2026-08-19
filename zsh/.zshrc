@@ -209,6 +209,24 @@ work() {
     "$script" "${1:-$PWD}"
 }
 
+# Same as work, but the 4-pane vertical variant: lazygit / shell on the left
+# (40%), nvim in the middle (30%), claude on the right (30%). A directory can
+# hold a work window and a vwork window at once; each reuses only its own.
+# Usage: vwork [path]
+# Example: vwork            # current directory
+#          vwork ~/dotfiles
+vwork() {
+    local script="$HOME/.config/tmux/scripts/tmux-work-session.sh"
+
+    if [ ! -x "$script" ]; then
+        echo "❌ Not found or not executable: $script"
+        echo "   Run 'stow config' from ~/dotfiles to deploy it"
+        return 1
+    fi
+
+    "$script" --vertical "${1:-$PWD}"
+}
+
 # Create a git worktree for a branch, then open the work layout inside it.
 # The worktree lands at <main-repo-root>/worktrees/<branch>, with '/' flattened
 # to '-' for the DIRECTORY name only - the branch keeps its real name.
@@ -226,6 +244,23 @@ workt() {
     fi
 
     "$script" "$@"
+}
+
+# Same as workt, but opens the 4-pane vertical layout (see vwork) in the
+# worktree instead of the 3-pane default.
+# Usage: vworkt [branch]
+# Example: vworkt feat/login   # branch feat/login in worktrees/feat-login
+#          vworkt              # prompts for the branch name
+vworkt() {
+    local script="$HOME/.config/tmux/scripts/tmux-worktree-session.sh"
+
+    if [ ! -x "$script" ]; then
+        echo "❌ Not found or not executable: $script"
+        echo "   Run 'stow config' from ~/dotfiles to deploy it"
+        return 1
+    fi
+
+    "$script" --vertical "$@"
 }
 
 export PATH="$HOME/.local/bin:$PATH"
