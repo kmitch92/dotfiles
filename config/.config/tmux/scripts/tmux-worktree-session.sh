@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
 # Tmux Worktree Work Layout
-# Creates (or reuses) a git worktree for a branch, then opens the 3-pane work
-# layout in it by handing off to tmux-work-session.sh.
+# Creates (or reuses) a git worktree for a branch, then opens the work layout in
+# it by handing off to tmux-work-session.sh. With --vertical, the 4-pane variant
+# (lazygit/terminal | nvim | claude) is opened instead of the 3-pane default.
 #
 #   <main-repo-root>/worktrees/<branch with '/' flattened to '-'>
 #
@@ -16,8 +17,9 @@
 #   - worktree already at the target   -> reuse it, just open the layout
 #   - worktree for <branch> elsewhere  -> offer to open that path instead
 #
-# Usage: tmux-worktree-session.sh [branch]   (prompts when branch is omitted)
-# Invoked by the workt() shell function in zsh/.zshrc
+# Usage: tmux-worktree-session.sh [--vertical] [branch]
+#        (prompts when the branch is omitted)
+# Invoked by the workt() / vworkt() shell functions in zsh/.zshrc
 
 set -euo pipefail
 
@@ -56,6 +58,14 @@ readonly REMOTE="origin"
 
 # Empty answers are a slip, not an intent - re-ask, but do not loop forever.
 readonly MAX_PROMPT_ATTEMPTS=3
+
+# Layout variant flag. Recognised here only to be forwarded verbatim: what it
+# means is entirely the layout script's business.
+readonly VERTICAL_FLAG="--vertical"
+
+# Options main() collected for the layout script, forwarded ahead of the
+# directory by open_layout(). Empty for the default 3-pane layout.
+LAYOUT_ARGS=()
 
 # -----------------------------------------------------------------------------
 # Logging Functions
@@ -239,7 +249,9 @@ open_layout() {
    Run 'stow config' from ~/dotfiles to deploy it"
 
     info "▶️  Opening work layout in $dir"
-    exec "$LAYOUT_SCRIPT" "$dir"
+    # ${arr[@]+"${arr[@]}"}: bash 3.2 (the system bash on macOS) treats an empty
+    # array as unset under `set -u`, so a bare "${LAYOUT_ARGS[@]}" would abort.
+    exec "$LAYOUT_SCRIPT" ${LAYOUT_ARGS[@]+"${LAYOUT_ARGS[@]}"} "$dir"
 }
 
 # Create the worktree; arguments are passed to `git worktree add` verbatim, in
@@ -257,6 +269,24 @@ add_worktree() {
 
 main() {
     require_repo
+
+    # Flags are consumed BEFORE the positional branch, so --vertical is never
+    # taken for a branch name (validate_branch rejects anything starting '-').
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            "$VERTICAL_FLAG")
+                # Assignment, not +=, so repeating the flag stays harmless.
+                LAYOUT_ARGS=("$VERTICAL_FLAG")
+                shift
+                ;;
+            --)
+                shift
+                break
+                ;;
+            -*) die "unknown option: $1" ;;
+            *) break ;;
+        esac
+    done
 
     local branch
     if [[ $# -gt 0 ]]; then

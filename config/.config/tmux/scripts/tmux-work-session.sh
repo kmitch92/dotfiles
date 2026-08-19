@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 
 # Tmux Work Layout
-# Builds a 3-pane development layout rooted at a target directory:
+# Builds a development layout rooted at a target directory, in one of two
+# variants.
+#
+# Default (horizontal), 3 panes - two even columns:
 #
 #   ┌──────────┬──────────┐
 #   │ lazygit  │          │
@@ -9,8 +12,19 @@
 #   │ terminal │          │
 #   └──────────┴──────────┘
 #
-# Usage: tmux-work-session.sh [directory]   (defaults to $PWD)
-# Invoked by the work() shell function in zsh/.zshrc
+# --vertical, 4 panes - left 40%, nvim 30%, claude 30%:
+#
+#   ┌────────┬──────┬──────┐
+#   │ lazygit│      │      │
+#   ├────────┤ nvim │claude│
+#   │terminal│      │      │
+#   └────────┴──────┴──────┘
+#
+# The two variants coexist: a single directory may hold one window of each, and
+# a re-run only ever reuses a window of its own variant.
+#
+# Usage: tmux-work-session.sh [--vertical] [directory]   (defaults to $PWD)
+# Invoked by the work() / vwork() shell functions in zsh/.zshrc
 
 set -euo pipefail
 
@@ -27,8 +41,24 @@ readonly SCRIPT_NAME
 # Window *indices* are no good either - renumber-windows is on.
 readonly WORK_DIR_OPTION="@work_dir"
 
-# Right column (claude) share of the window width - two even columns.
+# Second window option recording WHICH variant built the window, so the reuse
+# marker discriminates the two: the same directory can hold one window of each,
+# and each variant reuses only its own.
+readonly WORK_VARIANT_OPTION="@work_variant"
+readonly VARIANT_HORIZONTAL="horizontal"
+readonly VARIANT_VERTICAL="vertical"
+
+# Opt-in flag for the 4-pane variant.
+readonly VERTICAL_FLAG="--vertical"
+
+# Percentages passed to `split-window -l` are relative to the pane BEING SPLIT,
+# not to the window, which is what makes the vertical variant's 40/30/30 come
+# out of a 60% split followed by an even one:
+#   claude alone      : 50% of the whole window          -> 50 / 50
+#   nvim + claude     : 60% of the whole window, then... -> 40 / 60
+#   claude out of that: 50% of that 60%                  -> 40 / 30 / 30
 readonly CLAUDE_WIDTH="50%"
+readonly EDITOR_PAIR_WIDTH="60%"
 # Bottom-left (plain shell) share of the left column height; the top-left
 # (lazygit) pane keeps the remaining ~67%.
 readonly SHELL_HEIGHT="33%"
@@ -36,6 +66,7 @@ readonly SHELL_HEIGHT="33%"
 # Tools auto-launched into their panes. Missing tools degrade to a plain shell.
 readonly GIT_UI_CMD="lazygit"
 readonly AGENT_CMD="claude"
+readonly EDITOR_CMD="nvim"
 
 # -----------------------------------------------------------------------------
 # Logging Functions
@@ -96,21 +127,29 @@ unique_session_name() {
     printf '%s\n' "$candidate"
 }
 
-# Print the window id of an existing work window for $1, across ALL sessions
-# (attached or detached). Returns 1 when there is no match.
+# Print the window id of an existing work window for directory $1 built by
+# variant $2, across ALL sessions (attached or detached). Returns 1 when there
+# is no match.
 find_work_window() {
     local dir="$1"
-    local wid marker
+    local variant="$2"
+    local wid win_variant marker
 
-    # window_id ("@N") never contains a space, so the rest of the line is the
-    # marker value - which means directory paths with spaces survive intact.
-    while read -r wid marker; do
+    # '|' rather than a space as the field separator: window ids ("@N") and
+    # variant names never contain one, and `read` assigns the whole remainder of
+    # the line to its last variable, so directory paths survive intact whatever
+    # they contain.
+    while IFS='|' read -r wid win_variant marker; do
         [[ -n "$wid" ]] || continue
-        if [[ "$marker" == "$dir" ]]; then
+        # A window marked before this option existed records no variant, and can
+        # only have been built by the original horizontal layout.
+        [[ -n "$win_variant" ]] || win_variant="$VARIANT_HORIZONTAL"
+        if [[ "$marker" == "$dir" && "$win_variant" == "$variant" ]]; then
             printf '%s\n' "$wid"
             return 0
         fi
-    done < <(tmux list-windows -a -F "#{window_id} #{${WORK_DIR_OPTION}}" 2>/dev/null || true)
+    done < <(tmux list-windows -a \
+        -F "#{window_id}|#{${WORK_VARIANT_OPTION}}|#{${WORK_DIR_OPTION}}" 2>/dev/null || true)
 
     return 1
 }
@@ -156,28 +195,45 @@ launch_in_pane() {
 # Layout
 # -----------------------------------------------------------------------------
 
-# Build the 3-pane layout in an existing single-pane window.
-# $1 = directory, $2 = window id, $3 = pane id of that window's only pane.
+# Build the layout in an existing single-pane window.
+# $1 = directory, $2 = window id, $3 = pane id of that window's only pane,
+# $4 = variant (VARIANT_HORIZONTAL or VARIANT_VERTICAL).
 # Every operation targets a pane/window ID: index arithmetic is fragile here
 # because pane-base-index is 1 and renumber-windows is on.
 build_layout() {
     local dir="$1"
     local wid="$2"
     local pane_git="$3"
+    local variant="$4"
     local pane_agent
+    local pane_editor=""
 
-    # Right column: claude.
-    pane_agent="$(tmux split-window -h -l "$CLAUDE_WIDTH" -t "$pane_git" -c "$dir" \
-        -P -F '#{pane_id}')"
+    if [[ "$variant" == "$VARIANT_VERTICAL" ]]; then
+        # Take the nvim+claude block off the right of the window first, then
+        # halve THAT pane (see EDITOR_PAIR_WIDTH for the arithmetic).
+        pane_editor="$(tmux split-window -h -l "$EDITOR_PAIR_WIDTH" -t "$pane_git" -c "$dir" \
+            -P -F '#{pane_id}')"
+        pane_agent="$(tmux split-window -h -l "$CLAUDE_WIDTH" -t "$pane_editor" -c "$dir" \
+            -P -F '#{pane_id}')"
+    else
+        # Right column: claude.
+        pane_agent="$(tmux split-window -h -l "$CLAUDE_WIDTH" -t "$pane_git" -c "$dir" \
+            -P -F '#{pane_id}')"
+    fi
 
     # Left column: new bottom pane is the plain interactive shell, leaving ~67%
     # above it for lazygit. No pane id needed - nothing is sent to this pane.
+    # Splitting it last keeps it out of the column-width arithmetic above.
     tmux split-window -v -l "$SHELL_HEIGHT" -t "$pane_git" -c "$dir"
 
-    # Reuse marker (see WORK_DIR_OPTION).
+    # Reuse marker (see WORK_DIR_OPTION and WORK_VARIANT_OPTION).
     tmux set-option -w -t "$wid" "$WORK_DIR_OPTION" "$dir"
+    tmux set-option -w -t "$wid" "$WORK_VARIANT_OPTION" "$variant"
 
     launch_in_pane "$pane_git" "$GIT_UI_CMD"
+    if [[ -n "$pane_editor" ]]; then
+        launch_in_pane "$pane_editor" "$EDITOR_CMD"
+    fi
     launch_in_pane "$pane_agent" "$AGENT_CMD"
 
     # Explicit final focus: the claude pane.
@@ -188,6 +244,7 @@ build_layout() {
 # Never splits the current window and never creates a session.
 create_work_window() {
     local dir="$1"
+    local variant="$2"
     local target out pane_id wid
 
     # Resolve the invoking window explicitly, via $TMUX_PANE where available.
@@ -206,7 +263,7 @@ create_work_window() {
     pane_id="${out%% *}"
     wid="${out##* }"
 
-    build_layout "$dir" "$wid" "$pane_id"
+    build_layout "$dir" "$wid" "$pane_id" "$variant"
     tmux select-window -t "$wid"
 }
 
@@ -216,6 +273,7 @@ create_work_window() {
 # race with the client.
 create_work_session() {
     local dir="$1"
+    local variant="$2"
     local name out pane_id wid
 
     name="$(unique_session_name "$(session_name_for "$dir")")"
@@ -224,7 +282,7 @@ create_work_session() {
     pane_id="${out%% *}"
     wid="${out##* }"
 
-    build_layout "$dir" "$wid" "$pane_id"
+    build_layout "$dir" "$wid" "$pane_id" "$variant"
 
     tmux attach-session -t "=$name"
 }
@@ -237,19 +295,42 @@ main() {
     require_tmux
 
     local dir existing
+    local variant="$VARIANT_HORIZONTAL"
+
+    # Flags are consumed BEFORE the positional directory, so the flag can never
+    # be mistaken for a path (and a stray one is reported, never silently eaten).
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            "$VERTICAL_FLAG")
+                variant="$VARIANT_VERTICAL"
+                shift
+                ;;
+            --)
+                shift
+                break
+                ;;
+            -*) die "unknown option: $1" ;;
+            *) break ;;
+        esac
+    done
+
+    [[ $# -le 1 ]] ||
+        die "too many arguments - usage: $SCRIPT_NAME [$VERTICAL_FLAG] [directory]"
+
     dir="$(canonical_dir "${1:-$PWD}")"
 
-    # Idempotent re-run: reuse the work window for this directory if one exists,
-    # in this session or any other.
-    if existing="$(find_work_window "$dir")"; then
+    # Idempotent re-run: reuse the work window of THIS variant for this
+    # directory if one exists, in this session or any other. The other variant's
+    # window for the same directory is deliberately left alone.
+    if existing="$(find_work_window "$dir" "$variant")"; then
         focus_work_window "$existing"
         return 0
     fi
 
     if [[ -n "${TMUX:-}" ]]; then
-        create_work_window "$dir"
+        create_work_window "$dir" "$variant"
     else
-        create_work_session "$dir"
+        create_work_session "$dir" "$variant"
     fi
 }
 
