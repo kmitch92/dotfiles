@@ -1,0 +1,139 @@
+#!/usr/bin/env bash
+
+# Tmux Session Save Script
+# Captures the current tmux session state and saves it to a JSON file.
+#
+# Usage: tmsave [--auto] [-h|--help]
+
+set -uo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly SCRIPT_DIR
+
+# Source the library from the same directory.
+source "$SCRIPT_DIR/tmux-state-lib.sh"
+
+# ==============================================================================
+# Configuration
+# ==============================================================================
+
+readonly AUTO_FLAG="--auto"
+readonly HELP_FLAG="-h"
+readonly HELP_LONG="--help"
+
+AUTO_MODE=0
+
+# ==============================================================================
+# Functions
+# ==============================================================================
+
+show_help() {
+    cat << 'EOF'
+Usage: tmsave [--auto] [-h|--help]
+
+Capture the current tmux session state and save it to a JSON file.
+
+Options:
+  --auto      Silent mode: no output on success, exit 0 if no tmux server
+  -h, --help  Show this help message
+EOF
+}
+
+die() {
+    echo "ERROR: $*" >&2
+    exit 1
+}
+
+# ==============================================================================
+# Main
+# ==============================================================================
+
+main() {
+    # Parse arguments.
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            "$AUTO_FLAG")
+                AUTO_MODE=1
+                shift
+                ;;
+            "$HELP_FLAG" | "$HELP_LONG")
+                show_help
+                exit 0
+                ;;
+            *)
+                die "unknown option: $1"
+                ;;
+        esac
+    done
+
+    # Ensure save directory exists.
+    if ! mkdir -p "$TM_SAVE_DIR"; then
+        die "cannot create save directory: $TM_SAVE_DIR"
+    fi
+
+    # Capture the session.
+    local capture
+    if ! capture=$(tm_capture_session 2>/dev/null); then
+        # No tmux server running.
+        if [[ $AUTO_MODE -eq 1 ]]; then
+            # In --auto mode, exit silently.
+            exit 0
+        else
+            # Without --auto, report the error.
+            echo "Error: no tmux server is running" >&2
+            exit 1
+        fi
+    fi
+
+    # Determine the base filename.
+    local base_filename
+    if [[ $AUTO_MODE -eq 1 ]]; then
+        base_filename="auto-$(date +%Y-%m-%d_%H%M)"
+    else
+        base_filename="$(date +%Y-%m-%d_%H%M)"
+    fi
+
+    # Make the filename unique if needed (if file exists, append -2, -3, etc.).
+    local filename="$base_filename.json"
+    local n=2
+    while [[ -f "$TM_SAVE_DIR/$filename" ]]; do
+        filename="${base_filename}-${n}.json"
+        n=$((n + 1))
+    done
+
+    local save_path="$TM_SAVE_DIR/$filename"
+
+    # In --auto mode, check if the new capture is identical to the newest existing save.
+    if [[ $AUTO_MODE -eq 1 ]]; then
+        local newest_save
+        newest_save=$(find "$TM_SAVE_DIR" -maxdepth 1 -name '*.json' -type f -printf '%T@ %p\n' 2>/dev/null | \
+                      sort -rn | head -1 | awk '{print $2}')
+
+        if [[ -n "$newest_save" && -f "$newest_save" ]]; then
+            # Compare the two saves ignoring saved_at field.
+            local new_canonical old_canonical
+            new_canonical=$(jq -S 'del(.saved_at)' <<< "$capture" 2>/dev/null)
+            old_canonical=$(jq -S 'del(.saved_at)' < "$newest_save" 2>/dev/null)
+
+            if [[ "$new_canonical" == "$old_canonical" ]]; then
+                # State unchanged: skip writing in --auto mode.
+                exit 0
+            fi
+        fi
+    fi
+
+    # Write the file.
+    if ! echo "$capture" | jq '.' > "$save_path"; then
+        die "failed to write save file: $save_path"
+    fi
+
+    # Print the path (unless --auto mode, where we are silent on success).
+    if [[ $AUTO_MODE -eq 0 ]]; then
+        echo "$save_path"
+    fi
+
+    # Prune old saves (older than 7 days).
+    find "$TM_SAVE_DIR" -maxdepth 1 -name '*.json' -type f -mtime +7 -delete
+}
+
+main "$@"
