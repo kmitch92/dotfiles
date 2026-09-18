@@ -58,6 +58,9 @@ config/.config/ubuntu-xdg-terminals.list
 config/.config/xdg-terminals.list
 
 # Re-ignore generated / app-state config dirs (added 2026-06-29)
+# Application cache and state directories
+config/.config/blender/
+config/.config/obsidian/
 config/.config/enchant/
 config/.config/eog/
 config/.config/falkon/
