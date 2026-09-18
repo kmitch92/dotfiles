@@ -65,7 +65,10 @@ config/.config/gh/
 config/.config/gnome-initial-setup/
 config/.config/libreoffice/
 config/.config/liv-ai-scripts/
-config/.config/systemd/
+config/.config/systemd/**
+!config/.config/systemd/user/
+!config/.config/systemd/user/tmsave.service
+!config/.config/systemd/user/tmsave.timer
 config/.config/ubuntu-insights/
 config/.config/vlc/
 

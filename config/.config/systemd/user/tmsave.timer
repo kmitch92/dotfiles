@@ -1,0 +1,10 @@
+[Unit]
+Description=Save tmux session state every 15 minutes
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=15min
+Unit=tmsave.service
+
+[Install]
+WantedBy=timers.target
