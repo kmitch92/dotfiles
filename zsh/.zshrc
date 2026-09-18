@@ -271,6 +271,36 @@ vworkt() {
     "$script" --vertical "$@"
 }
 
+# Save the current tmux session to ~/.local/share/tmsave/
+# Usage: tmsave
+tmsave() {
+    local script="$HOME/.config/tmux/scripts/tmsave"
+
+    if [ ! -x "$script" ]; then
+        echo "❌ Not found or not executable: $script"
+        echo "   Run 'stow config' from ~/dotfiles to deploy it"
+        return 1
+    fi
+
+    "$script" "$@"
+}
+
+# Restore a saved session into a new tmux session
+# Usage: tmload            (picker)
+#        tmload --last     (newest save, no prompts)
+#        tmload <file>     (a specific save file)
+tmload() {
+    local script="$HOME/.config/tmux/scripts/tmload"
+
+    if [ ! -x "$script" ]; then
+        echo "❌ Not found or not executable: $script"
+        echo "   Run 'stow config' from ~/dotfiles to deploy it"
+        return 1
+    fi
+
+    "$script" "$@"
+}
+
 export PATH="$HOME/.local/bin:$PATH"
 
 #. "$HOME/.local/bin/env"
