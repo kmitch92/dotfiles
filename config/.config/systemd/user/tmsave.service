@@ -1,0 +1,6 @@
+[Unit]
+Description=Save current tmux session state
+
+[Service]
+Type=oneshot
+ExecStart=%h/.config/tmux/scripts/tmsave --auto

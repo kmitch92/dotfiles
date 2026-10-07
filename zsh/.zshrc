@@ -123,12 +123,20 @@ if command -v tmux &> /dev/null; then
     # 1. Not already in tmux
     # 2. Not disabled via environment variable
     # 3. This is an interactive shell
-    # 4. Not in an IDE terminal (VS Code, etc.)
+    # 4. Not in an IDE terminal (VS Code, Cursor, Kiro, JetBrains)
+    #
+    # NOTE: do NOT test [[ -z "$TERM_PROGRAM" ]] here. Every real terminal
+    # emulator sets TERM_PROGRAM (ghostty, WezTerm, iTerm.app, Apple_Terminal,
+    # and kitty via its shell integration), so an emptiness test suppresses
+    # auto-start in exactly the terminals it is wanted in. Deny the specific
+    # IDE values instead; unknown/empty values are allowed through.
     if [[ -z "$TMUX" ]] && \
        [[ "${DISABLE_AUTO_TMUX:-false}" != "true" ]] && \
        [[ $- == *i* ]] && \
        [[ -z "$VSCODE_INJECTION" ]] && \
-       [[ -z "$TERM_PROGRAM" ]]; then
+       [[ "$TERM_PROGRAM" != "vscode" ]] && \
+       [[ "$TERM_PROGRAM" != "kiro" ]] && \
+       [[ "$TERMINAL_EMULATOR" != "JetBrains-JediTerm" ]]; then
         # Attach to existing session or create new one
         tmux attach-session -t default || tmux new-session -s default
     fi
@@ -263,6 +271,37 @@ vworkt() {
     "$script" --vertical "$@"
 }
 
+
+# Save the current tmux session to ~/.local/share/tmsave/
+# Usage: tmsave
+tmsave() {
+    local script="$HOME/.config/tmux/scripts/tmsave"
+
+    if [ ! -x "$script" ]; then
+        echo "❌ Not found or not executable: $script"
+        echo "   Run 'stow config' from ~/dotfiles to deploy it"
+        return 1
+    fi
+
+    "$script" "$@"
+}
+
+# Restore a saved session into a new tmux session
+# Usage: tmload            (picker)
+#        tmload --last     (newest save, no prompts)
+#        tmload <file>     (a specific save file)
+tmload() {
+    local script="$HOME/.config/tmux/scripts/tmload"
+
+    if [ ! -x "$script" ]; then
+        echo "❌ Not found or not executable: $script"
+        echo "   Run 'stow config' from ~/dotfiles to deploy it"
+        return 1
+    fi
+
+    "$script" "$@"
+}
+
 export PATH="$HOME/.local/bin:$PATH"
 
 #. "$HOME/.local/bin/env"
@@ -271,3 +310,18 @@ export PATH="$HOME/.local/bin:$PATH"
 # Machine-local overrides (work paths, secrets) — not tracked in git.
 # Create ~/.zshrc.local on machines that need extra sourcing (see zsh/.zshrc.local.template).
 [ -f "$HOME/.zshrc.local" ] && source "$HOME/.zshrc.local"
+
+# >>> dotclaude (claude config) PATH >>>
+# Ensure ~/.local/bin (claude-bare, uv, uvx) is on PATH.
+case ":$PATH:" in
+  *":$HOME/.local/bin:"*) ;;
+  *) export PATH="$HOME/.local/bin:$PATH" ;;
+esac
+# <<< dotclaude (claude config) PATH <<<
+
+# bun completions
+[ -s "/home/kiel/.bun/_bun" ] && source "/home/kiel/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"

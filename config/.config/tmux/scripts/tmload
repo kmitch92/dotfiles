@@ -1,0 +1,391 @@
+#!/usr/bin/env bash
+
+# Tmux Session Load Script
+# Restores a tmux session from a saved JSON file.
+#
+# Usage: tmload [--last | <save-file>] [-h|--help]
+
+set -uo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly SCRIPT_DIR
+
+# Source the library from the same directory.
+source "$SCRIPT_DIR/tmux-state-lib.sh"
+
+# ==============================================================================
+# Configuration
+# ==============================================================================
+
+readonly LAST_FLAG="--last"
+readonly PREVIEW_FLAG="--preview"
+readonly HELP_FLAG="-h"
+readonly HELP_LONG="--help"
+
+# ==============================================================================
+# Functions
+# ==============================================================================
+
+preview_save_file() {
+    local save_file="$1"
+
+    [[ -f "$save_file" ]] || die "save file not found: $save_file"
+
+    local save_json
+    save_json=$(cat "$save_file") || die "failed to read save file: $save_file"
+
+    local session saved_at
+    session=$(jq -r '.session' <<< "$save_json")
+    saved_at=$(jq -r '.saved_at' <<< "$save_json")
+
+    echo "$session   $saved_at"
+
+    jq -r '.windows[] | @json' <<< "$save_json" | while read -r window_json; do
+        tm_describe_window "$(jq -r '.' <<< "$window_json")"
+    done
+}
+
+show_help() {
+    cat << 'EOF'
+Usage: tmload [--last | <save-file>] [--no-attach] [-h|--help]
+
+Restore a tmux session from a saved JSON file.
+
+Options:
+  --last       Load the newest save file with all windows
+  --no-attach  Restore the session without attaching or switching the client
+  -h, --help   Show this help message
+
+Arguments:
+  <save-file>  Restore the specified save file with all windows
+EOF
+}
+
+die() {
+    echo "ERROR: $*" >&2
+    exit 1
+}
+
+# ==============================================================================
+# Restore Session
+# ==============================================================================
+
+restore_session() {
+    local save_file="$1"
+    local selected_window_indices="$2"  # Space-separated indices, or empty for all
+    local no_attach="${3:-0}"  # 1 to skip attach/switch, 0 to attach/switch
+
+    [[ -f "$save_file" ]] || die "save file not found or unreadable: $save_file"
+
+    local save_json
+    save_json=$(cat "$save_file") || die "failed to read save file: $save_file"
+
+    # Extract session name and windows.
+    local saved_session_name
+    saved_session_name=$(jq -r '.session' <<< "$save_json")
+
+    # Create the new session name.
+    local new_session_name
+    new_session_name="${saved_session_name}-$(date +%m%d-%H%M)"
+
+    # Get list of existing sessions (or empty if no server).
+    local existing_sessions=()
+    if existing_sessions_str=$(_tmux_cmd list-sessions -F '#{session_name}' 2>/dev/null); then
+        mapfile -t existing_sessions <<< "$existing_sessions_str"
+    fi
+
+    # Make the new session name unique.
+    new_session_name=$(tm_unique_session_name "$new_session_name" "${existing_sessions[@]}")
+
+    # Determine which windows to restore.
+    local window_indices_to_restore=()
+    if [[ -z "$selected_window_indices" ]]; then
+        # Restore all windows.
+        local window_count
+        window_count=$(jq '.windows | length' <<< "$save_json")
+        for ((i = 0; i < window_count; i++)); do
+            window_indices_to_restore+=($i)
+        done
+    else
+        # Restore only selected windows (indices provided).
+        read -ra window_indices_to_restore <<< "$selected_window_indices"
+    fi
+
+    # Restore each selected window in order.
+    local first_window=1
+    local new_window_id=""
+    local prev_window_id=""
+    local active_window_idx=-1
+    local restored_window_ids=()
+
+    for win_idx in "${window_indices_to_restore[@]}"; do
+        local window
+        window=$(jq ".windows[$win_idx]" <<< "$save_json")
+
+        local win_name win_layout win_active
+        win_name=$(jq -r '.name' <<< "$window")
+        win_layout=$(jq -r '.layout' <<< "$window")
+        win_active=$(jq -r '.active' <<< "$window")
+
+        # Get panes for this window.
+        local panes
+        panes=$(jq '.panes' <<< "$window")
+
+        # First pane (used for creating the window).
+        local first_pane_cwd first_pane_cmd
+        first_pane_cwd=$(jq -r '.panes[0].cwd' <<< "$window")
+        first_pane_cmd=$(jq -r '.panes[0].cmd' <<< "$window")
+
+        if [[ $first_window -eq 1 ]]; then
+            # Create the session with the first window.
+            new_window_id=$(_tmux_cmd new-session -d -s "$new_session_name" -n "$win_name" \
+                           -c "$first_pane_cwd" -P -F '#{window_id}')
+            first_window=0
+            prev_window_id="$new_window_id"
+            restored_window_ids+=("$new_window_id")
+        else
+            # Create a new window appended after the previous window.
+            new_window_id=$(_tmux_cmd new-window -a -t "$prev_window_id" -n "$win_name" \
+                           -c "$first_pane_cwd" -P -F '#{window_id}')
+            prev_window_id="$new_window_id"
+            restored_window_ids+=("$new_window_id")
+        fi
+
+        # Track active window.
+        if [[ "$win_active" == "true" ]]; then
+            active_window_idx=$win_idx
+        fi
+
+        # Collect pane IDs in creation order.
+        # Get the first pane ID from the newly created window.
+        local pane_ids=()
+        local first_pane_id
+        first_pane_id=$(_tmux_cmd list-panes -t "$new_window_id" -F '#{pane_id}' | head -1)
+        pane_ids+=("$first_pane_id")
+
+        # Restore first pane's command.
+        local resolved_cmd
+        resolved_cmd=$(tm_resolve_cmd "$first_pane_cmd" "$TM_OVERRIDES")
+        if [[ -n "$resolved_cmd" ]]; then
+            _tmux_cmd send-keys -t "$first_pane_id" "$resolved_cmd" Enter
+        fi
+
+        # Create additional panes (starting from pane 1).
+        local pane_count
+        pane_count=$(jq '.panes | length' <<< "$window")
+
+        # Check if first pane is active.
+        local active_pane_idx=-1
+        local first_pane_active=$(jq -r '.panes[0].active' <<< "$window")
+        if [[ "$first_pane_active" == "true" ]]; then
+            active_pane_idx=0
+        fi
+
+        for ((pane_idx = 1; pane_idx < pane_count; pane_idx++)); do
+            local pane
+            pane=$(jq ".panes[$pane_idx]" <<< "$window")
+
+            local pane_cwd pane_cmd pane_active
+            pane_cwd=$(jq -r '.cwd' <<< "$pane")
+            pane_cmd=$(jq -r '.cmd' <<< "$pane")
+            pane_active=$(jq -r '.active' <<< "$pane")
+
+            # Create the pane.
+            local new_pane_id
+            new_pane_id=$(_tmux_cmd split-window -t "$new_window_id" -c "$pane_cwd" -P -F '#{pane_id}')
+            pane_ids+=("$new_pane_id")
+
+            # Track active pane.
+            if [[ "$pane_active" == "true" ]]; then
+                active_pane_idx=$pane_idx
+            fi
+
+            # Send command to this pane.
+            resolved_cmd=$(tm_resolve_cmd "$pane_cmd" "$TM_OVERRIDES")
+            if [[ -n "$resolved_cmd" ]]; then
+                _tmux_cmd send-keys -t "$new_pane_id" "$resolved_cmd" Enter
+            fi
+        done
+
+        # Apply the layout.
+        if ! _tmux_cmd select-layout -t "$new_window_id" "$win_layout"; then
+            echo "ERROR: failed to apply layout to window '$win_name'" >&2
+            exit 1
+        fi
+
+        # Select the active pane using the pane ID array (0-based JSON index).
+        if [[ $active_pane_idx -ge 0 && $active_pane_idx -lt ${#pane_ids[@]} ]]; then
+            local active_pane_id="${pane_ids[$active_pane_idx]}"
+            _tmux_cmd select-pane -t "$active_pane_id"
+        fi
+    done
+
+    # Select the active window (if it was among those restored).
+    if [[ $active_window_idx -ge 0 ]]; then
+        # Check if this window index was restored.
+        local active_restored=0
+        for idx in "${window_indices_to_restore[@]}"; do
+            if [[ $idx -eq $active_window_idx ]]; then
+                active_restored=1
+                break
+            fi
+        done
+        if [[ $active_restored -eq 1 ]]; then
+            # Find the position of this window in restored_window_ids.
+            local position=0
+            for ((i = 0; i < ${#window_indices_to_restore[@]}; i++)); do
+                if [[ ${window_indices_to_restore[$i]} -eq $active_window_idx ]]; then
+                    position=$i
+                    break
+                fi
+            done
+            # Use bare window ID, not session:window format.
+            _tmux_cmd select-window -t "${restored_window_ids[$position]}"
+        fi
+    fi
+
+    # Attach to the new session (unless --no-attach or sandboxed).
+    if [[ $no_attach -eq 0 ]]; then
+        if [[ -n "${TMUX:-}" ]]; then
+            # Inside tmux: switch to the new session.
+            _tmux_cmd switch-client -t "$new_session_name"
+        else
+            # Outside tmux: attach to the new session.
+            _tmux_cmd attach -t "$new_session_name"
+        fi
+    else
+        # Print the session name to stdout for scripting.
+        echo "$new_session_name"
+    fi
+}
+
+# ==============================================================================
+# Main
+# ==============================================================================
+
+main() {
+    local mode="interactive"  # "interactive", "last", or "file"
+    local save_file=""
+    local no_attach=0
+
+    # Treat non-empty TM_TMUX_ARGS as implying --no-attach (sandboxed mode).
+    if [[ -n "$TM_TMUX_ARGS" ]]; then
+        no_attach=1
+    fi
+
+    # Handle --preview mode first (used by fzf).
+    if [[ $# -ge 2 && "$1" == "$PREVIEW_FLAG" ]]; then
+        preview_save_file "$2"
+        exit 0
+    fi
+
+    # Parse arguments.
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            "$LAST_FLAG")
+                mode="last"
+                shift
+                ;;
+            "--no-attach")
+                no_attach=1
+                shift
+                ;;
+            "$HELP_FLAG" | "$HELP_LONG")
+                show_help
+                exit 0
+                ;;
+            -*)
+                die "unknown option: $1"
+                ;;
+            *)
+                # Treat as save file path.
+                mode="file"
+                save_file="$1"
+                shift
+                ;;
+        esac
+    done
+
+    [[ $# -eq 0 ]] || die "too many arguments"
+
+    # Validate save directory.
+    if [[ ! -d "$TM_SAVE_DIR" ]]; then
+        echo "No saved sessions found" >&2
+        exit 1
+    fi
+
+    # Find all save files.
+    local save_files=()
+    mapfile -t save_files < <(find "$TM_SAVE_DIR" -maxdepth 1 -name '*.json' -type f -printf '%f\n' 2>/dev/null | sort -r)
+
+    if [[ ${#save_files[@]} -eq 0 ]]; then
+        echo "No saved sessions found" >&2
+        exit 1
+    fi
+
+    # Determine which save file to use and which windows to restore.
+    local target_save_file
+    local selected_window_indices=""
+
+    case "$mode" in
+        "last")
+            # Use the newest save file, all windows.
+            target_save_file="$TM_SAVE_DIR/${save_files[0]}"
+            ;;
+        "file")
+            # Use the specified save file, all windows.
+            target_save_file="$save_file"
+            ;;
+        "interactive")
+            # Two-stage fzf picker.
+
+            # Stage 1: Choose a save file.
+            local chosen_save
+            chosen_save=$(printf '%s\n' "${save_files[@]}" | \
+                fzf --preview "$0 --preview '$TM_SAVE_DIR/{}'" \
+                    --preview-window=right:40% \
+                    --no-multi)
+
+            if [[ -z "$chosen_save" ]]; then
+                # User cancelled.
+                exit 0
+            fi
+
+            target_save_file="$TM_SAVE_DIR/$chosen_save"
+
+            # Stage 2: Choose windows from the selected file.
+            local save_json
+            save_json=$(cat "$target_save_file")
+
+            local window_lines=""
+            local win_idx=0
+            while read -r line; do
+                # Prepend index (with leading space).
+                window_lines+="$win_idx $line"$'\n'
+                ((win_idx++))
+            done < <(jq -r '.windows[] | @json' <<< "$save_json" | while read -r window_json; do
+                tm_describe_window "$(jq -r '.' <<< "$window_json")"
+            done)
+
+            local chosen_windows
+            chosen_windows=$(printf '%s' "$window_lines" | \
+                fzf --multi \
+                    --header 'Tab select · Ctrl-A all · Enter load' \
+                    --bind 'ctrl-a:select-all' \
+                    --with-nth '2..')
+
+            if [[ -z "$chosen_windows" ]]; then
+                # User cancelled (pressed Escape or Ctrl-C).
+                exit 0
+            fi
+
+            # Extract window indices from the chosen lines.
+            selected_window_indices=$(printf '%s\n' "$chosen_windows" | awk '{print $1}' | tr '\n' ' ')
+            ;;
+    esac
+
+    # Restore the session.
+    restore_session "$target_save_file" "$selected_window_indices" "$no_attach"
+}
+
+main "$@"

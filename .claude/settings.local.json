@@ -28,9 +28,21 @@
       "Bash(awk:*)",
       "Bash(stat:*)",
       "Bash(npx:*)",
-      "WebFetch(domain:raw.githubusercontent.com)"
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Read(//home/kiel/dotclaude/**)",
+      "Read(//home/kiel/**)",
+      "Bash(gh repo *)"
     ],
     "deny": [],
     "ask": []
-  }
+  },
+  "enabledMcpjsonServers": [
+    "context7",
+    "sequential-thinking",
+    "puppeteer",
+    "browser-tools",
+    "aws-cdk",
+    "serena",
+    "headroom"
+  ]
 }
